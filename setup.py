@@ -4,7 +4,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="pcs-pylibs",
+    name="pcs_pylibs",
     version="0.0.1",
     author="Rainer Pietsch",
     author_email="r.pietsch@pcs-at.com",
