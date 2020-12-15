@@ -46,6 +46,7 @@ Dies ist in der "Process" Funktion möglich.
 #---------------------------------------------
 # Class-local Data
 #---------------------------------------------
+	__MyProgName = ""	# der Programmname aus __Argumente[0] aufbereitet
 	__Definition = {}	# the definition-dict
 	__Description = ""	# Description of program for help
 	__Argumente = []	# list of commandline arguments
@@ -218,6 +219,14 @@ Dies ist in der "Process" Funktion möglich.
 		else:
 			raise TypeError('AddPar is not a string')
 		self.__IsPrepared = False	# we need a Prepare-call after this
+	def MyProgName(self):
+		"""
+		Return the program-name
+
+		Returns:
+		    str: Name of the program
+		"""
+		return self.__MyProgName
 
 	def __GenUsageText(self,ShortLen,LongLen):
 		"""
@@ -227,7 +236,8 @@ Dies ist in der "Process" Funktion möglich.
 		    ShortLen (int): Max. length of the "short"-options (0 or 1)
 		    LongLen (int): Max. length of the "long"-options
 		"""
-		Text = f"Usage:\n{sys.argv[0]} OPTIONS {self.__AddPar}\n\n{self.__Description}\n\nOptions:\n"
+		self.__MyProgName = Path(sys.argv[0]).stem
+		Text = f"Usage:\n{self.__MyProgName} OPTIONS {self.__AddPar}\n\n{self.__Description}\n\nOptions:\n"
 		for Single in self.__UsageTextList:
 			Ut_Short = Single[0]
 			Ut_Long = Single[1]
@@ -553,6 +563,24 @@ Dies ist in der "Process" Funktion möglich.
 		    Error-msg	if option is erroneous
 		"""
 		wMod = wPar['m']
+#-------------------------
+# Text
+#-------------------------
+		if wMod == 't':
+			try:
+				ll = wPar['L']
+				if a < ll:
+					return f"Value {a} for parameter {ParKey} is less than lower limit ({ll})"
+			except:
+				pass
+			try:
+				ul = wPar['U']
+				if a > ul:
+					return f"Value {a} for parameter {ParKey} is bigger than upper limit ({ul})"
+			except:
+				pass
+			self[ParName] = a
+			return None
 #-------------------------
 # Integer
 #-------------------------
