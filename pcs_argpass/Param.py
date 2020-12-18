@@ -304,7 +304,7 @@ Dies ist in der "Process" Funktion möglich.
 				n = (n + (" " * (ll + 4)))[:ll+4] 
 				wLine += n + t
 				Text += wLine
-			Text += "\n"
+#			Text += "\n"
 		self.__UsageText = Text
 
 	def Usage(self):
