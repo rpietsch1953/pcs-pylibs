@@ -33,7 +33,7 @@ eingebunden.
 Diese Exception wird ausgelöst wenn in der Deklaration
 ein Fehler vorliegt.
 Dies ist im Konstructor oder den "SetXXX" Funktionen
-sowie in der "Prepare" Funktion  möglich.
+sowie in der "Process" Funktion  möglich.
 		'''
 		pass
 	class ParamError(__ExceptionTemplate):
@@ -46,7 +46,9 @@ Dies ist in der "Process" Funktion möglich.
 #---------------------------------------------
 # Class-local Data
 #---------------------------------------------
-	__MyProgName = ""	# der Programmname aus __Argumente[0] aufbereitet
+	__MyProgName = ""	# the programm-name from __Argumente[0] (only name)
+	__MyProgPath = ""	# the path of the executeable from __Argumente[0]
+	__MyPwd = ""		# Actual directory at invocation of "Process" 
 	__Definition = {}	# the definition-dict
 	__Description = ""	# Description of program for help
 	__Argumente = []	# list of commandline arguments
@@ -219,14 +221,33 @@ Dies ist in der "Process" Funktion möglich.
 		else:
 			raise TypeError('AddPar is not a string')
 		self.__IsPrepared = False	# we need a Prepare-call after this
+
 	def MyProgName(self):
 		"""
 		Return the program-name
 
 		Returns:
-		    str: Name of the program
+		    str: Name of the executeable
 		"""
 		return self.__MyProgName
+
+	def MyProgPath(self):
+		"""
+		Return the program-path
+
+		Returns:
+		    str: Path of the executeable
+		"""
+		return self.__MyProgPath
+
+	def MyPwd(self):
+		"""
+		Return the directory at invocation of "Process"
+
+		Returns:
+		    str: Directory at "Process"-time
+		"""
+		return self.__MyPwd
 
 	def __GenUsageText(self,ShortLen,LongLen):
 		"""
@@ -236,7 +257,7 @@ Dies ist in der "Process" Funktion möglich.
 		    ShortLen (int): Max. length of the "short"-options (0 or 1)
 		    LongLen (int): Max. length of the "long"-options
 		"""
-		self.__MyProgName = Path(sys.argv[0]).stem
+
 		Text = f"Usage:\n{self.__MyProgName} OPTIONS {self.__AddPar}\n\n{self.__Description}\n\nOptions:\n"
 		for Single in self.__UsageTextList:
 			Ut_Short = Single[0]
@@ -294,16 +315,17 @@ Dies ist in der "Process" Funktion möglich.
 		    str: The help-text
 		"""
 		if not self.__IsPrepared:
-			self.Prepare()
+			self.__Prepare()
 		return self.__UsageText
 
-	def Prepare(self):
+	def __Prepare(self):
 		"""
 		Prepare the class to be able to be used
 
 		Raises:
 		    self.DeclarationError: if there are errors within the declaration-dict
 		"""
+
 		# clear all values
 		self.clear()
 		self.__UsageText = ""
@@ -314,6 +336,9 @@ Dies ist in der "Process" Funktion möglich.
 		self.__ParDict = {}
 		self.__RemainArgs = []
 		self.__UsageTextList = []
+		self.__MyPwd = str(Path.cwd())
+		self.__MyProgName = Path(sys.argv[0]).stem
+		self.__MyProgPath = str(Path(sys.argv[0]).parent)
 
 		for ParName in self.__Definition.keys():
 			SingleDef = self.__Definition[ParName]
@@ -361,6 +386,26 @@ Dies ist in der "Process" Funktion möglich.
 			if 'v' in ParKeys:
 				if SingleDef['m'] not in "xXH":
 					self[ParName] = SingleDef['v']
+				if ParMode == 'f':
+					wTxt = SingleDef['v']
+					if wTxt[0] != "/":
+						wText = self.__MyPwd * '/' * wText
+					wFile = Path(wText).absolute()
+					if wFile.is_file:
+						self[ParName] = str(wFile)
+				elif ParMode == 'd':
+					wTxt = SingleDef['v']
+					if wTxt[0] != "/":
+						wText = self.__MyPwd * '/' * wText
+					wFile = Path(wText).absolute()
+					if wFile.is_dir:
+						self[ParName] = str(wFile)
+				elif ParMode == 'p':
+					wTxt = SingleDef['v']
+					if wTxt[0] != "/":
+						wText = self.__MyPwd * '/' * wText
+					wFile = Path(wText).absolute()
+					self[ParName] = str(wFile)
 				Ut_Default = SingleDef['v']
 			else:
 				if ParMode == 'b':
@@ -478,7 +523,7 @@ Dies ist in der "Process" Funktion möglich.
 		    RuntimeError: if an internal error occures
 		"""
 		if not self.__IsPrepared:
-			self.Prepare()
+			self.__Prepare()
 		try:
 			opts, args = getopt.getopt(self.__Argumente[1:],self.__ShortList,self.__LongList)
 		except getopt.GetoptError as exc:
@@ -644,6 +689,8 @@ Dies ist in der "Process" Funktion möglich.
 # File (existing)
 #-------------------------
 		if wMod == 'f':
+			if a[0] != "/":
+				a = self.__MyPwd + "/" +a
 			try:
 				n = Path(a).resolve()
 			except:
@@ -788,6 +835,8 @@ def main():
 	a = Param(Def = TestDef_1, Desc = "Dies ist ein Test\ndas bedeutet hier steht nur\nnonsens", AddPar = "File .... File")
 	# a.SetArgs(Args = shlex.split('Test -v -CCC -f /Mist --dir=/tmp'))
 	a.Process()
+	for key,value in a.items():
+		print(key,value)
 	# print(dir(a))
 	print(f"Ergebnis: {a}")
 	print(f"Rest: {a.GetRemainder()}")
