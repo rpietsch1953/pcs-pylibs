@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="pcs_argpass",
-    version="0.1.20",
+    version="0.2.30",
     author="Rainer Pietsch",
     author_email="r.pietsch@pcs-at.com",
     description="Helpful modules",

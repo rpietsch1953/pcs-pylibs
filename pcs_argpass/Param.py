@@ -387,23 +387,23 @@ Dies ist in der "Process" Funktion möglich.
 				if SingleDef['m'] not in "xXH":
 					self[ParName] = SingleDef['v']
 				if ParMode == 'f':
-					wTxt = SingleDef['v']
-					if wTxt[0] != "/":
-						wText = self.__MyPwd * '/' * wText
+					wText = SingleDef['v']
+					if wText[0] != "/":
+						wText = self.__MyPwd + '/' + wText
 					wFile = Path(wText).absolute()
 					if wFile.is_file:
 						self[ParName] = str(wFile)
 				elif ParMode == 'd':
-					wTxt = SingleDef['v']
-					if wTxt[0] != "/":
-						wText = self.__MyPwd * '/' * wText
+					wText = SingleDef['v']
+					if wText[0] != "/":
+						wText = self.__MyPwd + '/' + wText
 					wFile = Path(wText).absolute()
 					if wFile.is_dir:
 						self[ParName] = str(wFile)
 				elif ParMode == 'p':
-					wTxt = SingleDef['v']
-					if wTxt[0] != "/":
-						wText = self.__MyPwd * '/' * wText
+					wText = SingleDef['v']
+					if wText[0] != "/":
+						wText = self.__MyPwd + '/' + wText
 					wFile = Path(wText).absolute()
 					self[ParName] = str(wFile)
 				Ut_Default = SingleDef['v']
@@ -690,7 +690,7 @@ Dies ist in der "Process" Funktion möglich.
 #-------------------------
 		if wMod == 'f':
 			if a[0] != "/":
-				a = self.__MyPwd + "/" +a
+				a = self.__MyPwd + "/" + a
 			try:
 				n = Path(a).resolve()
 			except:
@@ -706,6 +706,8 @@ Dies ist in der "Process" Funktion möglich.
 # Directory (existing)
 #-------------------------
 		if wMod == 'd':
+			if a[0] != "/":
+				a = self.__MyPwd + "/" + a
 			try:
 				n = Path(a).resolve()
 			except:
@@ -721,6 +723,8 @@ Dies ist in der "Process" Funktion möglich.
 # Path
 #-------------------------
 		if wMod == 'p':
+			if a[0] != "/":
+				a = self.__MyPwd + "/" + a
 			try:
 				n = Path(a).resolve()
 			except:
