@@ -65,8 +65,9 @@ Dies ist in der "Process" Funktion möglich.
 	__HelpList = []		# List of all parameters with type 'H'
 	__ImportList = []	# List of all parameters with type 'x'
 	__ExportList = []	# List of all parameters with type 'X'
+	__AllParams = True
 
-	def __init__(self, Def = {}, Args = None, Chk = None, Desc = "", AddPar = ""):
+	def __init__(self, Def = {}, Args = None, Chk = None, Desc = "", AddPar = "", AllParams = True):
 		""" The construktor
 		Args:
 		    Def (dict, optional): See SetDef(). Defaults to {}.
@@ -74,6 +75,7 @@ Dies ist in der "Process" Funktion möglich.
 		    Chk ([type], optional): See SetChk(). Defaults to None.
 		    Desc (str, optional): See SetDesc(). Defaults to "".
 		    AddPar (str, optional): See SetAddPar. Defaults to "".
+		    AllParams (Boolean, optional): See SetAllParams. Defaults to True.
 		"""
 		super(Param, self).__init__()		# Init parent -> make me a dict
 		# set the parameters with the individual functions
@@ -81,8 +83,22 @@ Dies ist in der "Process" Funktion möglich.
 		self.SetDef(Def)
 		self.SetArgs(Args)
 		self.SetChk(Chk)
+		self.SetAllParams(AllParams)
 		self.SetAddPar(AddPar)
 		self.__IsPrepared = False
+
+
+	def SetAllParams(self, AllParams = True):
+		""" Set the flag for All Params
+
+		Args:
+		    AllParams (bool, optional): If True, all params are initialized,
+		    at least with None. If False params with no default and no setting on
+		    the commandline are not defined within the dictionary. Defaults to True.
+		"""		
+		self.__AllParams = AllParams
+		self.__IsPrepared = False	# we need a Prepare-call after this
+
 
 	def SetDef(self, Def = {}):
 		"""
@@ -408,19 +424,20 @@ Dies ist in der "Process" Funktion möglich.
 					self[ParName] = str(wFile)
 				Ut_Default = SingleDef['v']
 			else:
-				if ParMode == 'b':
-					self[ParName] = False
-				elif ParMode == 't':
-					self[ParName] = ""
-				elif ParMode == 'i':
-					self[ParName] = 0
-				elif ParMode == 'F':
-					self[ParName] = 0.
-				elif ParMode == 'C':
-					self[ParName] = 0
-				else:
-					if ParMode not in "xXH":
-						self[ParName] = None
+				if self.__AllParams:
+					if ParMode == 'b':
+						self[ParName] = False
+					elif ParMode == 't':
+						self[ParName] = ""
+					elif ParMode == 'i':
+						self[ParName] = 0
+					elif ParMode == 'F':
+						self[ParName] = 0.
+					elif ParMode == 'C':
+						self[ParName] = 0
+					else:
+						if ParMode not in "xXH":
+							self[ParName] = None
 			NeedOpt = False
 			if 'o' in ParKeys:
 				if SingleDef['o']:
@@ -589,10 +606,38 @@ Dies ist in der "Process" Funktion möglich.
 				self[ParName] += 1
 			else:
 				raise self.ParamError(f"No action defined for {ParName}")
+
 		for o, a in opts:
 			if o in self.__ExportList:
 				print(json.dumps(self, sort_keys=True, indent=4))
 				sys.exit(0)
+
+		for i in self.__Definition.keys():
+			v = self.__Definition[i]
+			Req = False
+			if 'r' in v.keys():
+				Req = v['r']
+			if Req:
+				if not i in self.keys():
+					raise self.ParamError(f"{i} ({self.__GetOptList(i)}) required but not given")
+
+	def __GetOptList(self,Name):
+		""" liste der möglichen Parameter eines Keys"""
+		w = self.__Definition[Name]
+		Erg = ""
+		if 's' in w.keys():
+			Short = w['s']
+			if type(Short) == str:
+				for s in Short:
+					Erg += ('-' + s + ' ')
+			else:
+				for n in Short:
+					for s in n:
+						Erg += ('-' + s + ' ')
+		if 'l' in w.keys():
+			Long = w['l']
+			Erg += ('--' + Long + ' ')
+		return Erg
 
 	def __CheckOption(self,ParName,ParKey,wPar,a):
 		"""[summary]
@@ -824,6 +869,7 @@ danach erst die Komandozeilenparameter'''},
 			'd': 'Ein existierendes Verzeichnis'},
 	'Path': {	's': 'p',
 			'l': 'path',
+			'r': 'true',
 			'o': True,
 			'm': 'p',
 			'd': 'Ein gültiger Path'},
@@ -836,7 +882,7 @@ danach erst die Komandozeilenparameter'''},
 
 import shlex
 def main():
-	a = Param(Def = TestDef_1, Desc = "Dies ist ein Test\ndas bedeutet hier steht nur\nnonsens", AddPar = "File .... File")
+	a = Param(Def = TestDef_1, Desc = "Dies ist ein Test\ndas bedeutet hier steht nur\nnonsens", AddPar = "File .... File", AllParams = False)
 	# a.SetArgs(Args = shlex.split('Test -v -CCC -f /Mist --dir=/tmp'))
 	a.Process()
 	for key,value in a.items():
