@@ -14,12 +14,10 @@ import types
 
 class Param(dict):
 	'''
-Hauptklasse und gleichzeitig das Ergebnis-Dictionary
-wird normalerweise mit
+Main class and also the result-dictionary
+normally imported as
 
-from parameter import Param
-
-eingebunden.
+from pcs_argpass.Param import Param
 	'''
 	class __ExceptionTemplate(Exception):
 		def __call__(self, *args):
@@ -30,17 +28,14 @@ eingebunden.
 
 	class DeclarationError(__ExceptionTemplate):
 		'''
-Diese Exception wird ausgelöst wenn in der Deklaration
-ein Fehler vorliegt.
-Dies ist im Konstructor oder den "SetXXX" Funktionen
-sowie in der "Process" Funktion  möglich.
+s exception is raised if there is an declaration error within the 
+parameters of the class.
 		'''
 		pass
 	class ParamError(__ExceptionTemplate):
 		'''
-Diese Exception wird ausgelöst wenn in fehler in den
-Laufzeitargumenten vorliegt.
-Dies ist in der "Process" Funktion möglich.
+s exception is raised if there is an error within the runtime-parameters.
+s os only within the "Process"-function.
 		'''
 		pass
 #---------------------------------------------

@@ -1,0 +1,327 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html><head><title>Python: class Param</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+</head><body bgcolor="#f0f0f8">
+<p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><strong>Param.Param</strong> = <a name="Param.Param">class Param</a>(<a href="builtins.html#dict">builtins.dict</a>)</font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt>Param.Param(Def:&nbsp;dict&nbsp;=&nbsp;{},&nbsp;Args:&nbsp;list&nbsp;=&nbsp;None,&nbsp;Chk=None,&nbsp;Desc:&nbsp;str&nbsp;=&nbsp;'',&nbsp;AddPar:&nbsp;str&nbsp;=&nbsp;'',&nbsp;AllParams:&nbsp;bool&nbsp;=&nbsp;True,&nbsp;UserPars:&nbsp;dict&nbsp;=&nbsp;None,&nbsp;UserModes:&nbsp;dict&nbsp;=&nbsp;None,&nbsp;Translate=None)<br>
+&nbsp;<br>
+Main&nbsp;class&nbsp;and&nbsp;also&nbsp;the&nbsp;result-dictionary<br>
+normally&nbsp;imported&nbsp;as<br>
+&nbsp;<br>
+from&nbsp;pcs_argpass.Param&nbsp;import&nbsp;Param<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="Param.html#Param">Param</a></dd>
+<dd><a href="builtins.html#dict">builtins.dict</a></dd>
+<dd><a href="builtins.html#object">builtins.object</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="Param-GetLongOpts"><strong>GetLongOpts</strong></a>(self) -&gt; list</dt><dd><tt>Return&nbsp;list&nbsp;of&nbsp;long&nbsp;options<br>
+(only?&nbsp;for&nbsp;debugging&nbsp;declarations)<br>
+&nbsp;<br>
+Returns:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;list:&nbsp;List&nbsp;of&nbsp;long&nbsp;options</tt></dd></dl>
+
+<dl><dt><a name="Param-GetParDict"><strong>GetParDict</strong></a>(self) -&gt; dict</dt><dd><tt>Return&nbsp;dict&nbsp;with&nbsp;references&nbsp;options&nbsp;-&gt;&nbsp;parameter-names<br>
+(only?&nbsp;for&nbsp;debugging&nbsp;declarations)<br>
+&nbsp;<br>
+Returns:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;dict:&nbsp;{option:&nbsp;name,&nbsp;...}</tt></dd></dl>
+
+<dl><dt><a name="Param-GetRemainder"><strong>GetRemainder</strong></a>(self) -&gt; list</dt><dd><tt>Return&nbsp;list&nbsp;of&nbsp;additionel&nbsp;arguments&nbsp;on&nbsp;command-line<br>
+&nbsp;<br>
+Returns:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;list:&nbsp;List&nbsp;of&nbsp;additional&nbsp;arguments&nbsp;within&nbsp;runtime-arguments</tt></dd></dl>
+
+<dl><dt><a name="Param-GetShortOpts"><strong>GetShortOpts</strong></a>(self) -&gt; list</dt><dd><tt>Return&nbsp;list&nbsp;of&nbsp;short&nbsp;options<br>
+(only?&nbsp;for&nbsp;debugging&nbsp;declarations)<br>
+&nbsp;<br>
+Returns:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;str:&nbsp;List&nbsp;of&nbsp;short&nbsp;options</tt></dd></dl>
+
+<dl><dt><a name="Param-MyProgName"><strong>MyProgName</strong></a>(self) -&gt; str</dt><dd><tt>Return&nbsp;the&nbsp;program-name<br>
+&nbsp;<br>
+Returns:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;str:&nbsp;Name&nbsp;of&nbsp;the&nbsp;executeable</tt></dd></dl>
+
+<dl><dt><a name="Param-MyProgPath"><strong>MyProgPath</strong></a>(self) -&gt; str</dt><dd><tt>Return&nbsp;the&nbsp;program-path<br>
+&nbsp;<br>
+Returns:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;str:&nbsp;Path&nbsp;of&nbsp;the&nbsp;executeable</tt></dd></dl>
+
+<dl><dt><a name="Param-MyPwd"><strong>MyPwd</strong></a>(self) -&gt; str</dt><dd><tt>Return&nbsp;the&nbsp;directory&nbsp;at&nbsp;invocation&nbsp;of&nbsp;"Process"<br>
+&nbsp;<br>
+Returns:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;str:&nbsp;Directory&nbsp;at&nbsp;"Process"-time</tt></dd></dl>
+
+<dl><dt><a name="Param-Process"><strong>Process</strong></a>(self) -&gt; None</dt><dd><tt>Process&nbsp;the&nbsp;runtime-arguments<br>
+&nbsp;<br>
+Raises:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;self.<strong>ParamError</strong>:&nbsp;if&nbsp;an&nbsp;error&nbsp;occures&nbsp;within&nbsp;a&nbsp;parameter<br>
+&nbsp;&nbsp;&nbsp;&nbsp;RuntimeError:&nbsp;if&nbsp;an&nbsp;internal&nbsp;error&nbsp;occures</tt></dd></dl>
+
+<dl><dt><a name="Param-SetAddPar"><strong>SetAddPar</strong></a>(self, AddPar: str = '') -&gt; None</dt><dd><tt>Description&nbsp;of&nbsp;additional&nbsp;parameters&nbsp;for&nbsp;usage-function.<br>
+printed&nbsp;in&nbsp;first&nbsp;line&nbsp;after&nbsp;"OPTIONS"<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;AddPar&nbsp;(str,&nbsp;optional):&nbsp;The&nbsp;text&nbsp;or&nbsp;additional&nbsp;parameters.&nbsp;Defaults&nbsp;to&nbsp;"".<br>
+&nbsp;<br>
+Raises:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;TypeError:&nbsp;if&nbsp;AddPar&nbsp;is&nbsp;not&nbsp;a&nbsp;string</tt></dd></dl>
+
+<dl><dt><a name="Param-SetAllParams"><strong>SetAllParams</strong></a>(self, AllParams: bool = True) -&gt; None</dt><dd><tt>Set&nbsp;the&nbsp;flag&nbsp;for&nbsp;All&nbsp;Params<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;AllParams&nbsp;(bool,&nbsp;optional):&nbsp;If&nbsp;True,&nbsp;all&nbsp;params&nbsp;are&nbsp;initialized,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;at&nbsp;least&nbsp;with&nbsp;None.&nbsp;If&nbsp;False&nbsp;params&nbsp;with&nbsp;no&nbsp;default&nbsp;and&nbsp;no&nbsp;setting&nbsp;on<br>
+&nbsp;&nbsp;&nbsp;&nbsp;the&nbsp;commandline&nbsp;are&nbsp;not&nbsp;defined&nbsp;within&nbsp;the&nbsp;dictionary.&nbsp;Defaults&nbsp;to&nbsp;True.</tt></dd></dl>
+
+<dl><dt><a name="Param-SetArgs"><strong>SetArgs</strong></a>(self, Args: list = None) -&gt; None</dt><dd><tt>Set&nbsp;the&nbsp;argument&nbsp;list&nbsp;to&nbsp;process<br>
+if&nbsp;None:&nbsp;use&nbsp;sys.argv&nbsp;as&nbsp;the&nbsp;arguments<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;Args&nbsp;([type],&nbsp;optional):&nbsp;Runtime&nbsp;Arguments.&nbsp;Defaults&nbsp;to&nbsp;None.<br>
+&nbsp;<br>
+Raises:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;TypeError:&nbsp;If&nbsp;Args&nbsp;is&nbsp;not&nbsp;a&nbsp;list</tt></dd></dl>
+
+<dl><dt><a name="Param-SetChk"><strong>SetChk</strong></a>(self, Chk=None)</dt><dd><tt>Set&nbsp;the&nbsp;check-function.&nbsp;Not&nbsp;implementet&nbsp;now<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;Chk&nbsp;([type],&nbsp;optional):&nbsp;[description].&nbsp;Defaults&nbsp;to&nbsp;None.<br>
+&nbsp;<br>
+Raises:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;TypeError:&nbsp;if&nbsp;function&nbsp;is&nbsp;not&nbsp;of&nbsp;the&nbsp;proper&nbsp;type</tt></dd></dl>
+
+<dl><dt><a name="Param-SetDef"><strong>SetDef</strong></a>(self, Def: dict = {}) -&gt; None</dt><dd><tt>Set&nbsp;the&nbsp;definition&nbsp;for&nbsp;processing&nbsp;arguments<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;Def&nbsp;(dict,&nbsp;optional):&nbsp;A&nbsp;definition-dict.&nbsp;Defaults&nbsp;to&nbsp;{}.<br>
+&nbsp;<br>
+Raises:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;TypeError:&nbsp;on&nbsp;error&nbsp;within&nbsp;the&nbsp;definition<br>
+&nbsp;<br>
+Describes&nbsp;the&nbsp;definition&nbsp;for&nbsp;arg-parsing.<br>
+Def-dict:&nbsp;a&nbsp;dictionary&nbsp;of&nbsp;dictionaries<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{&nbsp;'Name1':&nbsp;{..&nbsp;declaration&nbsp;..},&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;...<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'Name2':&nbsp;{..&nbsp;declaration&nbsp;..},&nbsp;}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"NameN"&nbsp;is&nbsp;the&nbsp;index&nbsp;under&nbsp;which&nbsp;at&nbsp;runtime&nbsp;you&nbsp;get&nbsp;the&nbsp;values&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;within&nbsp;the&nbsp;resulting&nbsp;dictionary.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The&nbsp;individual&nbsp;definitions&nbsp;look&nbsp;like:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{'s':&nbsp;'a',<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'l':&nbsp;'longval',&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'o':&nbsp;True,&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'v':"LuLu",<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'m':&nbsp;'t',<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'d':&nbsp;'Description',<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'L':&nbsp;'Low',&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'U':&nbsp;'Up',&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'r':&nbsp;False&nbsp;},<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;where:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;m&nbsp;:&nbsp;Mode&nbsp;-&gt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t=Text,&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;b=Bool,&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;p=Path,&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;f=Existing&nbsp;File,&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;d=Exist.&nbsp;Dir,&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;i=Integer,&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;F=Float,&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;C=Counter&nbsp;(start&nbsp;default&nbsp;as&nbsp;0&nbsp;and&nbsp;increment&nbsp;each&nbsp;time&nbsp;found)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The&nbsp;following&nbsp;are&nbsp;processed&nbsp;BEVOR&nbsp;all&nbsp;others:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;H=Show&nbsp;help&nbsp;and&nbsp;exit<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;x=Import&nbsp;config-file&nbsp;as&nbsp;json&nbsp;(file&nbsp;must&nbsp;exist&nbsp;loke&nbsp;"f")<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;can&nbsp;be&nbsp;given&nbsp;more&nbsp;than&nbsp;once!<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The&nbsp;following&nbsp;are&nbsp;processed&nbsp;AFTER&nbsp;all&nbsp;others:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;X=Export&nbsp;config&nbsp;as&nbsp;json&nbsp;to&nbsp;stdout&nbsp;und&nbsp;exit<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;r&nbsp;:&nbsp;Required&nbsp;-&gt;&nbsp;True&nbsp;or&nbsp;False,&nbsp;False&nbsp;is&nbsp;default<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;s&nbsp;:&nbsp;Short&nbsp;Option(s)&nbsp;-&gt;&nbsp;string&nbsp;or&nbsp;list&nbsp;or&nbsp;tuple&nbsp;of&nbsp;strings<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;l&nbsp;:&nbsp;Long&nbsp;Option(s)&nbsp;-&gt;&nbsp;string&nbsp;or&nbsp;list&nbsp;or&nbsp;tuple&nbsp;of&nbsp;strings<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;o&nbsp;:&nbsp;Ein&nbsp;Parameter&nbsp;notendig&nbsp;-&gt;&nbsp;True&nbsp;oder&nbsp;False,&nbsp;False&nbsp;is&nbsp;default<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;v&nbsp;:&nbsp;Default&nbsp;value&nbsp;-&gt;&nbsp;if&nbsp;not&nbsp;given:&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;""&nbsp;for&nbsp;Text,&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;False&nbsp;for&nbsp;Bool,&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;None&nbsp;for&nbsp;Path,&nbsp;File&nbsp;and&nbsp;Dir,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0&nbsp;for&nbsp;Int&nbsp;und&nbsp;Counter,&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.&nbsp;for&nbsp;Float<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;L&nbsp;:&nbsp;Lower&nbsp;Limit,&nbsp;value&nbsp;&gt;=&nbsp;L&nbsp;if&nbsp;present<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;U&nbsp;:&nbsp;Upper&nbsp;Limit,&nbsp;value&nbsp;&lt;=&nbsp;U&nbsp;if&nbsp;present<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;d&nbsp;:&nbsp;Description&nbsp;for&nbsp;helptext<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The&nbsp;entries&nbsp;"m"&nbsp;and&nbsp;("s"&nbsp;or&nbsp;"l")&nbsp;must&nbsp;be&nbsp;present,&nbsp;all&nbsp;others&nbsp;are&nbsp;optional.</tt></dd></dl>
+
+<dl><dt><a name="Param-SetDesc"><strong>SetDesc</strong></a>(self, Desc: str = '') -&gt; None</dt><dd><tt>Set&nbsp;the&nbsp;description&nbsp;of&nbsp;the&nbsp;program<br>
+for&nbsp;usage-string<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;Desc&nbsp;(str,&nbsp;optional):&nbsp;A&nbsp;descriptive&nbsp;string&nbsp;for&nbsp;the&nbsp;Program.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;printed&nbsp;bevore&nbsp;the&nbsp;parameters.&nbsp;Defaults&nbsp;to&nbsp;"".<br>
+&nbsp;<br>
+Raises:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;TypeError:&nbsp;if&nbsp;Desc&nbsp;is&nbsp;not&nbsp;a&nbsp;string.</tt></dd></dl>
+
+<dl><dt><a name="Param-SetTranslate"><strong>SetTranslate</strong></a>(self, Translate=None) -&gt; None</dt><dd><tt>Set&nbsp;translation&nbsp;routine&nbsp;for&nbsp;error-messages<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;Translate&nbsp;(callable,&nbsp;optional):&nbsp;Defaults&nbsp;to&nbsp;None.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;example:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;TransFunc(*,Type:str,Param:str,&nbsp;Path:str,&nbsp;FullPath:str,&nbsp;Msg:str,&nbsp;OptList:str)&nbsp;-&gt;&nbsp;str:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;This&nbsp;function&nbsp;is&nbsp;called&nbsp;with&nbsp;the&nbsp;folowing&nbsp;parameters:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Type,&nbsp;Param,&nbsp;Path,&nbsp;FullPath,&nbsp;Msg,&nbsp;OptList<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;all&nbsp;of&nbsp;them&nbsp;are&nbsp;strings.&nbsp;The&nbsp;return&nbsp;value&nbsp;is&nbsp;the&nbsp;error-msg,&nbsp;also<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;a&nbsp;string.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The&nbsp;default&nbsp;messages&nbsp;are:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;Type&nbsp;is&nbsp;"ImpFail"<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"Import&nbsp;failed,&nbsp;{Path}&nbsp;for&nbsp;parameter&nbsp;{Param}&nbsp;is&nbsp;not&nbsp;a&nbsp;valid&nbsp;file"<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;Type&nbsp;is&nbsp;"ErrMsg"<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"Error&nbsp;'{Msg}'&nbsp;in&nbsp;{Path}&nbsp;({FullPath})&nbsp;for&nbsp;parameter&nbsp;{Param}"<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;Type&nbsp;is&nbsp;"NoFile"<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"The&nbsp;path&nbsp;{Path}&nbsp;({FullPath})&nbsp;for&nbsp;parameter&nbsp;{Param}&nbsp;is&nbsp;not&nbsp;a&nbsp;file"<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;Type&nbsp;is&nbsp;"NoPath"<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"The&nbsp;path&nbsp;{Path}&nbsp;({FullPath})&nbsp;for&nbsp;parameter&nbsp;{Param}&nbsp;does&nbsp;not&nbsp;exist"<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;Type&nbsp;is&nbsp;"NoAct"<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"No&nbsp;action&nbsp;defined&nbsp;for&nbsp;{Param}"<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;Type&nbsp;is&nbsp;"Required"<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"{Param}&nbsp;({OptList})&nbsp;required&nbsp;but&nbsp;not&nbsp;given"<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for&nbsp;all&nbsp;other&nbsp;Type&nbsp;values<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"Undefined&nbsp;error&nbsp;Type='{Type}',&nbsp;Param='{Param}',&nbsp;Path='{Path}',&nbsp;FullPath='{FullPath}',&nbsp;Msg='{Msg}',&nbsp;OptList='{OptList}'"<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;this&nbsp;function&nbsp;is&nbsp;given&nbsp;it&nbsp;has&nbsp;to&nbsp;translate&nbsp;ALL&nbsp;messages.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;an&nbsp;error&nbsp;occures,&nbsp;the&nbsp;default&nbsp;messages&nbsp;are&nbsp;used<br>
+&nbsp;<br>
+Raises:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;self.<strong>DeclarationError</strong>:&nbsp;if&nbsp;Translate&nbsp;not&nbsp;callable&nbsp;or&nbsp;None</tt></dd></dl>
+
+<dl><dt><a name="Param-SetUserKeys"><strong>SetUserKeys</strong></a>(self, UserPars: dict = None, UserModes: dict = None) -&gt; None</dt><dd><tt>Set&nbsp;the&nbsp;key-table&nbsp;for&nbsp;the&nbsp;definition-dictionary<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;UserPars&nbsp;(dict,&nbsp;optional):&nbsp;ignored&nbsp;if&nbsp;None.&nbsp;Defaults&nbsp;to&nbsp;None.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Dictionary&nbsp;of&nbsp;keys&nbsp;used&nbsp;within&nbsp;the&nbsp;definition-dictionary.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;All&nbsp;key-value&nbsp;pairs&nbsp;are&nbsp;optional.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Only&nbsp;the&nbsp;keys&nbsp;from&nbsp;self.<strong>__WorkPars</strong>&nbsp;are&nbsp;valid.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The&nbsp;value&nbsp;has&nbsp;to&nbsp;be&nbsp;a&nbsp;string.&nbsp;This&nbsp;string&nbsp;replaces&nbsp;the&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;keysting&nbsp;for&nbsp;this&nbsp;key.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;After&nbsp;all&nbsp;changes&nbsp;are&nbsp;made&nbsp;the&nbsp;values&nbsp;within&nbsp;self.<strong>__WorkPars</strong><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;have&nbsp;to&nbsp;be&nbsp;unique!<br>
+&nbsp;&nbsp;&nbsp;&nbsp;UserModes&nbsp;(dict,&nbsp;optional):&nbsp;ignored&nbsp;if&nbsp;None.&nbsp;Defaults&nbsp;to&nbsp;None.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Dictionary&nbsp;of&nbsp;modes&nbsp;used&nbsp;within&nbsp;the&nbsp;definition-dictionary.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;All&nbsp;key-value&nbsp;pairs&nbsp;are&nbsp;optional.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Only&nbsp;the&nbsp;keys&nbsp;from&nbsp;self.<strong>__WorkModes</strong>&nbsp;are&nbsp;valid.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The&nbsp;value&nbsp;has&nbsp;to&nbsp;be&nbsp;a&nbsp;string.&nbsp;This&nbsp;string&nbsp;replaces&nbsp;the&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;keysting&nbsp;for&nbsp;this&nbsp;key.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;After&nbsp;all&nbsp;changes&nbsp;are&nbsp;made&nbsp;the&nbsp;values&nbsp;within&nbsp;self.<strong>__WorkModes</strong><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;have&nbsp;to&nbsp;be&nbsp;unique!</tt></dd></dl>
+
+<dl><dt><a name="Param-Usage"><strong>Usage</strong></a>(self) -&gt; str</dt><dd><tt>Return&nbsp;the&nbsp;helptext<br>
+&nbsp;<br>
+Returns:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;str:&nbsp;The&nbsp;help-text</tt></dd></dl>
+
+<dl><dt><a name="Param-__init__"><strong>__init__</strong></a>(self, Def: dict = {}, Args: list = None, Chk=None, Desc: str = '', AddPar: str = '', AllParams: bool = True, UserPars: dict = None, UserModes: dict = None, Translate=None)</dt><dd><tt>The&nbsp;construktor<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;Def&nbsp;(dict,&nbsp;optional):&nbsp;See&nbsp;<a href="#Param.Param-SetDef">SetDef</a>().&nbsp;Defaults&nbsp;to&nbsp;{}.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;Args&nbsp;([type],&nbsp;optional):&nbsp;See&nbsp;<a href="#Param.Param-SetArgs">SetArgs</a>().&nbsp;Defaults&nbsp;to&nbsp;None.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;Chk&nbsp;([type],&nbsp;optional):&nbsp;See&nbsp;<a href="#Param.Param-SetChk">SetChk</a>().&nbsp;Defaults&nbsp;to&nbsp;None.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;Desc&nbsp;(str,&nbsp;optional):&nbsp;See&nbsp;<a href="#Param.Param-SetDesc">SetDesc</a>().&nbsp;Defaults&nbsp;to&nbsp;"".<br>
+&nbsp;&nbsp;&nbsp;&nbsp;AddPar&nbsp;(str,&nbsp;optional):&nbsp;See&nbsp;SetAddPar.&nbsp;Defaults&nbsp;to&nbsp;"".<br>
+&nbsp;&nbsp;&nbsp;&nbsp;AllParams&nbsp;(Boolean,&nbsp;optional):&nbsp;See&nbsp;SetAllParams.&nbsp;Defaults&nbsp;to&nbsp;True.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;UserPars&nbsp;(dict,&nbsp;optional):&nbsp;See&nbsp;SetUserKeys.&nbsp;Defaults&nbsp;to&nbsp;None.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;UserModes&nbsp;(dict,&nbsp;optional):&nbsp;See&nbsp;SetUserKeys.&nbsp;Defaults&nbsp;to&nbsp;None.</tt></dd></dl>
+
+<hr>
+Data descriptors defined here:<br>
+<dl><dt><strong>__dict__</strong></dt>
+<dd><tt>dictionary&nbsp;for&nbsp;instance&nbsp;variables&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+<dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+<hr>
+Data and other attributes defined here:<br>
+<dl><dt><strong>DeclarationError</strong> = &lt;class 'Param.Param.DeclarationError'&gt;<dd><tt>s&nbsp;exception&nbsp;is&nbsp;raised&nbsp;if&nbsp;there&nbsp;is&nbsp;an&nbsp;declaration&nbsp;error&nbsp;within&nbsp;the&nbsp;<br>
+parameters&nbsp;of&nbsp;the&nbsp;class.</tt></dl>
+
+<dl><dt><strong>ParamError</strong> = &lt;class 'Param.Param.ParamError'&gt;<dd><tt>s&nbsp;exception&nbsp;is&nbsp;raised&nbsp;if&nbsp;there&nbsp;is&nbsp;an&nbsp;error&nbsp;within&nbsp;the&nbsp;runtime-parameters.<br>
+s&nbsp;os&nbsp;only&nbsp;within&nbsp;the&nbsp;"Process"-function.</tt></dl>
+
+<hr>
+Methods inherited from <a href="builtins.html#dict">builtins.dict</a>:<br>
+<dl><dt><a name="Param-__contains__"><strong>__contains__</strong></a>(self, key, /)</dt><dd><tt>True&nbsp;if&nbsp;the&nbsp;dictionary&nbsp;has&nbsp;the&nbsp;specified&nbsp;key,&nbsp;else&nbsp;False.</tt></dd></dl>
+
+<dl><dt><a name="Param-__delitem__"><strong>__delitem__</strong></a>(self, key, /)</dt><dd><tt>Delete&nbsp;self[key].</tt></dd></dl>
+
+<dl><dt><a name="Param-__eq__"><strong>__eq__</strong></a>(self, value, /)</dt><dd><tt>Return&nbsp;self==value.</tt></dd></dl>
+
+<dl><dt><a name="Param-__ge__"><strong>__ge__</strong></a>(self, value, /)</dt><dd><tt>Return&nbsp;self&gt;=value.</tt></dd></dl>
+
+<dl><dt><a name="Param-__getattribute__"><strong>__getattribute__</strong></a>(self, name, /)</dt><dd><tt>Return&nbsp;getattr(self,&nbsp;name).</tt></dd></dl>
+
+<dl><dt><a name="Param-__getitem__"><strong>__getitem__</strong></a>(...)</dt><dd><tt>x.<a href="#Param.Param-__getitem__">__getitem__</a>(y)&nbsp;&lt;==&gt;&nbsp;x[y]</tt></dd></dl>
+
+<dl><dt><a name="Param-__gt__"><strong>__gt__</strong></a>(self, value, /)</dt><dd><tt>Return&nbsp;self&gt;value.</tt></dd></dl>
+
+<dl><dt><a name="Param-__iter__"><strong>__iter__</strong></a>(self, /)</dt><dd><tt>Implement&nbsp;iter(self).</tt></dd></dl>
+
+<dl><dt><a name="Param-__le__"><strong>__le__</strong></a>(self, value, /)</dt><dd><tt>Return&nbsp;self&lt;=value.</tt></dd></dl>
+
+<dl><dt><a name="Param-__len__"><strong>__len__</strong></a>(self, /)</dt><dd><tt>Return&nbsp;len(self).</tt></dd></dl>
+
+<dl><dt><a name="Param-__lt__"><strong>__lt__</strong></a>(self, value, /)</dt><dd><tt>Return&nbsp;self&lt;value.</tt></dd></dl>
+
+<dl><dt><a name="Param-__ne__"><strong>__ne__</strong></a>(self, value, /)</dt><dd><tt>Return&nbsp;self!=value.</tt></dd></dl>
+
+<dl><dt><a name="Param-__repr__"><strong>__repr__</strong></a>(self, /)</dt><dd><tt>Return&nbsp;repr(self).</tt></dd></dl>
+
+<dl><dt><a name="Param-__reversed__"><strong>__reversed__</strong></a>(self, /)</dt><dd><tt>Return&nbsp;a&nbsp;reverse&nbsp;iterator&nbsp;over&nbsp;the&nbsp;dict&nbsp;keys.</tt></dd></dl>
+
+<dl><dt><a name="Param-__setitem__"><strong>__setitem__</strong></a>(self, key, value, /)</dt><dd><tt>Set&nbsp;self[key]&nbsp;to&nbsp;value.</tt></dd></dl>
+
+<dl><dt><a name="Param-__sizeof__"><strong>__sizeof__</strong></a>(...)</dt><dd><tt>D.<a href="#Param.Param-__sizeof__">__sizeof__</a>()&nbsp;-&gt;&nbsp;size&nbsp;of&nbsp;D&nbsp;in&nbsp;memory,&nbsp;in&nbsp;bytes</tt></dd></dl>
+
+<dl><dt><a name="Param-clear"><strong>clear</strong></a>(...)</dt><dd><tt>D.<a href="#Param.Param-clear">clear</a>()&nbsp;-&gt;&nbsp;None.&nbsp;&nbsp;Remove&nbsp;all&nbsp;items&nbsp;from&nbsp;D.</tt></dd></dl>
+
+<dl><dt><a name="Param-copy"><strong>copy</strong></a>(...)</dt><dd><tt>D.<a href="#Param.Param-copy">copy</a>()&nbsp;-&gt;&nbsp;a&nbsp;shallow&nbsp;copy&nbsp;of&nbsp;D</tt></dd></dl>
+
+<dl><dt><a name="Param-get"><strong>get</strong></a>(self, key, default=None, /)</dt><dd><tt>Return&nbsp;the&nbsp;value&nbsp;for&nbsp;key&nbsp;if&nbsp;key&nbsp;is&nbsp;in&nbsp;the&nbsp;dictionary,&nbsp;else&nbsp;default.</tt></dd></dl>
+
+<dl><dt><a name="Param-items"><strong>items</strong></a>(...)</dt><dd><tt>D.<a href="#Param.Param-items">items</a>()&nbsp;-&gt;&nbsp;a&nbsp;set-like&nbsp;object&nbsp;providing&nbsp;a&nbsp;view&nbsp;on&nbsp;D's&nbsp;items</tt></dd></dl>
+
+<dl><dt><a name="Param-keys"><strong>keys</strong></a>(...)</dt><dd><tt>D.<a href="#Param.Param-keys">keys</a>()&nbsp;-&gt;&nbsp;a&nbsp;set-like&nbsp;object&nbsp;providing&nbsp;a&nbsp;view&nbsp;on&nbsp;D's&nbsp;keys</tt></dd></dl>
+
+<dl><dt><a name="Param-pop"><strong>pop</strong></a>(...)</dt><dd><tt>D.<a href="#Param.Param-pop">pop</a>(k[,d])&nbsp;-&gt;&nbsp;v,&nbsp;remove&nbsp;specified&nbsp;key&nbsp;and&nbsp;return&nbsp;the&nbsp;corresponding&nbsp;value.<br>
+If&nbsp;key&nbsp;is&nbsp;not&nbsp;found,&nbsp;d&nbsp;is&nbsp;returned&nbsp;if&nbsp;given,&nbsp;otherwise&nbsp;KeyError&nbsp;is&nbsp;raised</tt></dd></dl>
+
+<dl><dt><a name="Param-popitem"><strong>popitem</strong></a>(self, /)</dt><dd><tt>Remove&nbsp;and&nbsp;return&nbsp;a&nbsp;(key,&nbsp;value)&nbsp;pair&nbsp;as&nbsp;a&nbsp;2-tuple.<br>
+&nbsp;<br>
+Pairs&nbsp;are&nbsp;returned&nbsp;in&nbsp;LIFO&nbsp;(last-in,&nbsp;first-out)&nbsp;order.<br>
+Raises&nbsp;KeyError&nbsp;if&nbsp;the&nbsp;dict&nbsp;is&nbsp;empty.</tt></dd></dl>
+
+<dl><dt><a name="Param-setdefault"><strong>setdefault</strong></a>(self, key, default=None, /)</dt><dd><tt>Insert&nbsp;key&nbsp;with&nbsp;a&nbsp;value&nbsp;of&nbsp;default&nbsp;if&nbsp;key&nbsp;is&nbsp;not&nbsp;in&nbsp;the&nbsp;dictionary.<br>
+&nbsp;<br>
+Return&nbsp;the&nbsp;value&nbsp;for&nbsp;key&nbsp;if&nbsp;key&nbsp;is&nbsp;in&nbsp;the&nbsp;dictionary,&nbsp;else&nbsp;default.</tt></dd></dl>
+
+<dl><dt><a name="Param-update"><strong>update</strong></a>(...)</dt><dd><tt>D.<a href="#Param.Param-update">update</a>([E,&nbsp;]**F)&nbsp;-&gt;&nbsp;None.&nbsp;&nbsp;Update&nbsp;D&nbsp;from&nbsp;dict/iterable&nbsp;E&nbsp;and&nbsp;F.<br>
+If&nbsp;E&nbsp;is&nbsp;present&nbsp;and&nbsp;has&nbsp;a&nbsp;.<a href="#Param.Param-keys">keys</a>()&nbsp;method,&nbsp;then&nbsp;does:&nbsp;&nbsp;for&nbsp;k&nbsp;in&nbsp;E:&nbsp;D[k]&nbsp;=&nbsp;E[k]<br>
+If&nbsp;E&nbsp;is&nbsp;present&nbsp;and&nbsp;lacks&nbsp;a&nbsp;.<a href="#Param.Param-keys">keys</a>()&nbsp;method,&nbsp;then&nbsp;does:&nbsp;&nbsp;for&nbsp;k,&nbsp;v&nbsp;in&nbsp;E:&nbsp;D[k]&nbsp;=&nbsp;v<br>
+In&nbsp;either&nbsp;case,&nbsp;this&nbsp;is&nbsp;followed&nbsp;by:&nbsp;for&nbsp;k&nbsp;in&nbsp;F:&nbsp;&nbsp;D[k]&nbsp;=&nbsp;F[k]</tt></dd></dl>
+
+<dl><dt><a name="Param-values"><strong>values</strong></a>(...)</dt><dd><tt>D.<a href="#Param.Param-values">values</a>()&nbsp;-&gt;&nbsp;an&nbsp;object&nbsp;providing&nbsp;a&nbsp;view&nbsp;on&nbsp;D's&nbsp;values</tt></dd></dl>
+
+<hr>
+Class methods inherited from <a href="builtins.html#dict">builtins.dict</a>:<br>
+<dl><dt><a name="Param-fromkeys"><strong>fromkeys</strong></a>(iterable, value=None, /)<font color="#909090"><font face="helvetica, arial"> from <a href="builtins.html#type">builtins.type</a></font></font></dt><dd><tt>Create&nbsp;a&nbsp;new&nbsp;dictionary&nbsp;with&nbsp;keys&nbsp;from&nbsp;iterable&nbsp;and&nbsp;values&nbsp;set&nbsp;to&nbsp;value.</tt></dd></dl>
+
+<hr>
+Static methods inherited from <a href="builtins.html#dict">builtins.dict</a>:<br>
+<dl><dt><a name="Param-__new__"><strong>__new__</strong></a>(*args, **kwargs)<font color="#909090"><font face="helvetica, arial"> from <a href="builtins.html#type">builtins.type</a></font></font></dt><dd><tt>Create&nbsp;and&nbsp;return&nbsp;a&nbsp;new&nbsp;object.&nbsp;&nbsp;See&nbsp;help(type)&nbsp;for&nbsp;accurate&nbsp;signature.</tt></dd></dl>
+
+<hr>
+Data and other attributes inherited from <a href="builtins.html#dict">builtins.dict</a>:<br>
+<dl><dt><strong>__hash__</strong> = None</dl>
+
+</td></tr></table>
+</body></html>
