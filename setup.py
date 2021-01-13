@@ -5,10 +5,10 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="pcs_argpass",
-    version="0.2.30",
+    version="0.3.1",
     author="Rainer Pietsch",
     author_email="r.pietsch@pcs-at.com",
-    description="Helpful modules",
+    description="Argument parser and checker",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/rpietsch1953/pcs-pylibs",

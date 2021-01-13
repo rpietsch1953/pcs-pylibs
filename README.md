@@ -16,13 +16,12 @@ CLASSES
     class Param(builtins.dict)
      |  Param(Def={}, Args=None, Chk=None, Desc='', AddPar='')
      |  
-     |  Hauptklasse und gleichzeitig das Ergebnis-Dictionary
-     |  wird normalerweise mit
+     |  Main class and at the same time the result-dictionary.
+     |  Normally imported with
      |  
-     |  from parameter import Param
+     |  from pcs_argpass.Param import Param
      |  
-     |  eingebunden.
-     |  
+     |    
      |  Method resolution order:
      |      Param
      |      builtins.dict
@@ -79,7 +78,14 @@ CLASSES
      |      
      |      Raises:
      |          TypeError: if AddPar is not a string
-     |  
+     | 
+     |  SetAllParams(self, AllParams = True)
+     |      Set the flag for "All Params"
+     |      Args:
+     |          AllParams (bool, optional): If True, all params are initialized,
+     |              at least with None. If False params with no default and no setting on
+     |              the commandline are not defined within the dictionary. Defaults to True. 
+     |
      |  SetArgs(self, Args=None)
      |      Set the argument list to process
      |      if None: use sys.argv as the arguments

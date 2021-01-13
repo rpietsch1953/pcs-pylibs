@@ -9,7 +9,7 @@ import types
 import inspect
 from pathlib import Path, PurePath
 import json
-
+import types
 
 
 class Param(dict):
@@ -65,9 +65,49 @@ Dies ist in der "Process" Funktion möglich.
 	__HelpList = []		# List of all parameters with type 'H'
 	__ImportList = []	# List of all parameters with type 'x'
 	__ExportList = []	# List of all parameters with type 'X'
-	__AllParams = True
+	__AllParams = True	# True if all parameters are initialized, if False
+				# only parameters with defaults or on the commandline
+				# are in the dictionary
+	__DoTranslate = None	# Translation routine for error-messages'
 
-	def __init__(self, Def = {}, Args = None, Chk = None, Desc = "", AddPar = "", AllParams = True):
+	__WorkPars = {
+		'shortpar':	's',
+		'longpar':	'l', 
+		'needoption':	'o', 
+		'default':	'v',
+		'mode':		'm',
+		'description':	'd',
+		'lowlimit':	'L', 
+		'uplimit':	'U', 
+		'required':	'r'
+	}
+
+
+	__WorkModes = {
+		'text':		't', 
+		'bool':		'b', 
+		'path':		'p', 
+		'file':		'f', 
+		'dir':		'd', 
+		'int':		'i', 
+		'float':	'F', 
+		'count':	'C',
+		'help':		'H',
+		'import':	'x',
+		'export':	'X'
+	}
+
+
+	def __init__(	self, 
+			Def: dict = {}, 
+			Args: list = None, 
+			Chk = None, 
+			Desc: str = "", 
+			AddPar: str = "", 
+			AllParams: bool = True, 
+			UserPars:dict = None, 
+			UserModes: dict = None,
+			Translate = None):
 		""" The construktor
 		Args:
 		    Def (dict, optional): See SetDef(). Defaults to {}.
@@ -76,19 +116,62 @@ Dies ist in der "Process" Funktion möglich.
 		    Desc (str, optional): See SetDesc(). Defaults to "".
 		    AddPar (str, optional): See SetAddPar. Defaults to "".
 		    AllParams (Boolean, optional): See SetAllParams. Defaults to True.
+		    UserPars (dict, optional): See SetUserKeys. Defaults to None.
+		    UserModes (dict, optional): See SetUserKeys. Defaults to None.
 		"""
 		super(Param, self).__init__()		# Init parent -> make me a dict
 		# set the parameters with the individual functions
 		self.SetDesc(Desc)
+		self.SetUserKeys(UserPars = UserPars,UserModes = UserModes)
 		self.SetDef(Def)
 		self.SetArgs(Args)
 		self.SetChk(Chk)
 		self.SetAllParams(AllParams)
 		self.SetAddPar(AddPar)
+		self.SetTranslate(Translate)
 		self.__IsPrepared = False
 
+	def SetTranslate(self, Translate = None) -> None:
+		""" Set translation routine for error-messages
 
-	def SetAllParams(self, AllParams = True):
+		Args:
+		    Translate (callable, optional): Defaults to None.
+		    	example:
+			    TransFunc(*,Type:str,Param:str, Path:str, FullPath:str, Msg:str, OptList:str) -> str:
+			This function is called with the folowing parameters:
+				Type, Param, Path, FullPath, Msg, OptList
+			all of them are strings. The return value is the error-msg, also
+			a string.
+			The default messages are:
+				if Type is "ImpFail"
+					"Import failed, {Path} for parameter {Param} is not a valid file"
+				if Type is "ErrMsg"
+					"Error '{Msg}' in {Path} ({FullPath}) for parameter {Param}"
+				if Type is "NoFile"
+					"The path {Path} ({FullPath}) for parameter {Param} is not a file"
+				if Type is "NoPath"
+					"The path {Path} ({FullPath}) for parameter {Param} does not exist"
+				if Type is "NoAct"
+					"No action defined for {Param}"
+				if Type is "Required"
+					"{Param} ({OptList}) required but not given"
+				for all other Type values
+					"Undefined error Type='{Type}', Param='{Param}', Path='{Path}', FullPath='{FullPath}', Msg='{Msg}', OptList='{OptList}'"
+			If this function is given it has to translate ALL messages.
+			If an error occures, the default messages are used
+
+		Raises:
+		    self.DeclarationError: if Translate not callable or None
+		"""
+		if Translate is None:
+			self.__DoTranslate = None
+		else:
+			if callable(Translate):
+				self.__DoTranslate = Translate
+			else:
+				raise self.DeclarationError(f"Translate is not a function")
+
+	def SetAllParams(self, AllParams: bool = True) -> None:
 		""" Set the flag for All Params
 
 		Args:
@@ -100,7 +183,7 @@ Dies ist in der "Process" Funktion möglich.
 		self.__IsPrepared = False	# we need a Prepare-call after this
 
 
-	def SetDef(self, Def = {}):
+	def SetDef(self, Def: dict = {}) -> None:
 		"""
 		Set the definition for processing arguments
 
@@ -163,7 +246,63 @@ Dies ist in der "Process" Funktion möglich.
 			raise TypeError('Def is not a dict')
 		self.__IsPrepared = False	# we need a Prepare-call after this	
 
-	def SetArgs(self, Args=None):
+
+	def SetUserKeys(self, UserPars: dict = None, UserModes: dict = None) -> None:
+		"""
+		Set the key-table for the definition-dictionary
+
+		Args:
+		    UserPars (dict, optional): ignored if None. Defaults to None.
+			Dictionary of keys used within the definition-dictionary.
+			All key-value pairs are optional.
+			Only the keys from self.__WorkPars are valid.
+			The value has to be a string. This string replaces the 
+			keysting for this key.
+			After all changes are made the values within self.__WorkPars
+			have to be unique!
+		    UserModes (dict, optional): ignored if None. Defaults to None.
+			Dictionary of modes used within the definition-dictionary.
+			All key-value pairs are optional.
+			Only the keys from self.__WorkModes are valid.
+			The value has to be a string. This string replaces the 
+			keysting for this key.
+			After all changes are made the values within self.__WorkModes
+			have to be unique!
+		"""
+		if UserPars is not None:
+			if type(UserPars) != dict:
+				raise TypeError('UserPars is not a dict')
+			for k in UserPars.keys():
+				if not k in self.__WorkPars:
+					raise self.DeclarationError(f"UserPars {k} is invalid. Valid values are {self.__WorkPars.keys()}")
+				v = UserPars[k]
+				if type(v) != str:
+					raise TypeError(f"Value of UserPars {k} is not a string")
+				self.__WorkPars[k] = v
+			Double = self.__CheckMulti(self.__WorkPars)
+			if Double:
+				raise self.DeclarationError(f"UserPars {Double} have the same value {self.__WorkPars[Double[0]]}")
+
+		if UserModes is not None:
+			if type(UserModes) != dict:
+				raise TypeError('UserModes is not a dict')
+			for k in UserModes.keys():
+				if not k in self.__WorkModes:
+					raise self.DeclarationError(f"UserModes {k} is invalid. Valid values are {self.__WorkModes.keys()}")
+				v = UserModes[k]
+				if type(v) != str:
+					raise TypeError(f"Value of UserModes {k} is not a string")
+				self.__WorkModes[k] = v
+			Double = self.__CheckMulti(self.__WorkModes)
+			if Double:
+				raise self.DeclarationError(f"UserModes {Double} have the same value {self.__WorkModes[Double[0]]}")
+
+
+	def __CheckMulti(self, Dict: dict) -> list:
+		return [k for k,v in Dict.items() if list(Dict.values()).count(v)!=1]
+
+
+	def SetArgs(self, Args: list = None) -> None:
 		"""
 		Set the argument list to process
 		if None: use sys.argv as the arguments
@@ -180,6 +319,7 @@ Dies ist in der "Process" Funktion möglich.
 			self.__Argumente = Args
 		else:
 			raise TypeError('Args is not a list or tuple')
+
 
 	def SetChk(self, Chk = None):
 		"""
@@ -203,7 +343,8 @@ Dies ist in der "Process" Funktion möglich.
 				raise TypeError('Check is not a function')
 		self.__IsPrepared = False	# we need a Prepare-call after this
 
-	def SetDesc(self, Desc = ""):
+
+	def SetDesc(self, Desc: str = "") -> None:
 		"""
 		Set the description of the program
 		for usage-string
@@ -221,7 +362,7 @@ Dies ist in der "Process" Funktion möglich.
 			raise TypeError('Desc is not a string')
 		self.__IsPrepared = False	# we need a Prepare-call after this
 
-	def SetAddPar(self, AddPar = ""):
+	def SetAddPar(self, AddPar: str = "") -> None:
 		"""
 		Description of additional parameters for usage-function.
 		printed in first line after "OPTIONS"
@@ -238,7 +379,7 @@ Dies ist in der "Process" Funktion möglich.
 			raise TypeError('AddPar is not a string')
 		self.__IsPrepared = False	# we need a Prepare-call after this
 
-	def MyProgName(self):
+	def MyProgName(self) -> str:
 		"""
 		Return the program-name
 
@@ -247,7 +388,7 @@ Dies ist in der "Process" Funktion möglich.
 		"""
 		return self.__MyProgName
 
-	def MyProgPath(self):
+	def MyProgPath(self) -> str:
 		"""
 		Return the program-path
 
@@ -256,7 +397,7 @@ Dies ist in der "Process" Funktion möglich.
 		"""
 		return self.__MyProgPath
 
-	def MyPwd(self):
+	def MyPwd(self) -> str:
 		"""
 		Return the directory at invocation of "Process"
 
@@ -265,7 +406,7 @@ Dies ist in der "Process" Funktion möglich.
 		"""
 		return self.__MyPwd
 
-	def __GenUsageText(self,ShortLen,LongLen):
+	def __GenUsageText(self,ShortLen: int, LongLen: int) -> None:
 		"""
 		Generate the "Usage"-text
 
@@ -323,7 +464,7 @@ Dies ist in der "Process" Funktion möglich.
 #			Text += "\n"
 		self.__UsageText = Text
 
-	def Usage(self):
+	def Usage(self) -> str:
 		"""
 		Return the helptext
 
@@ -334,7 +475,7 @@ Dies ist in der "Process" Funktion möglich.
 			self.__Prepare()
 		return self.__UsageText
 
-	def __Prepare(self):
+	def __Prepare(self) -> None:
 		"""
 		Prepare the class to be able to be used
 
@@ -365,86 +506,88 @@ Dies ist in der "Process" Funktion möglich.
 			Ut_Text = ""
 			Ut_Type = ""
 			ParKeys = SingleDef.keys()
-			if 'm' in ParKeys:
-				ParMode = SingleDef['m']
+			if self.__WorkPars['mode'] in ParKeys:
+				ParMode = SingleDef[self.__WorkPars['mode']]
 			else:
 				raise self.DeclarationError(f"No mode setting in Def for {ParName}")
-			if ParMode == 'p':
+			if ParMode == self.__WorkModes['path']:
 				Ut_Type = 'path'
-				SingleDef['o'] = True
-			elif ParMode == 'i':
+				SingleDef[self.__WorkPars['needoption']] = True
+			elif ParMode == self.__WorkModes['int']:
 				Ut_Type = 'integer'
 				Ut_Default = 0
-			elif ParMode == 'b':
+			elif ParMode == self.__WorkModes['bool']:
 				Ut_Type = 'boolean'
 				Ut_Default = False
-			elif ParMode == 'F':
+			elif ParMode == self.__WorkModes['float']:
 				Ut_Type = 'float'
 				Ut_Default = 0.0
-			elif ParMode == 'f':
+			elif ParMode == self.__WorkModes['file']:
 				Ut_Type = 'file'
-				SingleDef['o'] = True
-			elif ParMode == 'd':
+				SingleDef[self.__WorkPars['needoption']] = True
+			elif ParMode == self.__WorkPars['description']:
 				Ut_Type = 'directory'
-				SingleDef['o'] = True
-			elif ParMode == 'C':
+				SingleDef[self.__WorkPars['needoption']] = True
+			elif ParMode == self.__WorkModes['count']:
 				Ut_Type = 'counter'
-			elif ParMode == 'H':
+			elif ParMode == self.__WorkModes['help']:
 				Ut_Type = 'help'
-			elif ParMode == 'x':
+			elif ParMode == self.__WorkModes['import']:
 				Ut_Type = 'import'
-				SingleDef['o'] = True
-			elif ParMode == 'X':
+				SingleDef[self.__WorkPars['needoption']] = True
+			elif ParMode == self.__WorkModes['export']:
 				Ut_Type = 'export'
 			else:
 				Ut_Type = 'string'
 
-			if 'v' in ParKeys:
-				if SingleDef['m'] not in "xXH":
-					self[ParName] = SingleDef['v']
-				if ParMode == 'f':
-					wText = SingleDef['v']
+			if self.__WorkPars['default'] in ParKeys:
+				if 	SingleDef[self.__WorkPars['mode']] != self.__WorkModes['help'] \
+					and SingleDef[self.__WorkPars['mode']] != self.__WorkModes['import'] \
+					and SingleDef[self.__WorkPars['mode']] != self.__WorkModes['export']:
+					self[ParName] = SingleDef[self.__WorkPars['default']]
+				if ParMode == self.__WorkModes['file']:
+					wText = SingleDef[self.__WorkPars['default']]
 					if wText[0] != "/":
 						wText = self.__MyPwd + '/' + wText
 					wFile = Path(wText).absolute()
 					if wFile.is_file:
 						self[ParName] = str(wFile)
-				elif ParMode == 'd':
-					wText = SingleDef['v']
+				elif ParMode == self.__WorkPars['description']:
+					wText = SingleDef[self.__WorkPars['default']]
 					if wText[0] != "/":
 						wText = self.__MyPwd + '/' + wText
 					wFile = Path(wText).absolute()
 					if wFile.is_dir:
 						self[ParName] = str(wFile)
-				elif ParMode == 'p':
-					wText = SingleDef['v']
+				elif ParMode == self.__WorkModes['path']:
+					wText = SingleDef[self.__WorkPars['default']]
 					if wText[0] != "/":
 						wText = self.__MyPwd + '/' + wText
 					wFile = Path(wText).absolute()
 					self[ParName] = str(wFile)
-				Ut_Default = SingleDef['v']
+				Ut_Default = SingleDef[self.__WorkPars['default']]
 			else:
 				if self.__AllParams:
-					if ParMode == 'b':
+					if ParMode == self.__WorkModes['bool']:
 						self[ParName] = False
-					elif ParMode == 't':
+					elif ParMode == self.__WorkModes['text']:
 						self[ParName] = ""
-					elif ParMode == 'i':
+					elif ParMode == self.__WorkModes['int']:
 						self[ParName] = 0
-					elif ParMode == 'F':
+					elif ParMode == self.__WorkModes['float']:
 						self[ParName] = 0.
-					elif ParMode == 'C':
+					elif ParMode == self.__WorkModes['count']:
 						self[ParName] = 0
 					else:
 						if ParMode not in "xXH":
 							self[ParName] = None
 			NeedOpt = False
-			if 'o' in ParKeys:
-				if SingleDef['o']:
+			if self.__WorkPars['needoption'] in ParKeys:
+				if SingleDef[self.__WorkPars['needoption']]:
 					NeedOpt = True
 					Ut_Param = 'XXX'
-			if 'l' in ParKeys:
-				wText = SingleDef['l']
+			if self.__WorkPars['longpar'] in ParKeys:
+				wText = SingleDef[self.__WorkPars['longpar']]
 				if type(wText) == list or type(wText) == tuple:
 					for ws in wText:
 						if not type(ws) == str:
@@ -453,11 +596,11 @@ Dies ist in der "Process" Funktion möglich.
 						if ('--' + ws) in self.__ParDict.keys():
 							raise self.DeclarationError(f"Double long value for {ParName}: {ws}")
 						self.__ParDict['--' + ws] = ParName
-						if ParMode == 'H':
+						if ParMode == self.__WorkModes['help']:
 							self.__HelpList.append('--' + ws)
-						elif ParMode == 'x':
+						elif ParMode == self.__WorkModes['import']:
 							self.__ImportList.append('--' + ws)
-						elif ParMode == 'X':
+						elif ParMode == self.__WorkModes['export']:
 							self.__ExportList.append('--' + ws)
 						Ut_Long.append(ws)
 						if NeedOpt:
@@ -472,11 +615,11 @@ Dies ist in der "Process" Funktion möglich.
 					if ('--' + wText) in self.__ParDict.keys():
 						raise self.DeclarationError(f"Double long value for {ParName}: {wText}")
 					self.__ParDict['--' + wText] = ParName
-					if ParMode == 'H':
+					if ParMode == self.__WorkModes['help']:
 						self.__HelpList.append('--' + wText)
-					elif ParMode == 'x':
+					elif ParMode == self.__WorkModes['import']:
 						self.__ImportList.append('--' + wText)
-					elif ParMode == 'X':
+					elif ParMode == self.__WorkModes['export']:
 						self.__ExportList.append('--' + wText)
 					Ut_Long.append(wText)
 					l = len(wText)
@@ -486,8 +629,8 @@ Dies ist in der "Process" Funktion möglich.
 						self.__LongList.append(wText)
 					if l > LongParLen:
 						LongParLen = l
-			if 's' in ParKeys:
-				wText = SingleDef['s']
+			if self.__WorkPars['shortpar'] in ParKeys:
+				wText = SingleDef[self.__WorkPars['shortpar']]
 				if type(wText) == list or type(wText) == tuple:
 					for ws in wText:
 						if not type(ws) == str:
@@ -496,11 +639,11 @@ Dies ist in der "Process" Funktion möglich.
 							if ('-' + c) in self.__ParDict.keys():
 								raise self.DeclarationError(f"Double short value for {ParName}: {c}")
 							self.__ParDict['-' + c] = ParName
-							if ParMode == 'H':
+							if ParMode == self.__WorkModes['help']:
 								self.__HelpList.append('-' + c)
-							elif ParMode == 'x':
+							elif ParMode == self.__WorkModes['import']:
 								self.__ImportList.append('-' + c)
-							elif ParMode == 'X':
+							elif ParMode == self.__WorkModes['export']:
 								self.__ExportList.append('-' + c)
 							Ut_Short.append(c)
 							self.__ShortList += c
@@ -513,11 +656,11 @@ Dies ist in der "Process" Funktion möglich.
 						if ('-' + c) in self.__ParDict.keys():
 							raise self.DeclarationError(f"Double short value for {ParName}: {c}")
 						self.__ParDict['-' + c] = ParName
-						if ParMode == 'H':
+						if ParMode == self.__WorkModes['help']:
 							self.__HelpList.append('-' + c)
-						elif ParMode == 'x':
+						elif ParMode == self.__WorkModes['import']:
 							self.__ImportList.append('-' + c)
-						elif ParMode == 'X':
+						elif ParMode == self.__WorkModes['export']:
 							self.__ExportList.append('-' + c)
 						Ut_Short.append(c)
 						self.__ShortList += c
@@ -525,13 +668,38 @@ Dies ist in der "Process" Funktion möglich.
 							self.__ShortList += ":"
 				if ShortParLen == 0:
 					ShortParLen = 1
-			if 'd' in ParKeys:
-				Ut_Text = SingleDef['d']
+			if self.__WorkPars['description'] in ParKeys:
+				Ut_Text = SingleDef[self.__WorkPars['description']]
 			self.__UsageTextList.append( [Ut_Short,Ut_Long,Ut_Param,Ut_Type,Ut_Default,Ut_Text] )
 		self.__GenUsageText(ShortParLen,LongParLen)
 		self.__IsPrepared = True
 
-	def Process(self):
+
+	def __MakeErrorMsg(self, Type=None, Param="", Path="", FullPath = "", Msg = "", OptList = "") -> str:
+		try:
+			Erg = self.__DoTranslate(Type=Type, Param=Param, Path=Path, FullPath = FullPath, Msg = Msg, OptList = OptList)
+			if type(Erg) == str:
+				return Erg
+		except:
+			pass
+
+		if Type == "ImpFail":
+			return f"Import failed, {Path} for parameter {Param} is not a valid file"
+		if Type == "ErrMsg":
+			return f"Error '{Msg}' in {Path} ({FullPath}) for parameter {Param}"
+		if Type == "NoFile":
+			return f"The path {Path} ({FullPath}) for parameter {Param} is not a file"
+		if Type == "NoPath":
+			return f"The path {Path} ({FullPath}) for parameter {Param} does not exist"
+		if Type == "NoAct":
+			return f"No action defined for {Param}"
+		if Type == "Required":
+			return f"{Param} ({OptList}) required but not given"
+		return f"Undefined error Type='{Type}', Param='{Param}', Path='{Path}', FullPath='{FullPath}', Msg='{Msg}', OptList='{OptList}'"
+
+
+
+	def Process(self) -> None:
 		"""
 		Process the runtime-arguments
 
@@ -557,23 +725,23 @@ Dies ist in der "Process" Funktion möglich.
 				try:
 					n = Path(a).resolve()
 				except:
-					raise self.ParamError(f"The name {a} for parameter {o} is not a valid path") from None
+					raise self.ParamError(self.__MakeErrorMsg(Type="ImpFail",Path=a,Param=o)) from None
 				if n.exists():
 					if n.is_file():
 						try:
 							wDict = json.load(n.open())
 						except Exception as exc:
 							wMsg = str(exc)
-							raise self.ParamError(f"Error '{str(wMsg)}' in {a} ({n}) for parameter {o}") from None
+							raise self.ParamError(self.__MakeErrorMsg(Type="ErrMsg",Msg=wMsg,Path=a,FullPath=n,Param=o)) from None
 						for k in self.keys():
 							try:
 								self[k] = wDict[k]
 							except:
 								pass
 					else:
-						raise self.ParamError(f"The path {a} ({n}) for parameter {o} is not a file") from None
+						raise self.ParamError(self.__MakeErrorMsg(Type="NoFile",Path=a,FullPath=n,Param=o)) from None
 				else:
-					raise self.ParamError(f"The path {a} ({n}) for parameter {o} does not exist") from None
+					raise self.ParamError(self.__MakeErrorMsg(Type="NoPath",Path=a,FullPath=n,Param=o)) from None
 
 		for o, a in opts:
 			if o in self.__HelpList:
@@ -590,22 +758,22 @@ Dies ist in der "Process" Funktion möglich.
 				wPar = self.__Definition[ParName]
 			except:
 				raise RuntimeError("Internal error, option {ParName} not found in Definition")
-			if 'o' in wPar.keys():
-				if wPar['o']:
+			if self.__WorkPars['needoption'] in wPar.keys():
+				if wPar[self.__WorkPars['needoption']]:
 					Res = self.__CheckOption(ParName,o,wPar,a)
 					if not Res is None:
 						raise self.ParamError(Res)
 					continue
-			if wPar['m'] == 'b':
+			if wPar[self.__WorkPars['mode']] == self.__WorkModes['bool']:
 				try:
-					bVal = wPar['v']
+					bVal = wPar[self.__WorkPars['default']]
 				except:
 					bVal = False
 				self[ParName] = not bVal
-			elif wPar['m'] == 'C':
+			elif wPar[self.__WorkPars['mode']] == self.__WorkModes['count']:
 				self[ParName] += 1
 			else:
-				raise self.ParamError(f"No action defined for {ParName}")
+				raise self.ParamError(self.__MakeErrorMsg(Type="NoAct",Param=ParName))
 
 		for o, a in opts:
 			if o in self.__ExportList:
@@ -615,18 +783,18 @@ Dies ist in der "Process" Funktion möglich.
 		for i in self.__Definition.keys():
 			v = self.__Definition[i]
 			Req = False
-			if 'r' in v.keys():
-				Req = v['r']
+			if self.__WorkPars['required'] in v.keys():
+				Req = v[self.__WorkPars['required']]
 			if Req:
 				if not i in self.keys():
-					raise self.ParamError(f"{i} ({self.__GetOptList(i)}) required but not given")
+					raise self.ParamError(self.__MakeErrorMsg(Type="Required",Param=i,OptList=self.__GetOptList(i))) from None
 
-	def __GetOptList(self,Name):
+	def __GetOptList(self,Name: str) -> str:
 		""" liste der möglichen Parameter eines Keys"""
 		w = self.__Definition[Name]
 		Erg = ""
-		if 's' in w.keys():
-			Short = w['s']
+		if self.__WorkPars['shortpar'] in w.keys():
+			Short = w[self.__WorkPars['shortpar']]
 			if type(Short) == str:
 				for s in Short:
 					Erg += ('-' + s + ' ')
@@ -634,12 +802,12 @@ Dies ist in der "Process" Funktion möglich.
 				for n in Short:
 					for s in n:
 						Erg += ('-' + s + ' ')
-		if 'l' in w.keys():
-			Long = w['l']
+		if self.__WorkPars['longpar'] in w.keys():
+			Long = w[self.__WorkPars['longpar']]
 			Erg += ('--' + Long + ' ')
 		return Erg
 
-	def __CheckOption(self,ParName,ParKey,wPar,a):
+	def __CheckOption(self, ParName: str, ParKey: str, wPar: dict, a: str):
 		"""[summary]
 
 		Args:
@@ -652,19 +820,19 @@ Dies ist in der "Process" Funktion möglich.
 		    None	if no error
 		    Error-msg	if option is erroneous
 		"""
-		wMod = wPar['m']
+		wMod = wPar[self.__WorkPars['mode']]
 #-------------------------
 # Text
 #-------------------------
-		if wMod == 't':
+		if wMod == self.__WorkModes['text']:
 			try:
-				ll = wPar['L']
+				ll = wPar[self.__WorkPars['lowlimit']]
 				if a < ll:
 					return f"Value {a} for parameter {ParKey} is less than lower limit ({ll})"
 			except:
 				pass
 			try:
-				ul = wPar['U']
+				ul = wPar[self.__WorkPars['uplimit']]
 				if a > ul:
 					return f"Value {a} for parameter {ParKey} is bigger than upper limit ({ul})"
 			except:
@@ -674,19 +842,19 @@ Dies ist in der "Process" Funktion möglich.
 #-------------------------
 # Integer
 #-------------------------
-		if wMod == 'i':
+		if wMod == self.__WorkModes['int']:
 			try:
 				n = int(a)
 			except:
 				return f"Value {a} for parameter {ParKey} is not an integer"
 			try:
-				ll = wPar['L']
+				ll = wPar[self.__WorkPars['lowlimit']]
 				if n < ll:
 					return f"Value {a} for parameter {ParKey} is less than lower limit ({ll})"
 			except:
 				pass
 			try:
-				ul = wPar['U']
+				ul = wPar[self.__WorkPars['uplimit']]
 				if n > ul:
 					return f"Value {a} for parameter {ParKey} is bigger than upper limit ({ul})"
 			except:
@@ -696,19 +864,19 @@ Dies ist in der "Process" Funktion möglich.
 #-------------------------
 # Float
 #-------------------------
-		if wMod == 'F':
+		if wMod == self.__WorkModes['float']:
 			try:
 				n = float(a)
 			except:
 				return f"Value {a} for parameter {ParKey} is not floating point"
 			try:
-				ll = wPar['L']
+				ll = wPar[self.__WorkPars['lowlimit']]
 				if n < ll:
 					return f"Value {a} for parameter {ParKey} is less than lower limit ({ll})"
 			except:
 				pass
 			try:
-				ul = wPar['U']
+				ul = wPar[self.__WorkPars['uplimit']]
 				if n > ul:
 					return f"Value {a} for parameter {ParKey} is bigger than upper limit ({ul})"
 			except:
@@ -718,7 +886,7 @@ Dies ist in der "Process" Funktion möglich.
 #-------------------------
 # Boolean
 #-------------------------
-		if wMod == 'b':
+		if wMod == self.__WorkModes['bool']:
 			try:
 				n = a.lower()[0]
 			except:
@@ -733,7 +901,7 @@ Dies ist in der "Process" Funktion möglich.
 #-------------------------
 # File (existing)
 #-------------------------
-		if wMod == 'f':
+		if wMod == self.__WorkModes['file']:
 			if a[0] != "/":
 				a = self.__MyPwd + "/" + a
 			try:
@@ -750,7 +918,7 @@ Dies ist in der "Process" Funktion möglich.
 #-------------------------
 # Directory (existing)
 #-------------------------
-		if wMod == 'd':
+		if wMod == self.__WorkModes['dir']:
 			if a[0] != "/":
 				a = self.__MyPwd + "/" + a
 			try:
@@ -767,7 +935,7 @@ Dies ist in der "Process" Funktion möglich.
 #-------------------------
 # Path
 #-------------------------
-		if wMod == 'p':
+		if wMod == self.__WorkModes['path']:
 			if a[0] != "/":
 				a = self.__MyPwd + "/" + a
 			try:
@@ -779,7 +947,7 @@ Dies ist in der "Process" Funktion möglich.
 		
 		return None
 
-	def GetRemainder(self):
+	def GetRemainder(self) -> list:
 		"""
 		Return list of additionel arguments on command-line
 
@@ -788,7 +956,7 @@ Dies ist in der "Process" Funktion möglich.
 		"""
 		return self.__RemainArgs
 
-	def GetLongOpts(self):
+	def GetLongOpts(self) -> list:
 		"""
 		Return list of long options
 		(only? for debugging declarations)
@@ -798,7 +966,7 @@ Dies ist in der "Process" Funktion möglich.
 		"""
 		return self.__LongList
 
-	def GetShortOpts(self):
+	def GetShortOpts(self) -> list:
 		"""
 		Return list of short options
 		(only? for debugging declarations)
@@ -808,7 +976,7 @@ Dies ist in der "Process" Funktion möglich.
 		"""
 		return self.__ShortList		
 	
-	def GetParDict(self):
+	def GetParDict(self) -> dict:
 		"""
 		Return dict with references options -> parameter-names
 		(only? for debugging declarations)
@@ -881,10 +1049,37 @@ danach erst die Komandozeilenparameter'''},
 
 
 import shlex
+
+def Trans(*,Type:str,Param:str, Path:str, FullPath:str, Msg:str, OptList:str) -> str:
+	if Type == "ImpFail":
+		return f"Fehler bei Import: {Path} bei Parameter {Param} ist keine gültige Datei"
+	if Type == "ErrMsg":
+		return f"Fehler '{Msg}' betreffend Datei {Path} ({FullPath}) von Parameter {Param}"
+	if Type == "NoFile":
+		return f"Der Pfad {Path} ({FullPath}) für Parameter {Param} ist keine Datei"
+	if Type == "NoPath":
+		return f"Der Pfad {Path} ({FullPath}) für Parameter {Param} existiert nicht"
+	if Type == "NoAct":
+		return f"Kein Inhalt für den Parameter {Param} angegeben"
+	if Type == "Required":
+		return f"Der Parameter {Param} ({OptList}) muss angegeben werden, ist aber nicht vorhanden"
+	return f"Unbekannter Fehler Type='{Type}', Param='{Param}', Path='{Path}', FullPath='{FullPath}', Msg='{Msg}', OptList='{OptList}'"
+
+
 def main():
-	a = Param(Def = TestDef_1, Desc = "Dies ist ein Test\ndas bedeutet hier steht nur\nnonsens", AddPar = "File .... File", AllParams = False)
+	a = Param(Def = TestDef_1, 
+		Desc = "Dies ist ein Test\ndas bedeutet hier steht nur\nnonsens", 
+		AddPar = "File .... File", 
+		Translate = Trans,
+		AllParams = False,
+		)
 	# a.SetArgs(Args = shlex.split('Test -v -CCC -f /Mist --dir=/tmp'))
-	a.Process()
+	try:
+		a.Process()
+	except Exception as exc:
+		dir(exc)
+		print(exc)
+		return
 	for key,value in a.items():
 		print(key,value)
 	# print(dir(a))
