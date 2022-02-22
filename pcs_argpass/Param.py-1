@@ -1046,117 +1046,117 @@ s os only within the "Process"-function.
 
 
 
+
+TestDef_1 =     {
+    'Help': {   's': 'h',
+            'l': 'help',
+            'm': 'H',
+            'd': 'Diesen Hilfetext anzeigen und beenden'},
+    'Export': { 's': 'x',
+            'l': 'export',
+            'm': 'X',
+            'd': 'Ausgabe der aktuellen Konfiguration und Beenden'},
+    'ConfFile': {   's': 'z',
+            'l': 'par',
+            'm': 'x',
+            'd': '''Zuerst die Werte aus der Datei lesen, 
+danach erst die Komandozeilenparameter'''},
+    'Verbose': {    's': 'v',
+            'l': 'verbose',
+            'r': False,
+            'm': 'b',
+            'd': 'Sei gesprächig'},
+    'Count': {  's': 'c',
+            'l': ('count','Count'),
+            'r': True,
+            'o': True,
+            'v': 7,
+            'm': 'i',
+            'L': 1,
+            'U': 10,
+            'd': 'Eine Zahl zwischen 1 und 10'},
+    'Text': {   's': 't',
+            'l': ('text','Text'),
+            'o': True,
+            'v': '',
+            'm': 't',
+            'd': 'Ein Text'},
+    'MultiText': {  's': 'T',
+            'l': ('mtext','mText'),
+            'o': True,
+            'M': True,
+            'm': 't',
+            'd': 'Multi Text'},
+    'Float': {  's': 'F',
+            'l': ('float','Float'),
+            'o': True,
+            'v': 10.47,
+            'm': 'F',
+            'L': 1,
+            'U': 100.2,
+            'd': 'Eine Gleitkommazahl zwischen 1 und 100.2'},
+    'File': {   's': 'f',
+            'l': 'file',
+            'o': True,
+            'm': 'f',
+            'd': 'Eine existierende Datei'},
+    'Dir': {    's': 'd',
+            'l': 'dir',
+            'o': True,
+            'm': 'd',
+            'd': 'Ein existierendes Verzeichnis'},
+    'Path': {   's': 'p',
+            'l': 'path',
+            'r': 'true',
+            'M': True,
+            'o': True,
+            'm': 'p',
+            'd': 'Ein gültiger Path'},
+    'Counter': {    's': 'C',
+            'o': False,
+            'm': 'C',
+            'd': 'Mehrmals zum hochzählen'},
+    }
+
+
+import shlex
+
+def Trans(*,Type:str,Param:str, Path:str, FullPath:str, Msg:str, OptList:str) -> str:
+    if Type == "ImpFail":
+        return f"Fehler bei Import: {Path} bei Parameter {Param} ist keine gültige Datei"
+    if Type == "ErrMsg":
+        return f"Fehler '{Msg}' betreffend Datei {Path} ({FullPath}) von Parameter {Param}"
+    if Type == "NoFile":
+        return f"Der Pfad {Path} ({FullPath}) für Parameter {Param} ist keine Datei"
+    if Type == "NoPath":
+        return f"Der Pfad {Path} ({FullPath}) für Parameter {Param} existiert nicht"
+    if Type == "NoAct":
+        return f"Kein Inhalt für den Parameter {Param} angegeben"
+    if Type == "Required":
+        return f"Der Parameter {Param} ({OptList}) muss angegeben werden, ist aber nicht vorhanden"
+    return f"Unbekannter Fehler Type='{Type}', Param='{Param}', Path='{Path}', FullPath='{FullPath}', Msg='{Msg}', OptList='{OptList}'"
+
+
+def main():
+    a = Param(Def = TestDef_1, 
+        Desc = "Dies ist ein Test\ndas bedeutet hier steht nur\nnonsens", 
+        AddPar = "File .... File", 
+        Translate = Trans,
+        AllParams = True,
+        )
+    # a.SetArgs(Args = shlex.split('Test -v -CCC -f /Mist --dir=/tmp'))
+    try:
+        a.Process()
+    except Exception as exc:
+        dir(exc)
+        print(exc)
+        return
+    for key,value in a.items():
+        print(key,value)
+    # print(dir(a))
+    print(f"Ergebnis: {a}")
+    print(f"Rest: {a.GetRemainder()}")
+    # print(a.Usage())
     
 if __name__ == "__main__":
-
-    TestDef_1 =     {
-        'Help': {   's': 'h',
-                'l': 'help',
-                'm': 'H',
-                'd': 'Diesen Hilfetext anzeigen und beenden'},
-        'Export': { 's': 'x',
-                'l': 'export',
-                'm': 'X',
-                'd': 'Ausgabe der aktuellen Konfiguration und Beenden'},
-        'ConfFile': {   's': 'z',
-                'l': 'par',
-                'm': 'x',
-                'd': '''Zuerst die Werte aus der Datei lesen, 
-    danach erst die Komandozeilenparameter'''},
-        'Verbose': {    's': 'v',
-                'l': 'verbose',
-                'r': False,
-                'm': 'b',
-                'd': 'Sei gesprächig'},
-        'Count': {  's': 'c',
-                'l': ('count','Count'),
-                'r': True,
-                'o': True,
-                'v': 7,
-                'm': 'i',
-                'L': 1,
-                'U': 10,
-                'd': 'Eine Zahl zwischen 1 und 10'},
-        'Text': {   's': 't',
-                'l': ('text','Text'),
-                'o': True,
-                'v': '',
-                'm': 't',
-                'd': 'Ein Text'},
-        'MultiText': {  's': 'T',
-                'l': ('mtext','mText'),
-                'o': True,
-                'M': True,
-                'm': 't',
-                'd': 'Multi Text'},
-        'Float': {  's': 'F',
-                'l': ('float','Float'),
-                'o': True,
-                'v': 10.47,
-                'm': 'F',
-                'L': 1,
-                'U': 100.2,
-                'd': 'Eine Gleitkommazahl zwischen 1 und 100.2'},
-        'File': {   's': 'f',
-                'l': 'file',
-                'o': True,
-                'm': 'f',
-                'd': 'Eine existierende Datei'},
-        'Dir': {    's': 'd',
-                'l': 'dir',
-                'o': True,
-                'm': 'd',
-                'd': 'Ein existierendes Verzeichnis'},
-        'Path': {   's': 'p',
-                'l': 'path',
-                'r': 'true',
-                'M': True,
-                'o': True,
-                'm': 'p',
-                'd': 'Ein gültiger Path'},
-        'Counter': {    's': 'C',
-                'o': False,
-                'm': 'C',
-                'd': 'Mehrmals zum hochzählen'},
-        }
-
-
-    import shlex
-
-    def Trans(*,Type:str,Param:str, Path:str, FullPath:str, Msg:str, OptList:str) -> str:
-        if Type == "ImpFail":
-            return f"Fehler bei Import: {Path} bei Parameter {Param} ist keine gültige Datei"
-        if Type == "ErrMsg":
-            return f"Fehler '{Msg}' betreffend Datei {Path} ({FullPath}) von Parameter {Param}"
-        if Type == "NoFile":
-            return f"Der Pfad {Path} ({FullPath}) für Parameter {Param} ist keine Datei"
-        if Type == "NoPath":
-            return f"Der Pfad {Path} ({FullPath}) für Parameter {Param} existiert nicht"
-        if Type == "NoAct":
-            return f"Kein Inhalt für den Parameter {Param} angegeben"
-        if Type == "Required":
-            return f"Der Parameter {Param} ({OptList}) muss angegeben werden, ist aber nicht vorhanden"
-        return f"Unbekannter Fehler Type='{Type}', Param='{Param}', Path='{Path}', FullPath='{FullPath}', Msg='{Msg}', OptList='{OptList}'"
-
-
-    def main():
-        a = Param(Def = TestDef_1, 
-            Desc = "Dies ist ein Test\ndas bedeutet hier steht nur\nnonsens", 
-            AddPar = "File .... File", 
-            Translate = Trans,
-            AllParams = True,
-            )
-        # a.SetArgs(Args = shlex.split('Test -v -CCC -f /Mist --dir=/tmp'))
-        try:
-            a.Process()
-        except Exception as exc:
-            dir(exc)
-            print(exc)
-            return
-        for key,value in a.items():
-            print(key,value)
-        # print(dir(a))
-        print(f"Ergebnis: {a}")
-        print(f"Rest: {a.GetRemainder()}")
-        # print(a.Usage())
     main()
