@@ -12,6 +12,15 @@ import inspect
 from pathlib import Path, PurePath
 import json
 import types
+import copy
+
+try:
+    import json5
+#    JsonLoads = json5.loads
+    JsonLoad = json5.load
+except:
+#    JsonLoads = json.loads
+    JsonLoad = json.load
 
 
 class Param(dict):
@@ -34,12 +43,21 @@ s exception is raised if there is an declaration error within the
 parameters of the class.
         '''
         pass
+
     class ParamError(__ExceptionTemplate):
         '''
 s exception is raised if there is an error within the runtime-parameters.
 s os only within the "Process"-function.
         '''
         pass
+
+    class PathEncoder(json.JSONEncoder):
+        def default(self, z):
+            if isinstance(z, Path) or isinstance(z, PurePath):
+                return (str(z))
+            else:
+                return super().default(z)
+
 #---------------------------------------------
 # Class-local Data
 #---------------------------------------------
@@ -66,6 +84,8 @@ s os only within the "Process"-function.
                 # only parameters with defaults or on the commandline
                 # are in the dictionary
     __DoTranslate = None    # Translation routine for error-messages'
+    __Prefix = None
+    __AllowProcessToExit = True
 
     __WorkPars = {
         'shortpar':     's',
@@ -105,7 +125,9 @@ s os only within the "Process"-function.
             AllParams: bool = True, 
             UserPars:dict = None, 
             UserModes: dict = None,
-            Translate = None):
+            Translate = None,
+            Prefix = None,
+            AllowProcessToExit = True):
         """ The construktor
         Args:
             Def (dict, optional): See SetDef(). Defaults to {}.
@@ -116,9 +138,22 @@ s os only within the "Process"-function.
             AllParams (Boolean, optional): See SetAllParams. Defaults to True.
             UserPars (dict, optional): See SetUserKeys. Defaults to None.
             UserModes (dict, optional): See SetUserKeys. Defaults to None.
+            Prefix (str, optional): When given long params in the form "--xxx.yyyy" are only used
+                    if xxx is equal to the Prefix-value. All other options of this form are silently ignored.
+                    Defaults to None.
+            AllowProcessToExit (bool, optional): If True (the default) the Proces-function exits the program if
+                    there is a "Help" or a "Export" option is set. Otherwise it returns True if these options 
+                    are used and else False.
+                    Defaults to True.
         """
         super(Param, self).__init__()       # Init parent -> make me a dict
         # set the parameters with the individual functions
+        if type(Prefix) == str: 
+            self.__Prefix = Prefix
+        else:
+            self.__Prefix = None
+        self.__AllowProcessToExit = AllowProcessToExit
+
         self.SetDesc(Desc)
         self.SetUserKeys(UserPars = UserPars,UserModes = UserModes)
         self.SetDef(Def)
@@ -244,6 +279,32 @@ s os only within the "Process"-function.
             raise TypeError('Def is not a dict')
         self.__IsPrepared = False   # we need a Prepare-call after this 
 
+    @property
+    def Definition(self):
+        return copy.deepcopy(self.__Definition)
+
+    def GetCmdPar(self, Entry: str) -> str:
+        Erg = ""
+        try:
+            SingleDef = self.__Definition[Entry]
+        except:
+            return ''
+        try:
+            wText = SingleDef[self.__WorkPars['shortpar']]
+            for w in wText:
+                Erg += "-" + w + " "
+        except:
+            pass
+        try:
+            wText = SingleDef[self.__WorkPars['longpar']]
+            if type(wText) == list or type(wText) == tuple:
+                for w in wText:
+                    Erg += "--" + w + " "
+            elif type(wText) == str:
+                Erg += "--" + wText + " "
+        except: 
+            pass
+        return Erg
 
     def SetUserKeys(self, UserPars: dict = None, UserModes: dict = None) -> None:
         """
@@ -412,8 +473,11 @@ s os only within the "Process"-function.
             ShortLen (int): Max. length of the "short"-options (0 or 1)
             LongLen (int): Max. length of the "long"-options
         """
-
-        Text = f"Usage:\n{self.__MyProgName} OPTIONS {self.__AddPar}\n\n{self.__Description}\n\nOptions:\n"
+        if self.__Prefix is None:
+            wPrefText = ''
+        else:
+            wPrefText = f'active prefix = "{self.__Prefix}." only for long (--) options\n\n'
+        Text = f"Usage:\n{self.__MyProgName} OPTIONS {self.__AddPar}\n\n{self.__Description}\n\n{wPrefText}Options:\n"
         for Single in self.__UsageTextList:
             Ut_Short = Single[0]
             Ut_Long = Single[1]
@@ -427,6 +491,8 @@ s os only within the "Process"-function.
             Ut_Text = Single[5].splitlines()
             sl = ShortLen + 3 + 1
             ll = LongLen + 3 + 2
+            if self.__Prefix is not None:
+                ll = ll + len(self.__Prefix) + 3
             Lines = max(len(Ut_Short),len(Ut_Long),len(Ut_Text)+1)
             while len(Ut_Short) < Lines:
                 Ut_Short.append(" ")
@@ -441,6 +507,8 @@ s os only within the "Process"-function.
                 wLine = "\n   "
                 s = Ut_Short[i]
                 l = Ut_Long[i]
+                if self.__Prefix is not None and l != " ":
+                    l = '[' + self.__Prefix + '.]' + l
                 t = Ut_Text[i]
                 if s == " ":
                     n = " " * sl
@@ -715,11 +783,13 @@ s os only within the "Process"-function.
             return f"No action defined for {Param}"
         if Type == "Required":
             return f"{Param} ({OptList}) required but not given"
+        if Type == "Prefix":
+            return f"Error in prefixed parameter {Param}"
         return f"Undefined error Type='{Type}', Param='{Param}', Path='{Path}', FullPath='{FullPath}', Msg='{Msg}', OptList='{OptList}'"
 
 
 
-    def Process(self) -> None:
+    def Process(self, DispName = None) -> bool:
         """
         Process the runtime-arguments
 
@@ -729,18 +799,48 @@ s os only within the "Process"-function.
         """
         if not self.__IsPrepared:
             self.__Prepare()
+        PreList = []
+        for wPar in self.__Argumente[1:]:
+            if wPar[0:2] == '--' and '.' in wPar:
+                xPre = wPar[2:].split('.')[0]
+                if xPre not in PreList:
+                    PreList.append(xPre)
+        wLongList = []
+        for nLong in self.__LongList:
+            wLongList.append(nLong)
+        if len(PreList) > 0:
+            for nPre in PreList:
+                for nLong in self.__LongList:
+                    wLongList.append(nPre + '.' + nLong)
         try:
-            opts, args = getopt.getopt(self.__Argumente[1:],self.__ShortList,self.__LongList)
+#            opts, args = getopt.getopt(self.__Argumente[1:],self.__ShortList,self.__LongList)
+            opts, args = getopt.getopt(self.__Argumente[1:],self.__ShortList,wLongList)
         except getopt.GetoptError as exc:
             wMsg = exc.msg
             raise self.ParamError(wMsg) from None
         self.__RemainArgs = args
         for o, a in opts:
+            if '.' in o:
+                wList = o[2:].split('.')
+                if len(wList) != 2:
+                    raise self.ParamError(self.__MakeErrorMsg(Type="Prefix",Param=o)) from None
+                if wList[0] == self.__Prefix:
+                    o = '--' + wList[1]
             if o in self.__HelpList:
+                if DispName is not None:
+                    print(f"#{'-'*60}\n# {DispName}\n#{'-'*60}\n")
                 print(self.Usage())
-                sys.exit(0)
+                if self.__AllowProcessToExit:
+                    sys.exit(0)
+                return True
 
         for o, a in opts:
+            if '.' in o:
+                wList = o[2:].split('.')
+                if len(wList) != 2:
+                    raise self.ParamError(self.__MakeErrorMsg(Type="Prefix",Param=o)) from None
+                if wList[0] == self.__Prefix:
+                    o = '--' + wList[1]
             if o in self.__ImportList:
                 try:
                     n = Path(a).resolve()
@@ -749,7 +849,8 @@ s os only within the "Process"-function.
                 if n.exists():
                     if n.is_file():
                         try:
-                            wDict = json.load(n.open())
+#                            wDict = json.load(n.open())
+                            wDict = JsonLoad(n.open())
                         except Exception as exc:
                             wMsg = str(exc)
                             raise self.ParamError(self.__MakeErrorMsg(Type="ErrMsg",Msg=wMsg,Path=a,FullPath=n,Param=o)) from None
@@ -764,6 +865,14 @@ s os only within the "Process"-function.
                     raise self.ParamError(self.__MakeErrorMsg(Type="NoPath",Path=a,FullPath=n,Param=o)) from None
 
         for o, a in opts:
+            if '.' in o:
+                wList = o[2:].split('.')
+                if len(wList) != 2:
+                    raise self.ParamError(self.__MakeErrorMsg(Type="Prefix",Param=o)) from None
+                if wList[0] == self.__Prefix:
+                    o = '--' + wList[1]
+                else:
+                    continue
             if o in self.__HelpList:
                 continue
             if o in self.__ImportList:
@@ -773,11 +882,11 @@ s os only within the "Process"-function.
             try:
                 ParName = self.__ParDict[o] 
             except:
-                raise RuntimeError("Internal error, option {o} not found in ParDict")
+                raise RuntimeError(f"Internal error, option {o} not found in ParDict")
             try:
                 wPar = self.__Definition[ParName]
             except:
-                raise RuntimeError("Internal error, option {ParName} not found in Definition")
+                raise RuntimeError(f"Internal error, option {ParName} not found in Definition")
             if self.__WorkPars['needoption'] in wPar.keys():
                 if wPar[self.__WorkPars['needoption']]:
                     Res = self.__CheckOption(ParName,o,wPar,a)
@@ -796,9 +905,19 @@ s os only within the "Process"-function.
                 raise self.ParamError(self.__MakeErrorMsg(Type="NoAct",Param=ParName))
 
         for o, a in opts:
+            if '.' in o:
+                wList = o.split('.')
+                if len(wList) != 2:
+                    raise self.ParamError(self.__MakeErrorMsg(Type="Prefix",Param=o)) from None
+                if wList[0] == self.__Prefix:
+                    o = wList[1]
             if o in self.__ExportList:
-                print(json.dumps(self, sort_keys=True, indent=4))
-                sys.exit(0)
+                if DispName is not None:
+                    print(f"//{'-'*60}\n// {DispName}\n//{'-'*60}\n")
+                print(json.dumps(self, sort_keys=True, indent=4, cls=self.PathEncoder))
+                if self.__AllowProcessToExit:
+                    sys.exit(0)
+                return True
 
         for i in self.__Definition.keys():
             v = self.__Definition[i]
@@ -808,6 +927,7 @@ s os only within the "Process"-function.
             if Req:
                 if not i in self.keys():
                     raise self.ParamError(self.__MakeErrorMsg(Type="Required",Param=i,OptList=self.__GetOptList(i))) from None
+        return False
 
     def __GetOptList(self,Name: str) -> str:
         """ liste der möglichen Parameter eines Keys"""
@@ -1044,7 +1164,68 @@ s os only within the "Process"-function.
         """
         return self.__ParDict
 
+class MultiParam(dict):
+    class __ExceptionTemplate(Exception):
+        def __call__(self, *args):
+                return self.__class__(*(self.args + args))
 
+        def __str__(self):
+                return ': '.join(self.args)
+
+    class DeclarationError(__ExceptionTemplate):
+        '''
+s exception is raised if there is an declaration error within the 
+parameters of the class.
+        '''
+        pass
+
+    class ParamError(__ExceptionTemplate):
+        '''
+s exception is raised if there is an error within the runtime-parameters.
+s os only within the "Process"-function.
+        '''
+        pass
+
+    def __init__(self, ParDict: dict = {}):
+        super().__init__()       # Init parent -> make me a dict
+        if type(ParDict) != dict:
+           raise TypeError('ParDict is not a dict') 
+        self.__ParDict = ParDict
+        for ParName in self.__ParDict.keys():         
+            ParVal = self.__ParDict[ParName]
+            if type(ParVal) != dict:
+                raise TypeError(f"ParDict[{ParName}] is not a dict") 
+            if 'Def' not in ParVal:
+                raise TypeError(f"ParDict[{ParName}] idoes not include 'Def'")
+            ParDef = ParVal['Def']
+            if type(ParDef) != dict:
+                raise TypeError(f"ParDict[{ParName}]['Def'] is not a dict") 
+
+            if 'Args' not in ParVal:
+                raise TypeError(f"ParDict[{ParName}] idoes not include 'Args'") 
+            ParArgs = copy.deepcopy(ParVal['Args'])
+            if type(ParArgs) != dict:
+                raise TypeError(f"ParDict[{ParName}]['Args'] is not a dict") 
+            ParArgs['AllowProcessToExit'] = False 
+            self[ParName] = Param(Def = ParDef, **ParArgs)
+
+    def Process(self):
+        IsError = False
+        ErrMsg = ''
+        Result = False
+        for ParName in self.keys():
+            SubPar = self[ParName]
+            try:
+                Erg = SubPar.Process(ParName)
+                if Erg:
+                    Result = True
+            except Exception as exc:
+                IsError = True
+                ErrMsg += f"{ParName}: {str(exc)}\n"
+        if IsError:
+            raise self.ParamError(ErrMsg) from None
+        return Result
+                
 
     
 if __name__ == "__main__":
@@ -1119,7 +1300,30 @@ if __name__ == "__main__":
                 'm': 'C',
                 'd': 'Mehrmals zum hochzählen'},
         }
-
+    TestDef_2 =     {
+        'Help': {   
+                's': 'h',
+                'l': 'help',
+                'm': 'H',
+                'd': 'Diesen Hilfetext anzeigen und beenden'},
+        'Export': { 
+                's': 'x',
+                'l': 'export',
+                'm': 'X',
+                'd': 'Ausgabe der aktuellen Konfiguration und Beenden'},
+        'ConfFile': {
+                's': 'z',
+                'l': 'par',
+                'm': 'x',
+                'd': '''Zuerst die Werte aus der Datei lesen, 
+    danach erst die Komandozeilenparameter'''},
+        'Verbose': {
+                's': 'v',
+                'l': 'verbose',
+                'r': False,
+                'm': 'b',
+                'd': 'Sei gesprächig'},
+        }
 
     import shlex
 
@@ -1140,11 +1344,53 @@ if __name__ == "__main__":
 
 
     def main():
+
+        m = MultiParam({ 
+            'Alpha': 
+                { 
+                'Def': TestDef_1, 
+                'Args':
+                    { 
+                    'Desc': "Dies ist ein Test\ndas bedeutet hier steht nur\nnonsens", 
+                    'AddPar': "File .... File", 
+                    'Translate': Trans,
+                    'AllParams': True,
+                    'Prefix': 'alpha'
+                    }
+                },
+            'Beta':
+                {
+                'Def': TestDef_2, 
+                'Args':
+                    {
+                    'Desc': "Dies ist ein Test # 2", 
+                    'AllParams': True,
+                    'Prefix': 'beta'
+                    }
+                }
+            })
+        try:
+            Erg = m.Process()
+        except Exception as exc:
+            dir(exc)
+            print(exc)
+            return
+        if Erg:
+            return
+        for Name, Par in m.items():
+            print(f"{'-' * 60}\n{Name}\n{'-' * 60}")
+            for key,value in Par.items():
+                print(f"{Name} -> {key}: {value}")
+
+
+
+
         a = Param(Def = TestDef_1, 
             Desc = "Dies ist ein Test\ndas bedeutet hier steht nur\nnonsens", 
             AddPar = "File .... File", 
             Translate = Trans,
             AllParams = True,
+            AllowProcessToExit = False
             )
         # a.SetArgs(Args = shlex.split('Test -v -CCC -f /Mist --dir=/tmp'))
         try:
@@ -1158,5 +1404,31 @@ if __name__ == "__main__":
         # print(dir(a))
         print(f"Ergebnis: {a}")
         print(f"Rest: {a.GetRemainder()}")
-        # print(a.Usage())
+        print(a.GetCmdPar('Text'))
+        print(a.Definition)
+        print(a.Usage())
+        print('-'*60)
+        b = Param(Def = TestDef_2, 
+            Desc = "Dies ist ein Test # 2", 
+#            AddPar = "File .... File", 
+            Translate = Trans,
+            AllParams = True,
+            Prefix = 'pre'
+            )
+        b.SetArgs(Args = shlex.split('Test --ignore.help -v -x'))
+        try:
+            b.Process()
+        except Exception as exc:
+            dir(exc)
+            print(exc)
+            return
+        for key,value in b.items():
+            print(key,value)
+        # print(dir(a))
+        print(f"Ergebnis: {b}")
+        print(f"Rest: {b.GetRemainder()}")
+        print(b.GetCmdPar('Text'))
+        print(b.Definition)
+        print(b.Usage())
+        print('-'*60)
     main()

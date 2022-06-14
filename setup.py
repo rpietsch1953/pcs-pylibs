@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="pcs_argpass",
-    version="0.4.1",
+    version="0.6.1",
     author="Rainer Pietsch",
     author_email="r.pietsch@pcs-at.com",
     description="Argument parser and checker",
