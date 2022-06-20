@@ -1,11 +1,14 @@
 import setuptools
 
-with open("README.md", "r") as fh:
+with open("README_Argpass.md", "r") as fh:
     long_description = fh.read()
+
+#with open("README_Log.md", "r") as fh:
+#    long_description_log = fh.read()
 
 setuptools.setup(
     name="pcs_argpass",
-    version="0.6.1",
+    version="0.6.2",
     author="Rainer Pietsch",
     author_email="r.pietsch@pcs-at.com",
     description="Argument parser and checker",
@@ -19,4 +22,3 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
 )
-
