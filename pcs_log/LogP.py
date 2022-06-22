@@ -1,19 +1,24 @@
 #!/usr/bin/env python3
 # vim: expandtab:ts=4:sw=4:noai
-
+"""
+    Set up a logging-environment for daemons or console-programs
+"""
 import logging
 import logging.config
 import time
 import os
 import sys
+import warnings
 
 from functools import partial
-import LogP
+#import LogP
 
-KEEP = 'keep'
-KEEP_WARN = 'keep-warn'
+_KEEP = 'keep'
+_KEEP_WARN = 'keep-warn'
+_RAISE = 'raise'
+_OVERWRITE_WARN = 'overwrite-warn'
 
-class AddStackContextFilter(logging.Filter):
+class _AddStackContextFilter(logging.Filter):
     def __init__(self, trim_amount: int = 5, below_level: int = -1):
         """Class to prepaire the "stack"-variable within logrecord
 
@@ -24,19 +29,32 @@ class AddStackContextFilter(logging.Filter):
         self.trim_amount = trim_amount
         self.below_level = below_level
         
+    def IsLast(self,s):
+        Such = '\n    root.log(level, msg, *args, **kwargs)\n'
+        return Such in s        
+
     def filter(self, record):
         import traceback
         if record.levelno <= self.below_level:
-            record.stack = '\n' + ''.join(
-                str(row) for row in traceback.format_stack()[:-self.trim_amount]
-                )
+            wStack = traceback.format_stack()
+            ResStr = '\n'
+            ResList = []
+            for r in wStack:
+                s = str(r)
+                if self.IsLast(s):
+                    break
+                ResList.append(s)
+            record.stack = '\n' + ''.join(ResList[0-self.trim_amount:])
         else:
             record.stack = ''
         return True
 
-def add_logging_level(level_name, level_num, method_name=None,
-                      if_exists=KEEP, *, exc_info=False, stack_info=False):
+def _AddLoggingLevel(level_name, level_num, method_name=None,
+                      if_exists=_KEEP, *, exc_info=False, stack_info=False):
     """
+    
+    This Part was copied from: Joseph R. Fox-Rabinovitz
+    
     Comprehensively add a new logging level to the :py:mod:`logging`
     module and the currently configured logging class.
 
@@ -66,13 +84,13 @@ def add_logging_level(level_name, level_num, method_name=None,
         :py:func:`logging.getLoggerClass` (usually just
         :py:class:`logging.Logger`). If ``method_name`` is not
         specified, ``level_name.lower()`` is used instead.
-    if_exists : {KEEP, KEEP_WARN, OVERWRITE, OVERWRITE_WARN, RAISE}
+    if_exists : {_KEEP, _KEEP_WARN, OVERWRITE, OVERWRITE_WARN, RAISE}
         What to do if a level with `level_name` appears to already be
         registered in the :py:mod:`logging` module:
 
-        :py:const:`KEEP`
+        :py:const:`_KEEP`
             Silently keep the old level as-is.
-        :py:const:`KEEP_WARN`
+        :py:const:`_KEEP_WARN`
             Keep the old level around and issue a warning.
         :py:const:`OVERWRITE`
             Silently overwrite the old level.
@@ -81,7 +99,7 @@ def add_logging_level(level_name, level_num, method_name=None,
         :py:const:`RAISE`
             Raise an error.
 
-        The default is :py:const:`KEEP_WARN`.
+        The default is :py:const:`_KEEP_WARN`.
     exc_info : bool
         Default value for the ``exc_info`` parameter of the new method.
     stack_info : bool
@@ -90,14 +108,14 @@ def add_logging_level(level_name, level_num, method_name=None,
 
     Examples
     --------
-    >>> add_logging_level('TRACE', logging.DEBUG - 5)
+    >>> _AddLoggingLevel('TRACE', logging.DEBUG - 5)
     >>> logging.getLogger(__name__).setLevel("TRACE")
     >>> logging.getLogger(__name__).trace('that worked')
     >>> logging.trace('so did this')
     >>> logging.TRACE
     5
 
-    >>> add_logging_level('XTRACE', 2, exc_info=True)
+    >>> _AddLoggingLevel('XTRACE', 2, exc_info=True)
     >>> logging.getLogger(__name__).setLevel(logging.XTRACE)
     >>> try:
     >>>     1 / 0
@@ -140,7 +158,7 @@ def add_logging_level(level_name, level_num, method_name=None,
         if registered_num != 'Level ' + level_name:
             items_found += 1
             if registered_num != level_num:
-                if if_exists == RAISE:
+                if if_exists == _RAISE:
                     # Technically this is not an attribute issue, but for
                     # consistency
                     raise AttributeError(
@@ -152,7 +170,7 @@ def add_logging_level(level_name, level_num, method_name=None,
         if hasattr(logging, level_name):
             items_found += 1
             if getattr(logging, level_name) != level_num:
-                if if_exists == RAISE:
+                if if_exists == _RAISE:
                     raise AttributeError(
                         'Level {!r} already defined in logging '
                         'module'.format(level_name)
@@ -165,7 +183,7 @@ def add_logging_level(level_name, level_num, method_name=None,
             if not callable(logging_method) or \
                     getattr(logging_method, '_original_name', None) != \
                     for_logging_module.__name__:
-                if if_exists == RAISE:
+                if if_exists == _RAISE:
                     raise AttributeError(
                         'Function {!r} already defined in logging '
                         'module'.format(method_name)
@@ -178,7 +196,7 @@ def add_logging_level(level_name, level_num, method_name=None,
             if not callable(logger_method) or \
                     getattr(logger_method, '_original_name', None) != \
                     for_logger_class.__name__:
-                if if_exists == RAISE:
+                if if_exists == _RAISE:
                     raise AttributeError(
                         'Method {!r} already defined in logger '
                         'class'.format(method_name)
@@ -188,8 +206,8 @@ def add_logging_level(level_name, level_num, method_name=None,
         if items_found > 0:
             # items_found >= items_conflict always
             if (items_conflict or items_found < 4) and \
-                    if_exists in (KEEP_WARN, OVERWRITE_WARN):
-                action = 'Keeping' if if_exists == KEEP_WARN else 'Overwriting'
+                    if_exists in (_KEEP_WARN, _OVERWRITE_WARN):
+                action = 'Keeping' if if_exists == _KEEP_WARN else 'Overwriting'
                 if items_conflict:
                     problem = 'has conflicting definition'
                     items = items_conflict
@@ -201,7 +219,7 @@ def add_logging_level(level_name, level_num, method_name=None,
                         level_name, problem, items, action)
                 )
 
-            if if_exists in (KEEP, KEEP_WARN):
+            if if_exists in (_KEEP, _KEEP_WARN):
                 return
 
         # Make sure the method names are set to sensible values, but
@@ -226,6 +244,8 @@ def SetupLogging(   AppName: str,
                     NoDaemon: bool = True, 
                     StdErr: bool = False, 
                     LogFile: str = '', 
+                    LogFileInterval: int = 60*60*24,
+                    LogFileCount: int = 14,
                     Quiet: bool = False, 
                     ProcInfo: bool = False, 
                     LevelInfo: bool = True, 
@@ -239,26 +259,111 @@ def SetupLogging(   AppName: str,
 
     Args:
         AppName (str): Name of application
+
         Verbose (int, optional): Detail of logging. Defaults to 0.
+                                0 = ERROR and STATUS
+                                1 = MSG, WARNING, STATUS, ERROR 
+                                2 = INFO, MSG, WARNING, STATUS, ERROR 
+                                3 = DEBUG, INFO, MSG, WARNING, STATUS, ERROR 
+                                4 = TRACE, DEBUG, INFO, MSG, WARNING, STATUS, ERROR 
+
         NoDaemon (bool, optional): Is this an terminal-task. Defaults to True.
+                                If this is false => i am a daemon.
+                                On deamons output to StdErr do not make sense, so this is ignored
+                                and "syslog" or "logfile" is used.
+
         StdErr (bool, optional): Log to StdErr. Defaults to False.
+                                If this is set the log goes to StdErr.
+                                Ignored if we are a daemon.
+
         LogFile (str, optional): Log to a Log-file. Defaults to ''.
+                                Log to the file which is given as the argument.
+                                this file is rotated on a daily base and holded up to 14 files
+
+        LogFileInterval (int, optional): Number of seconds a logfile lasts until it is rotated.
+                                Defaults to 60*60*24 => one day.
+
+        LogFileCount (int, optional): Number of log-file kept. Defaults to 14.
+
         Quiet (bool, optional): Output only errors. Defaults to False.
+
         ProcInfo (bool, optional): Show process and thread. Defaults to False.
+
         LevelType (int, optional): Format of LevelInfo. 0=None, 1=Number, 2=Name, 3=Both. Defaults to 2.
+
         MultiProc (bool, optional): Show process-names. Defaults to False.
+
         MultiThread (bool, optional): Show thread-names. Defaults to False.
-        StackOnDebug (str, optional): Log-level below or equal a stacktrace is included. Defaults to -1 => Disabled.
-        StackDepth (int, optional): Maximum number of stack-lines to display. Defaults to 5.
+
+        StackOnDebug (str, optional): Log-level below or equal a call-stack trace is included.
+                                    Defaults to "NONE" => Disabled.
+                                    The levels are:
+                                        "ERROR"
+                                        "STATUS"
+                                        "WARNING"
+                                        "MSG"
+                                        "INFO"
+                                        "DEBUG"
+                                        "TRACE"
+                                        "NONE"
+                                    All other values are interpretet as "NONE".
+                                    Value is not case-sensitive.
+
+        StackDepth (int, optional): Maximum number of call-stack entries to display. Defaults to 5.
+
         NoReset (bool, optional): Do not reset logger on init. Defaults to False.
+                                Use with care. Could tend to mess up the logging.
+    Output format:
+        General overview:
+            2022-06-22 07:37:42,494 Appname:MainProcess:MainThread LogP:main:461 - 40=   ERROR - Errormessage
+                                    ^       ^           ^          ^               ^     ^       ^
+                                    |       |           |          |               |     |       |
+            Name of application ----+       |           |          |               |     |       |
+                only if not StdErr          |           |          |               |     |       |
+            Name of procvess ---------------+           |          |               |     |       |
+                if MultiProc = true                     |          |               |     |       |
+            Name of thread if --------------------------+          |               |     |       |
+                MultiThread = true                                 |               |     |       |
+            Module, function and linenumber -----------------------+               |     |       |
+                only if ProcInfo = true                                            |     |       |
+            Level-number of message if LevelType = 1 or 3 -------------------------+     |       |
+            Level-name of message if LevelType = 2 or 3 ---------------------------------+       |
+            The message given to the log-call ---------------------------------------------------+
+
+            The minimal log entry for StdErr is:
+                2022-06-22 07:37:42,494 Errormessage
+            The maximal log entry is shown above.
+
+        The output format to StdErr is like this:
+            2022-06-22 07:37:42,494 MainProcess:MainThread LogP:main:461     - 40=   ERROR - Errormessage
+                No "Appname" because you know whitch program is running 
+
+        The output format to sylog like this:
+            Appname:MainProcess:MainThread LogP:main:461 - 40=   ERROR - Errormessage
+                No timestamp because syslogg adds his own timestamp.
+
+        The output format to a logfile is like this:
+            2022-06-22 07:37:42,494 Appname:MainProcess:MainThread LogP:main:461 - 40=   ERROR - Errormessage
+
+
+        if a call-stack trace is requested lines like these are appended:
+              File "./LogP.py", line 471, in <module>
+                main()
+              File "./LogP.py", line 448, in main
+                abc()
+              File "./LogP.py", line 411, in abc
+                LogP.debug('Debug')
+
+                        
+                        
     """    
     if not NoReset:
         for handler in logging.root.handlers[:]:
             logging.root.removeHandler(handler)
 # Add the 3 additional log-level
-    add_logging_level('TRACE', logging.DEBUG -5, 'trace')
-    add_logging_level('MSG', logging.WARNING - 1, 'msg')
-    add_logging_level('STATUS', logging.ERROR - 1, 'status')
+    _AddLoggingLevel('TRACE', logging.DEBUG -5, 'trace')
+    _AddLoggingLevel('MSG', logging.WARNING - 1, 'msg')
+    _AddLoggingLevel('STATUS', logging.ERROR - 1, 'status')
 # Add the Filter to implement stack-traces
     wTxt = StackOnDebug.upper()
     if wTxt =='ERROR':
@@ -277,7 +382,8 @@ def SetupLogging(   AppName: str,
         Sd = logging.TRACE
     else:
         Sd = -1
-    logging.getLogger().addFilter(AddStackContextFilter(StackDepth, Sd))
+
+    logging.getLogger().addFilter(_AddStackContextFilter(StackDepth, Sd))
     
     if not NoDaemon:  # Ausgabe auf StdErr macht als Daemon keinen Sinn
         StdErr = False
@@ -287,9 +393,9 @@ def SetupLogging(   AppName: str,
 
     if Verbose == 0:  # Default
         LogLevel = logging.STATUS
-    elif Verbose == 1:  # Mit Infos
-        LogLevel = logging.INFO
-    elif Verbose == 2:  # Mit Meldungen
+    elif Verbose == 1:  # Mit Meldungen
+        LogLevel = logging.MSG
+    elif Verbose == 2:  # Mit Infos
         LogLevel = logging.INFO
     elif Verbose == 3:  # Mit debug infos
         LogLevel = logging.DEBUG
@@ -319,7 +425,7 @@ def SetupLogging(   AppName: str,
     
     if LogFile != '':
         Format = f"%(asctime)s - {AppName}:{AddPar}{ShowLevel} - %(message)s%(stack)s"
-        FileLogHand = logging.handlers.TimedRotatingFileHandler(LogFile, when = 'S',interval = 60*60*24, backupCount = 5)
+        FileLogHand = logging.handlers.TimedRotatingFileHandler(LogFile, when = 'S',interval = LogFileInterval, backupCount = LogFileCount)
         logging.basicConfig(handlers = [FileLogHand], level = LogLevel, format = Format)
         FileLogHand.doRollover()
     elif StdErr:
@@ -335,21 +441,46 @@ def SetupLogging(   AppName: str,
         SysLogHand = logging.handlers.SysLogHandler(address = '/dev/log')
         logging.basicConfig(handlers = [SysLogHand], level = LogLevel, format = Format)
 
-add_logging_level('TRACE', logging.DEBUG -5, 'trace')
-add_logging_level('MSG', logging.WARNING - 1, 'msg')
-add_logging_level('STATUS', logging.ERROR - 1, 'status')
+_AddLoggingLevel('TRACE', logging.DEBUG -5, 'trace')
+_AddLoggingLevel('MSG', logging.WARNING - 1, 'msg')
+_AddLoggingLevel('STATUS', logging.ERROR - 1, 'status')
 
 error = partial(logging.log, logging.ERROR)
+"""Error logging function
+    usage: LogP.error("Msg")"""
+
 warning = partial(logging.log, logging.WARNING)
+"""Warning logging function
+    usage: LogP.warning("Msg")"""
+
 info = partial(logging.log, logging.INFO)
+"""Info logging function
+    usage: LogP.info("Msg")"""
+
 msg = partial(logging.log,logging.MSG)
+"""Msg logging function
+    usage: LogP.msg("Msg")"""
+
 status = partial(logging.log,logging.STATUS)
+"""Status logging function
+    usage: LogP.status("Msg")"""
+
 trace = partial(logging.log,logging.TRACE)
+"""Trace logging function
+    usage: LogP.trace("Msg")"""
+
 debug = partial(logging.log,logging.DEBUG)
+"""Debug logging function
+    usage: LogP.debug("Msg")"""
+
 log = partial(logging.log)
+"""Log logging function
+    usage: LogP.log(level,"Msg")"""
+
 
 if __name__ == '__main__':
     import LogP
+    import LogP as XXLogP
     
     
     def abc():
@@ -359,12 +490,12 @@ if __name__ == '__main__':
         LogP.msg('Msg')
         LogP.info('Info')
         LogP.debug('Debug')
-        LogP.trace('Trace')
+        XXLogP.trace('Trace')
     
     
     def main():
         MyParam= {}
-        MyParam['Verbose'] = 3
+        MyParam['Verbose'] = 4
         MyParam['StdErr'] = True
         MyParam['NoDaemon'] = True
         MyParam['Quiet'] = False
@@ -383,6 +514,7 @@ if __name__ == '__main__':
             LogFile = MyParam['LogFile'],
             ProcInfo = False,
             StackOnDebug = "Warning",
+            StackDepth=2,
             LevelType = 0,
             MultiProc = False, 
             MultiThread = False
@@ -405,6 +537,7 @@ if __name__ == '__main__':
             LogFile = MyParam['LogFile'],
             ProcInfo = True,
             MultiProc = True, 
+            StackOnDebug = "Warning",
             MultiThread = True
             ) 
     

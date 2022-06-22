@@ -1,0 +1,4 @@
+#!/bin/bash
+python3 setup_log.py sdist bdist_wheel
+python3 -m twine upload dist/pcs_log* --verbose
+

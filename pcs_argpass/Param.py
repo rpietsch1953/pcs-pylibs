@@ -6,13 +6,14 @@ Parameterverwaltung
     bedient die meisten Laufzeitparameter
 '''
 import sys
-#import getopt
+
 import types
 import inspect
 from pathlib import Path, PurePath
 import json
 import types
 import copy
+import os
 
 try:
     import json5
@@ -39,15 +40,15 @@ from pcs_argpass.Param import Param
 
     class DeclarationError(__ExceptionTemplate):
         '''
-s exception is raised if there is an declaration error within the 
+this exception is raised if there is an declaration error within the 
 parameters of the class.
         '''
         pass
 
     class ParamError(__ExceptionTemplate):
         '''
-s exception is raised if there is an error within the runtime-parameters.
-s os only within the "Process"-function.
+This exception is raised if there is an error within the runtime-parameters.
+This is only raised within the "Process"-function.
         '''
         pass
 
@@ -256,20 +257,22 @@ s os only within the "Process"-function.
                 'U': 'Up', 
                 'r': False },
             where:
-                m : Mode -> t=Text, 
-                            b=Bool, 
-                            p=Path, 
-                            f=Existing File, 
-                            d=Exist. Dir, 
-                            i=Integer, 
-                            F=Float, 
-                            C=Counter (start default as 0 and increment each time found)
+                m : Mode -> 't' = Text, 
+                            'b' = Bool, 
+                            'p' = Path, 
+                            'f' = Existing File, 
+                            'd' = Exist. Dir, 
+                            'i' = Integer, 
+                            'F' = Float, 
+                            'C' = Counter (start default as 0 and increment each time found)
                         The following are processed BEVOR all others:
-                            H=Show help and exit
-                            x=Import config-file as json (file must exist loke "f")
-                            can be given more than once!
+                            'H' = Show help and exit
+                            'x' = Import config-file as json (file must exist like "f")
+                                can be given more than once!
+                            '<' = MultiImport config-file as json
                         The following are processed AFTER all others:
-                            X=Export config as json to stdout und exit
+                            'X' = Export config as json to stdout und exit
+                            '>' = MultiExport config as json to stdout und exit
                 r : Required -> True or False, False is default
                 s : Short Option(s) -> string or list or tuple of strings
                 l : Long Option(s) -> string or list or tuple of strings
@@ -292,7 +295,7 @@ s os only within the "Process"-function.
         self.__IsPrepared = False   # we need a Prepare-call after this 
 
     @property
-    def ThetWorkModes(self):
+    def TheWorkModes(self):
         return copy.deepcopy(self.__WorkModes)
 
     @property
@@ -717,17 +720,7 @@ s os only within the "Process"-function.
                         for ListPar in self.__ModeToList:
                             if ParMode == ListPar:
                                 self.__ModeToList[ListPar].append('--' + ws)
- 
-#                        if ParMode == self.__WorkModes['help']:
-#                            self.__HelpList.append('--' + ws)
-#                        elif ParMode == self.__WorkModes['import']:
-#                            self.__ImportList.append('--' + ws)
-#                        elif ParMode == self.__WorkModes['glob_import']:
-#                            self.__Glob_ImportList.append('--' + ws)
-#                        elif ParMode == self.__WorkModes['export']:
-#                            self.__ExportList.append('--' + ws)
-#                        elif ParMode == self.__WorkModes['glob_export']:
-#                            self.__Glob_ExportList.append('--' + ws)
+
                         Ut_Long.append(ws)
                         if NeedOpt:
                             self.__LongList.append(ws + "=")
@@ -744,16 +737,6 @@ s os only within the "Process"-function.
                     for ListPar in self.__ModeToList:
                         if ParMode == ListPar:
                             self.__ModeToList[ListPar].append('--' + wText)
-#                    if ParMode == self.__WorkModes['help']:
-#                        self.__HelpList.append('--' + wText)
-#                    elif ParMode == self.__WorkModes['import']:
-#                        self.__ImportList.append('--' + wText)
-#                    elif ParMode == self.__WorkModes['glob_import']:
-#                        self.__Glob_ImportList.append('--' + wText)
-#                    elif ParMode == self.__WorkModes['export']:
-#                        self.__ExportList.append('--' + wText)
-#                    elif ParMode == self.__WorkModes['glob_export']:
-#                        self.__Glob_ExportList.append('--' + wText)
                     Ut_Long.append(wText)
                     l = len(wText)
                     if NeedOpt:
@@ -776,14 +759,6 @@ s os only within the "Process"-function.
                                 if ParMode == ListPar:
                                     self.__ModeToList[ListPar].append('-' + c)
 
-#                            if ParMode == self.__WorkModes['help']:
-#                                self.__HelpList.append('-' + c)
-#                            elif ParMode == self.__WorkModes['import']:
-#                                self.__ImportList.append('-' + c)
-#                            elif ParMode == self.__WorkModes['glob_import']:
-#                                self.__Glob_ImportList.append('-' + c)
-#                            elif ParMode == self.__WorkModes['glob_export']:
-#                                self.__Glob_ExportList.append('-' + c)
                             Ut_Short.append(c)
                             self.__ShortList += c
                             if NeedOpt:
@@ -798,16 +773,6 @@ s os only within the "Process"-function.
                         for ListPar in self.__ModeToList:
                             if ParMode == ListPar:
                                 self.__ModeToList[ListPar].append('-' + c)
-#                        if ParMode == self.__WorkModes['help']:
-#                            self.__HelpList.append('-' + c)
-#                        elif ParMode == self.__WorkModes['import']:
-#                            self.__ImportList.append('-' + c)
-#                        elif ParMode == self.__WorkModes['glob_import']:
-#                            self.__Glob_ImportList.append('-' + c)
-#                        elif ParMode == self.__WorkModes['export']:
-#                            self.__ExportList.append('-' + c)
-#                        elif ParMode == self.__WorkModes['glob_export']:
-#                            self.__Glob_ExportList.append('-' + c)
                         Ut_Short.append(c)
                         self.__ShortList += c
                         if NeedOpt:
@@ -880,19 +845,13 @@ s os only within the "Process"-function.
                     wLongList.append(nPre + '.' + nLong)
         try:
 #            opts, args = getopt.getopt(self.__Argumente[1:],self.__ShortList,self.__LongList)
-            opts, args = getopt(self.__Argumente[1:], self.__ShortList, wLongList, True)
+            opts, args = _gnu_getopt(self.__Argumente[1:], self.__ShortList, wLongList, True)
         except GetoptError as exc:
             wMsg = exc.msg
             raise self.ParamError(wMsg) from None
         self.__RemainArgs = args
         for o, a in opts:
             o = self.__Make_OptName(o)
-#            if '.' in o:
-#                wList = o[2:].split('.')
-#                if len(wList) != 2:
-#                    raise self.ParamError(self.__MakeErrorMsg(Type="Prefix",Param=o)) from None
-#                if wList[0] == self.__Prefix:
-#                    o = '--' + wList[1]
             if o in self.__HelpList:
                 if DispName is not None:
                     print(f"#{'-'*60}\n# {DispName}\n#{'-'*60}\n")
@@ -902,12 +861,6 @@ s os only within the "Process"-function.
                 return True
         for o,a in opts:
             o = self.__Make_OptName(o)
-#            if '.' in o:
-#                wList = o[2:].split('.')
-#                if len(wList) != 2:
-#                    raise self.ParamError(self.__MakeErrorMsg(Type="Prefix",Param=o)) from None
-#                if wList[0] == self.__Prefix:
-#                    o = '--' + wList[1]
             if o in self.__Glob_ImportList:
                 try:
                     n = Path(a).resolve()
@@ -916,7 +869,6 @@ s os only within the "Process"-function.
                 if n.exists():
                     if n.is_file():
                         try:
-#                            wDict = json.load(n.open())
                             wGlobDict = JsonLoad(n.open())
                         except Exception as exc:
                             wMsg = str(exc)
@@ -937,12 +889,6 @@ s os only within the "Process"-function.
 
         for o, a in opts:
             o = self.__Make_OptName(o)
-#            if '.' in o:
-#                wList = o[2:].split('.')
-#                if len(wList) != 2:
-#                    raise self.ParamError(self.__MakeErrorMsg(Type="Prefix",Param=o)) from None
-#                if wList[0] == self.__Prefix:
-#                    o = '--' + wList[1]
             if o in self.__ImportList:
                 try:
                     n = Path(a).resolve()
@@ -951,7 +897,6 @@ s os only within the "Process"-function.
                 if n.exists():
                     if n.is_file():
                         try:
-#                            wDict = json.load(n.open())
                             wDict = JsonLoad(n.open())
                         except Exception as exc:
                             wMsg = str(exc)
@@ -967,29 +912,23 @@ s os only within the "Process"-function.
                     raise self.ParamError(self.__MakeErrorMsg(Type="NoPath",Path=a,FullPath=n,Param=o)) from None
         for o, a in opts:
             o = self.__Make_OptName(o)
-#            if '.' in o:
-#                wList = o[2:].split('.')
-#                if len(wList) != 2:
-#                    raise self.ParamError(self.__MakeErrorMsg(Type="Prefix",Param=o)) from None
-#                if wList[0] == self.__Prefix:
-#                    o = '--' + wList[1]
-#                else:
-#                    continue
             if o in self.__HelpList:
                 continue
             if o in self.__ImportList:
                 continue
-            if o in self.__GlobImportList:
+            if o in self.__Glob_ImportList:
                 continue
             if o in self.__ExportList:
                 continue
-            if o in self.__GlobExportList:
+            if o in self.__Glob_ExportList:
                 continue
             try:
                 ParName = self.__ParDict[o] 
             except:
                 if Partial:
                     continue
+                print("Oh")
+                continue
                 raise RuntimeError(f"Error, option {o} not found in ParDict")
             try:
                 wPar = self.__Definition[ParName]
@@ -1013,12 +952,7 @@ s os only within the "Process"-function.
                 raise self.ParamError(self.__MakeErrorMsg(Type="NoAct",Param=ParName))
 
         for o, a in opts:
-            if '.' in o:
-                wList = o.split('.')
-                if len(wList) != 2:
-                    raise self.ParamError(self.__MakeErrorMsg(Type="Prefix",Param=o)) from None
-                if wList[0] == self.__Prefix:
-                    o = wList[1]
+            o = self.__Make_OptName(o)
             if o in self.__ExportList:
                 if DispName is not None:
                     print(f"//{'-'*60}\n// {DispName}\n//{'-'*60}\n")
@@ -1290,15 +1224,15 @@ class MultiParam(dict):
 
     class DeclarationError(__ExceptionTemplate):
         '''
-s exception is raised if there is an declaration error within the 
+This exception is raised if there is an declaration error within the 
 parameters of the class.
         '''
         pass
 
     class ParamError(__ExceptionTemplate):
         '''
-s exception is raised if there is an error within the runtime-parameters.
-s os only within the "Process"-function.
+This exception is raised if there is an error within the runtime-parameters.
+This is only within the "Process"-function.
         '''
         pass
 
@@ -1309,22 +1243,29 @@ s os only within the "Process"-function.
             v = 0
         return v
 
-    def __init__(self, ParDict: dict = None, Global: dict = None, GlobalDescription = 'Global'):
+    def __init__(self,
+            ParDict: dict = None,
+            Global: dict = None,
+            Args: list = None, 
+            GlobalDescription = 'Global'):
         super().__init__()       # Init parent -> make me a dict
         
         if type(ParDict) != dict:
            raise TypeError('ParDict is not a dict') 
-        if Global is not None:
-            if type(Global) != dict:
-                raise TypeError('Global is not a dict') 
+        self.__MyParam = None
         self.__GlobalDef = Global
         self.__GlobalDescription = GlobalDescription
         self.__ParDict = ParDict
-        self.__MyParam = None
-        p = Param()
-        self.__WorkPars = p.TheWorkPars
-        self.__WorkModes= p.ThetWorkModes
-        p = None
+
+        if Global is not None:
+            if type(Global) != dict:
+                raise TypeError('Global is not a dict') 
+            self.__MyParam = Param(Def = self.__GlobalDef, Desc = self.__GlobalDescription, AllParams = True, AllowProcessToExit = False)
+        else:
+            self.__MyParam = Param()
+        self.__WorkPars = self.__MyParam.TheWorkPars
+        self.__WorkModes= self.__MyParam.TheWorkModes
+
         for ParName in self.__ParDict.keys():         
             ParVal = self.__ParDict[ParName]
             if type(ParVal) != dict:
@@ -1367,18 +1308,34 @@ s os only within the "Process"-function.
                 raise TypeError(f"ParDict[{ParName}]['Args'] is not a dict") 
             ParArgs['AllowProcessToExit'] = False 
             self[ParName] = Param(Def = ParDef, **ParArgs)
-    
+        self.SetArgs(Args)
+   
+    def SetArgs(self, Args: list = None) -> None:
+        """
+        Set the argument list to process
+        if None: use sys.argv as the arguments
+
+        Args:
+            Args ([type], optional): Runtime Arguments. Defaults to None.
+
+        Raises:
+            TypeError: If Args is not a list
+        """
+        self.__MyParam.SetArgs(Args)
+        for p in self.keys():
+            self[p].SetArgs(Args) 
+ 
     @property
     def GlobalParam(self):
         '''
         Return globale Parameter
         Das bedeutet: Die Auflösung der "Global" Angabe.
         '''
-        if self.__GlobalDescription is None:
-            return {}
         if self.__MyParam is None:
-            self.__MyParam = Param(Def = self.__GlobalDef, Desc = self.__GlobalDescription, AllParams = True)
-            self.__MyParam.Process()
+            return {}
+#        if self.__MyParam is None:
+#            self.__MyParam = Param(Def = self.__GlobalDef, Desc = self.__GlobalDescription, AllParams = True, AllowProcessToExit = False)
+#        self.__MyParam.Process('-- Global', Partial = True)
         return self.__MyParam
     
     def Process(self):
@@ -1387,8 +1344,11 @@ s os only within the "Process"-function.
         Result = False
         try:
             if self.__MyParam is None:
-                self.__MyParam = Param(Def = self.__GlobalDef, Desc = self.__GlobalDescription, AllParams = True)
-                self.__MyParam.Process()
+                self.__MyParam = Param(Def = self.__GlobalDef, Desc = self.__GlobalDescription, AllParams = True, AllowProcessToExit = False)
+            Erg = self.__MyParam.Process('-- Global', Partial = True)
+            if Erg:
+                Result = True
+            
         except Exception as exc:
             IsError = True
             ErrMsg += f"-- Global: {str(exc)}\n"
@@ -1420,7 +1380,7 @@ class GetoptError(Exception):
     def __str__(self):
         return self.msg
 
-def getopt(args, shortopts, longopts = [], AcceptAll = False):
+def _getopt(args, shortopts, longopts = [], AcceptAll = False):
     """getopt(args, options[, long_options]) -> opts, args
 
     Parses command line options and parameter list.  args is the
@@ -1457,13 +1417,13 @@ def getopt(args, shortopts, longopts = [], AcceptAll = False):
             args = args[1:]
             break
         if args[0].startswith('--'):
-            opts, args = do_longs(opts, args[0][2:], longopts, args[1:],AcceptAll)
+            opts, args = _do_longs(opts, args[0][2:], longopts, args[1:],AcceptAll)
         else:
-            opts, args = do_shorts(opts, args[0][1:], shortopts, args[1:],AcceptAll)
+            opts, args = _do_shorts(opts, args[0][1:], shortopts, args[1:],AcceptAll)
 
     return opts, args
 
-def gnu_getopt(args, shortopts, longopts = [], AcceptAll = False):
+def _gnu_getopt(args, shortopts, longopts = [], AcceptAll = False):
     """getopt(args, options[, long_options]) -> opts, args
 
     This function works like getopt(), except that GNU style scanning
@@ -1500,9 +1460,9 @@ def gnu_getopt(args, shortopts, longopts = [], AcceptAll = False):
             break
 
         if args[0][:2] == '--':
-            opts, args = do_longs(opts, args[0][2:], longopts, args[1:], AcceptAll)
+            opts, args = _do_longs(opts, args[0][2:], longopts, args[1:], AcceptAll)
         elif args[0][:1] == '-' and args[0] != '-':
-            opts, args = do_shorts(opts, args[0][1:], shortopts, args[1:], AcceptAll)
+            opts, args = _do_shorts(opts, args[0][1:], shortopts, args[1:], AcceptAll)
         else:
             if all_options_first:
                 prog_args += args
@@ -1513,7 +1473,7 @@ def gnu_getopt(args, shortopts, longopts = [], AcceptAll = False):
 
     return opts, prog_args
 
-def do_longs(opts, opt, longopts, args, AcceptAll = False):
+def _do_longs(opts, opt, longopts, args, AcceptAll = False):
     try:
         i = opt.index('=')
     except ValueError:
@@ -1522,11 +1482,11 @@ def do_longs(opts, opt, longopts, args, AcceptAll = False):
         opt, optarg = opt[:i], opt[i+1:]
     if AcceptAll:
         try:
-            has_arg, opt = long_has_args(opt, longopts)
+            has_arg, opt = _long_has_args(opt, longopts)
         except GetoptError as exc:
             return opts, args
     else:
-        has_arg, opt = long_has_args(opt, longopts)
+        has_arg, opt = _long_has_args(opt, longopts)
     if has_arg:
         if optarg is None:
             if not args:
@@ -1540,7 +1500,7 @@ def do_longs(opts, opt, longopts, args, AcceptAll = False):
 # Return:
 #   has_arg?
 #   full option name
-def long_has_args(opt, longopts):
+def _long_has_args(opt, longopts):
     possibilities = [o for o in longopts if o.startswith(opt)]
     if not possibilities:
         raise GetoptError('option --%s not recognized' % opt, opt)
@@ -1561,16 +1521,16 @@ def long_has_args(opt, longopts):
         unique_match = unique_match[:-1]
     return has_arg, unique_match
 
-def do_shorts(opts, optstring, shortopts, args, AcceptAll = False):
+def _do_shorts(opts, optstring, shortopts, args, AcceptAll = False):
     while optstring != '':
         opt, optstring = optstring[0], optstring[1:]
         if AcceptAll:
             try:
-                wHasArgs = short_has_arg(opt, shortopts)
+                wHasArgs = _short_has_arg(opt, shortopts)
             except GetoptError as exc:
                 wHasArgs = False
         else:
-            wHasArgs = short_has_arg(opt, shortopts)
+            wHasArgs = _short_has_arg(opt, shortopts)
         if wHasArgs:
             if optstring == '':
                 if not args:
@@ -1582,7 +1542,7 @@ def do_shorts(opts, optstring, shortopts, args, AcceptAll = False):
         opts.append(('-' + opt, optarg))
     return opts, args
 
-def short_has_arg(opt, shortopts):
+def _short_has_arg(opt, shortopts):
     for i in range(len(shortopts)):
         if opt == shortopts[i] != ':':
             return shortopts.startswith(':', i+1)
@@ -1604,7 +1564,7 @@ if __name__ == "__main__":
                 'd': 'Ausgabe der aktuellen Konfiguration und Beenden'
                 },
         'ConfFile': {   
-                's': 'z',
+                's': 'c',
                 'l': 'config',
                 'm': 'x',
                 'd': '''Zuerst die Werte aus der Datei lesen, 
@@ -1640,7 +1600,6 @@ Konsole und nicht auf syslog""",
                 'd': 'Start im Vordergrund (Nicht als Daemon) für Test',
                 },
             'LogPath': {   
-                's': 'L',
                 'l': 'logpath',
                 'r': False,
                 'M': True,
@@ -1684,7 +1643,7 @@ Macht nur bei Programmen mit mehreren Threads sinn''',
             'LogStackOnDebug': {
                 'l': 'logstack',
                 'm': 't',
-                'v': '',
+                'v': 'NONE',
                 'd': '''Ausgabe des Anwendungsstacks ab diesem Level.
 Bei verwendung von "LogP" sind die Levels:
     ERROR
@@ -1694,6 +1653,7 @@ Bei verwendung von "LogP" sind die Levels:
     INFO
     DEBUG
     TRACE
+    NONE
 Alle anderen Werte werden als "NONE" interpretiert
 Groß- oder Kleinschreibung wird ignoriert''',
                 },
@@ -1783,24 +1743,15 @@ Groß- oder Kleinschreibung wird ignoriert''',
                 's': 'h',
                 'l': 'help',
                 'm': 'H',
-                'd': 'Diesen Hilfetext anzeigen und beenden'},
-        'Export': { 
-                's': 'x',
-                'l': 'export',
-                'm': 'X',
-                'd': 'Ausgabe der aktuellen Konfiguration und Beenden'},
-        'ConfFile': {
-                's': 'z',
-                'l': 'par',
-                'm': 'x',
-                'd': '''Zuerst die Werte aus der Datei lesen, 
-    danach erst die Komandozeilenparameter'''},
+                'd': 'Diesen Hilfetext anzeigen und beenden'
+                },
         'Verbose': {
                 's': 'v',
                 'l': 'verbose',
                 'r': False,
                 'm': 'C',
-                'd': 'Sei gesprächig'},
+                'd': 'Sei gesprächig'
+                },
         }
 
     import shlex
@@ -1849,6 +1800,7 @@ Groß- oder Kleinschreibung wird ignoriert''',
             },
             Global = GlobalDef)
         try:
+            m.SetArgs(Args = shlex.split('Test --help'))
  
             Erg = m.Process()
             GlobPar = m.GlobalParam
