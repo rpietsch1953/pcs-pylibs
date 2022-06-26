@@ -1,0 +1,56 @@
+{
+"Global": 
+{
+    "LogLevelType": 2,
+    "LogMultiProc": false,
+    "LogMultiThread": false,
+    "LogPath": "",
+    "LogProcInfo": false,
+    "LogStackDepth": 0,
+    "LogStackOnDebug": "NONE",
+    "NoDaemon": false,
+    "Quiet": false,
+    "StdErr": false,
+    "Verbose": 0
+}
+,
+"Alpha": 
+{
+    "Count": 7,
+    "Counter": 0,
+    "Dir": null,
+    "File": null,
+    "Float": 10.47,
+    "LogLevelType": 2,
+    "LogMultiProc": false,
+    "LogMultiThread": false,
+    "LogPath": "",
+    "LogProcInfo": false,
+    "LogStackDepth": 0,
+    "LogStackOnDebug": "NONE",
+    "MultiText": [],
+    "NoDaemon": false,
+    "Path": [],
+    "Quiet": false,
+    "StdErr": false,
+    "Text": "",
+    "Verbose": 0
+}
+,
+"Beta": 
+{
+    "LogLevelType": 2,
+    "LogMultiProc": false,
+    "LogMultiThread": false,
+    "LogPath": "",
+    "LogProcInfo": false,
+    "LogStackDepth": 0,
+    "LogStackOnDebug": "NONE",
+    "NoDaemon": false,
+    "Quiet": false,
+    "StdErr": false,
+    "Verbose": 0
+}
+
+}
+

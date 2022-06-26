@@ -5,7 +5,6 @@
 Parameterverwaltung
     bedient die meisten Laufzeitparameter
 '''
-from re import X
 import sys
 
 import types
@@ -15,7 +14,6 @@ import json
 import types
 import copy
 import os
-from itertools import chain
 
 try:
     import json5
@@ -24,16 +22,14 @@ try:
 except:
     JsonLoads = json.loads
     JsonLoad = json.load
-GLOBAL_NAME = 'global'
 
-class Param():
+
+class Param(dict):
     '''
 Main class and also the result-dictionary
 normally imported as
 
 from pcs_argpass.Param import Param
-
-Multiple sub-params are supported
     '''
     class __ExceptionTemplate(Exception):
         def __call__(self, *args):
@@ -73,8 +69,9 @@ This is only raised within the "Process"-function.
             AllParams: bool = True, 
             UserPars:dict = None, 
             UserModes: dict = None,
-            Translate: callable = None,
-            Children:dict = {}):
+            Translate = None,
+            Prefix = None,
+            AllowProcessToExit = True):
         """ The construktor
         Args:
             Def (dict, optional): See SetDef(). Defaults to {}.
@@ -85,41 +82,46 @@ This is only raised within the "Process"-function.
             AllParams (Boolean, optional): See SetAllParams. Defaults to True.
             UserPars (dict, optional): See SetUserKeys. Defaults to None.
             UserModes (dict, optional): See SetUserKeys. Defaults to None.
+            Prefix (str, optional): When given long params in the form "--xxx.yyyy" are only used
+                    if xxx is equal to the Prefix-value. All other options of this form are silently ignored.
+                    Defaults to None.
+            AllowProcessToExit (bool, optional): If True (the default) the Proces-function exits the program if
+                    there is a "Help" or a "Export" option is set. Otherwise it returns True if these options 
+                    are used and else False.
+                    Defaults to True.
         """
+        super(Param, self).__init__()       # Init parent -> make me a dict
 
 #---------------------------------------------
 # Class-local Data
 #---------------------------------------------
-        self.__WorkDict = {}        # This is the result dictionary used to make the class look like dicktionary
-        self.__Children: dict[str, __class__] = {}        # Dictionary of our children (all are our one class! )
-        self.__Parent = None        # Our parent if we are a child 
-        
-        self.__MyProgName = ""      # the programm-name from __Argumente[0] (only name)
-        self.__MyProgPath = ""      # the path of the executeable from __Argumente[0]
-        self.__MyPwd = ""           # Actual directory at invocation of "Process" 
-        self.__Definition = {}      # the definition-dict
-        self.__Description = ""     # Description of program for help
-        self.__Argumente = []       # list of commandline arguments
-        self.__ChkFunc = None       # external check-funktion (not implemented jet)
-        self.__UsageText = ""       # Complete help-text
-        self.__ShortList = ""       # String of short parameters (e.g. "vhl:m:")
-        self.__LongList = []        # List of Long parameters (e.g. "help","len="...)
-        self.__ParDict = {}         # dict of "argtext" -> "Parameter-name"
-        self.__RemainArgs = []      # List of remaining arguments from commandline
-        self.__AddPar = ""          # Additional parameter Text (for help)
-        self.__UsageTextList = []   # List of single help entries (also lists)
-        self.__IsPrepared = False   # Marker if "Prepare" is run after changes
+        self.__MyProgName = ""   # the programm-name from __Argumente[0] (only name)
+        self.__MyProgPath = ""   # the path of the executeable from __Argumente[0]
+        self.__MyPwd = ""        # Actual directory at invocation of "Process" 
+        self.__Definition = {}   # the definition-dict
+        self.__Description = ""  # Description of program for help
+        self.__Argumente = []    # list of commandline arguments
+        self.__ChkFunc = None    # external check-funktion (not implemented jet)
+        self.__UsageText = ""    # Complete help-text
+        self.__ShortList = ""    # String of short parameters (e.g. "vhl:m:")
+        self.__LongList = []     # List of Long parameters (e.g. "help","len="...)
+        self.__ParDict = {}      # dict of "argtext" -> "Parameter-name"
+        self.__RemainArgs = []   # List of remaining arguments from commandline
+        self.__AddPar = ""       # Additional parameter Text (for help)
+        self.__UsageTextList = []    # List of single help entries (also lists)
+        self.__IsPrepared = False    # Marker if "Prepare" is run after changes
     
-        self.__HelpList = []        # List of all parameters with type 'H'
-        self.__ImportList = []      # List of all parameters with type 'x'
-        self.__ExportList = []      # List of all parameters with type 'X'
-        self.__Glob_ImportList = [] # List of all parameters with type '<'
-        self.__Glob_ExportList = [] # List of all parameters with type '>'
-        self.__AllParams = True     # True if all parameters are initialized, if False
-                                    # only parameters with defaults or on the commandline
-                                    # are in the dictionary
-        self.__DoTranslate = None   # Translation routine for error-messages'
-        self.__Prefix = GLOBAL_NAME
+        self.__HelpList = []     # List of all parameters with type 'H'
+        self.__ImportList = []   # List of all parameters with type 'x'
+        self.__ExportList = []   # List of all parameters with type 'X'
+        self.__Glob_ImportList = []   # List of all parameters with type '<'
+        self.__Glob_ExportList = []   # List of all parameters with type '>'
+        self.__AllParams = True  # True if all parameters are initialized, if False
+                    # only parameters with defaults or on the commandline
+                    # are in the dictionary
+        self.__DoTranslate = None    # Translation routine for error-messages'
+        self.__Prefix = None
+        self.__AllowProcessToExit = True
         self.__Glob_ExportStr = ''
  
         self.__WorkPars = {
@@ -160,8 +162,12 @@ This is only raised within the "Process"-function.
             self.__WorkModes['glob_export']: self.__Glob_ExportList,
             }
             # set the parameters with the individual functions
-        self.__UserPars = UserPars
-        self.__UserModes = UserModes
+        if type(Prefix) == str: 
+            self.__Prefix = Prefix
+        else:
+            self.__Prefix = None
+        self.__AllowProcessToExit = AllowProcessToExit
+
         self.SetDesc(Desc)
         self.SetUserKeys(UserPars = UserPars,UserModes = UserModes)
         self.SetDef(Def)
@@ -170,197 +176,7 @@ This is only raised within the "Process"-function.
         self.SetAllParams(AllParams)
         self.SetAddPar(AddPar)
         self.SetTranslate(Translate)
-        if Children is None:
-            Children = {}
-        for wPrefix, wDict in Children.items():
-            if type(wPrefix) != str:
-                raise self.DeclarationError(f"Name of child '{wPrefix} is not a string")
-            if type(wDict) != dict:
-                raise self.DeclarationError(f"Child definition for '{wPrefix} is not a dictionary")
-            if 'Def' not in wDict:
-                raise self.DeclarationError(f"Child definition for '{wPrefix} does not include 'Def'")
-            if type(wDict['Def']) != dict:
-                raise self.DeclarationError(f"'Def' in child definition for '{wPrefix} is not a dictionary")
-            if 'Children' not in wDict:
-                wDict['Children'] = {}
-            if wDict ['Children'] is None:
-                wDict['Children'] = {}
-            if type(wDict['Children']) != dict:
-                raise self.DeclarationError(f"'Children' in child definition for '{wPrefix} is not a dictionary")
-            if 'Desc' not in wDict:
-                wDict['Desc'] = ''
-            if type(wDict['Desc']) != str:
-                raise self.DeclarationError(f"'Desc' in child definition for '{wPrefix} is not a string")
-            if 'AddPar' not in wDict:
-                wDict['AddPar'] = ''
-            if type(wDict['AddPar']) != str:
-                raise self.DeclarationError(f"'AddPar' in child definition for '{wPrefix} is not a string")
-            self.AddChild(Prefix = wPrefix, 
-                          Def = wDict['Def'],  
-                          Children = wDict['Children'], 
-                          Description = wDict['Desc'],
-                          AddPar = wDict['AddPar'])
         self.__IsPrepared = False
-
-#
-#---------------------------------------------
-# Make the class look like a dictionary
-#---------------------------------------------
-
-    def __len__(self):
-        OwnLen = len(self.__WorkDict)
-        if self.__Parent is None:
-            return OwnLen
-        return len(set(self.__Parent.keys()) | set(self.__WorkDict.keys()))
-
-    def __contains__(self, item):
-        if item in self.__WorkDict:
-            return True
-        if self.__Parent is None:
-            return False
-        return item in self.__Parent
-
-    def __getitem__(self, item):
-        if item in self.__WorkDict:
-            return self.__WorkDict[item]
-        return self.__Parent.__getitem__(item)
-
-    def __setitem__(self, key, value):
-        self.__WorkDict[key] = value
-
-    def __delitem__(self, key):
-        self.__WorkDict.__delitem__(key)
-        
-    def __missing__(self, key):
-        if self.__Parent is None:
-            raise KeyError(key)
-        return self.__Parent[key]
-
-    def __get__(self, instance, owner):
-        return self.__get__(instance, owner)
-
-    def __iter__(self):
-        if self.__Parent is None:
-            return self.v.__iter__()
-        else:
-            return chain(self.__Parent__iter__(), self.v.__iter__())
-
-    def keys(self) -> list:
-        """Return the keys list including the keys of all parentsof 
-
-        Returns:
-            list: the keys list
-        """        
-        if self.__Parent is None:
-            KeyList = list(self.__WorkDict.keys())
-        else:
-            KeyList = list(set(self.__Parent.keys()) | set(self.__WorkDict.keys()))
-        try:
-            KeyList.sort()
-        except:
-            pass
-        return KeyList
-
-    def IsOwnKey(self,key: str) -> bool:
-        """Check if the key is from the own optionset
-
-        Args:
-            key (str): Key to search for
-
-        Returns:
-            bool: True if key is in the own optionset
-        """        
-        return key in self.__WorkDict
-
-    def IsInherited(self, key: str) -> bool:
-        """Check if key is from parent
-
-        Args:
-            key (str): Key to search for
-
-        Returns:
-            bool: True if key is inherited from parent
-        """        
-        return (not self.IsOwnKey(key))
-
-    def values(self) -> list:
-        """Return the values list including the values of all parents
-
-        Returns:
-            list: the values
-        """        
-        if self.__Parent is None:
-            return self.__WorkDict.values()
-        return self.__Parent.values() + self.__WorkDict.values()
-
-    def items(self) -> list:
-        """Return the items list including the items of all parents
-
-        Returns:
-            list: the items
-        """        
-        if self.__Parent is None:
-            Res = list(self.__WorkDict.items())
-            if Res is None:
-                Res = []
-        else:
-            try:
-                p = list(self.__Parent.items())
-            except:
-                p = []
-            Res = p + list(self.__WorkDict.items())
-        try:
-            Res.sort()
-        except:
-            pass
-        return Res
-#---------------------------------------------
-# END Make the class look like a dictionary
-#---------------------------------------------
-#
-
-    @property
-    def Child(self) -> dict:
-        """return all the children of this instance
-
-        Returns:
-            dict[str, Param]: Dictionary of the children of this instance
-        """
-        return self.__Children
-
-    def AddChild(self, Prefix: str, Def: dict = {}, Description: str = '', Children: dict = {}, AddPar: str = '') -> None:
-        """Add a child to a instance
-
-        Args:
-            Prefix (str): The unique name of this child
-            Def (dict, optional): Definition for this instance (look at the constructor). Defaults to {}.
-            Description (str, optional): Description of this instance. Defaults to ''.
-            Children (dict, optional): Dictionary of children to the new instance (look at constructor). Defaults to {}.
-            AddPar (str, optional): Additional parameter string of this instance. Defaults to ''.
-
-        Raises:
-            self.DeclarationError: If a parametre is invalid
-        """        
-        if type(Prefix) != str:
-            raise self.DeclarationError(f"Prefix is not a string")
-        p = Prefix.lower().strip()
-        if p in self.__Children:
-            raise self.DeclarationError(f"Prefix '{p}' is already used")
-        if p == GLOBAL_NAME:
-            raise self.DeclarationError(f"Prefix '{p}' is {GLOBAL_NAME} -> invalid!")
-        self.__Children[p] = self.__class__( Def = Def,
-                                    Args = self.__Argumente,
-                                    Translate = self.__DoTranslate,
-                                    UserPars = self.__UserPars,
-                                    Desc = Description,
-                                    Children = Children,
-                                    AddPar = AddPar,
-                                    AllParams = self.__AllParams
-                                    )
-        self.__Children[p].__Parent = self
-        self.__Children[p].__Prefix = p
-
-
 
     def SetTranslate(self, Translate = None) -> None:
         """ Set translation routine for error-messages
@@ -590,8 +406,6 @@ This is only raised within the "Process"-function.
             self.__Argumente = Args
         else:
             raise TypeError('Args is not a list or tuple')
-        for c in self.__Children.values():
-            c.SetArgs(Args)
 
 
     def SetChk(self, Chk = None):
@@ -615,8 +429,7 @@ This is only raised within the "Process"-function.
             else:
                 raise TypeError('Check is not a function')
         self.__IsPrepared = False   # we need a Prepare-call after this
-        for c in self.__Children.values():
-            c.SetChk(Chk)
+
 
     def SetDesc(self, Desc: str = "") -> None:
         """
@@ -691,14 +504,8 @@ This is only raised within the "Process"-function.
         if self.__Prefix is None:
             wPrefText = ''
         else:
-            if self.__Prefix != GLOBAL_NAME:
-                wPrefText = f'active prefix = "{self.__Prefix}." only for long (--) options\n\n'
-            else:
-                wPrefText = ''
-        wDesc = self.__Description
-        if wDesc != '':
-            wDesc += '\n\n'
-        Text = f"Usage:\n{self.__MyProgName} OPTIONS {self.__AddPar}\n\n{wDesc}{wPrefText}Options:\n"
+            wPrefText = f'active prefix = "{self.__Prefix}." only for long (--) options\n\n'
+        Text = f"Usage:\n{self.__MyProgName} OPTIONS {self.__AddPar}\n\n{self.__Description}\n\n{wPrefText}Options:\n"
         for Single in self.__UsageTextList:
             Ut_Short = Single[0]
             Ut_Long = Single[1]
@@ -713,8 +520,7 @@ This is only raised within the "Process"-function.
             sl = ShortLen + 3 + 1
             ll = LongLen + 3 + 2
             if self.__Prefix is not None:
-                if self.__Prefix != '' and self.__Prefix != GLOBAL_NAME:
-                    ll = ll + len(self.__Prefix) + 3
+                ll = ll + len(self.__Prefix) + 3
             Lines = max(len(Ut_Short),len(Ut_Long),len(Ut_Text)+1)
             while len(Ut_Short) < Lines:
                 Ut_Short.append(" ")
@@ -729,9 +535,8 @@ This is only raised within the "Process"-function.
                 wLine = "\n   "
                 s = Ut_Short[i]
                 l = Ut_Long[i]
-                if self.__Prefix is not None:
-                    if self.__Prefix != '' and self.__Prefix != GLOBAL_NAME and l != " ":
-                        l = '[' + self.__Prefix + '.]' + l
+                if self.__Prefix is not None and l != " ":
+                    l = '[' + self.__Prefix + '.]' + l
                 t = Ut_Text[i]
                 if s == " ":
                     n = " " * sl
@@ -762,14 +567,7 @@ This is only raised within the "Process"-function.
         """
         if not self.__IsPrepared:
             self.__Prepare()
-        Ret = self.__UsageText
-        for n,c in self.__Children.items():
-            Ret += f"\n    Subparam {n}\n"
-            e = c.Usage()
-            lines = e.splitlines()
-            for l in lines:
-                Ret += '    ' + l + '\n'
-        return Ret
+        return self.__UsageText
 
     def __Prepare(self) -> None:
         """
@@ -780,7 +578,7 @@ This is only raised within the "Process"-function.
         """
 
         # clear all values
-        self.__WorkDict.clear()
+        self.clear()
         self.__UsageText = ""
         LongParLen = 0  
         ShortParLen = 0
@@ -853,7 +651,7 @@ This is only raised within the "Process"-function.
                     and SingleDef[self.__WorkPars['mode']] != self.__WorkModes['export'] \
                     and SingleDef[self.__WorkPars['mode']] != self.__WorkModes['glob_import'] \
                     and SingleDef[self.__WorkPars['mode']] != self.__WorkModes['glob_export']:
-                    self.__WorkDict[ParName] = SingleDef[self.__WorkPars['default']]
+                    self[ParName] = SingleDef[self.__WorkPars['default']]
                 if ParMode == self.__WorkModes['file']:
                     wText = SingleDef[self.__WorkPars['default']]
                     try:
@@ -861,54 +659,54 @@ This is only raised within the "Process"-function.
                             wText = self.__MyPwd + '/' + wText
                         wFile = Path(wText).absolute()
                         if wFile.is_file:
-                            self.__WorkDict[ParName] = str(wFile)
+                            self[ParName] = str(wFile)
                     except:
                         wText = ''
-                        self.__WorkDict[ParName] = wText
+                        self[ParName] = wText
                 elif ParMode == self.__WorkPars['description']:
                     wText = SingleDef[self.__WorkPars['default']]
                     if wText[0] != "/":
                         wText = self.__MyPwd + '/' + wText
                     wFile = Path(wText).absolute()
                     if wFile.is_dir:
-                        self.__WorkDict[ParName] = str(wFile)
+                        self[ParName] = str(wFile)
                 elif ParMode == self.__WorkModes['path']:
                     wText = SingleDef[self.__WorkPars['default']]
                     if len(wText) > 0:
                         if wText[0] != "/":
                             wText = self.__MyPwd + '/' + wText
                         wFile = Path(wText).absolute()
-                        self.__WorkDict[ParName] = str(wFile)
+                        self[ParName] = str(wFile)
                     else:
-                        self.__WorkDict[ParName] = ''
+                        self[ParName] = ''
                 Ut_Default = SingleDef[self.__WorkPars['default']]
             else:
                 if self.__AllParams:
                     if ParMode == self.__WorkModes['bool']:
-                        self.__WorkDict[ParName] = False
+                        self[ParName] = False
                     elif ParMode == self.__WorkModes['text']:
                         if ParMulti:
-                            self.__WorkDict[ParName] = []
+                            self[ParName] = []
                         else:
-                            self.__WorkDict[ParName] = ""
+                            self[ParName] = ""
                     elif ParMode == self.__WorkModes['int']:
                         if ParMulti:
-                            self.__WorkDict[ParName] = []
+                            self[ParName] = []
                         else:
-                            self.__WorkDict[ParName] = 0
+                            self[ParName] = 0
                     elif ParMode == self.__WorkModes['float']:
                         if ParMulti:
-                            self.__WorkDict[ParName] = []
+                            self[ParName] = []
                         else:
-                            self.__WorkDict[ParName] = 0.
+                            self[ParName] = 0.
                     elif ParMode == self.__WorkModes['count']:
-                        self.__WorkDict[ParName] = 0
+                        self[ParName] = 0
                     else:
                         if ParMode not in "xXH>":
                             if ParMulti:
-                                self.__WorkDict[ParName] = []
+                                self[ParName] = []
                             else:
-                                self.__WorkDict[ParName] = None
+                                self[ParName] = None
             NeedOpt = False
             if self.__WorkPars['needoption'] in ParKeys:
                 if SingleDef[self.__WorkPars['needoption']]:
@@ -1027,7 +825,7 @@ This is only raised within the "Process"-function.
                 o = '--' + wList[1]
         return o
 
-    def Process(self) -> bool:
+    def Process(self, DispName = None, Partial = False, Global = False) -> bool:
         """
         Process the runtime-arguments
 
@@ -1035,9 +833,6 @@ This is only raised within the "Process"-function.
             self.ParamError: if an error occures within a parameter
             RuntimeError: if an internal error occures
         """
-        print(self.__Prefix)
-        for c in self.__Children.values():
-            c.Process()
         if not self.__IsPrepared:
             self.__Prepare()
         PreList = []
@@ -1063,11 +858,10 @@ This is only raised within the "Process"-function.
         for o, a in opts:
             o = self.__Make_OptName(o)
             if o in self.__HelpList:
-                if self.__Prefix is not None:
-                    if self.__Prefix != '':
-                        print(f"#{'-'*60}\n# {self.__Prefix}\n#{'-'*60}\n")
+                if DispName is not None:
+                    print(f"#{'-'*60}\n# {DispName}\n#{'-'*60}\n")
                 print(self.Usage())
-                if self.__Parent is None:
+                if self.__AllowProcessToExit:
                     sys.exit(0)
                 return True
         for o,a in opts:
@@ -1090,7 +884,7 @@ This is only raised within the "Process"-function.
                             wDict = {}
                         for k in self.keys():
                             try:
-                                self.__WorkDict[k] = wDict[k]
+                                self[k] = wDict[k]
                             except:
                                 pass
                     else:
@@ -1114,7 +908,7 @@ This is only raised within the "Process"-function.
                             raise self.ParamError(self.__MakeErrorMsg(Type="ErrMsg",Msg=wMsg,Path=a,FullPath=n,Param=o)) from None
                         for k in self.keys():
                             try:
-                                self.__WorkDict[k] = wDict[k]
+                                self[k] = wDict[k]
                             except:
                                 pass
                     else:
@@ -1136,6 +930,9 @@ This is only raised within the "Process"-function.
             try:
                 ParName = self.__ParDict[o] 
             except:
+                if Partial:
+                    continue
+                print("Oh")
                 continue
                 raise RuntimeError(f"Error, option {o} not found in ParDict")
             try:
@@ -1153,27 +950,28 @@ This is only raised within the "Process"-function.
                     bVal = wPar[self.__WorkPars['default']]
                 except:
                     bVal = False
-                self.__WorkDict[ParName] = not bVal
+                self[ParName] = not bVal
             elif wPar[self.__WorkPars['mode']] == self.__WorkModes['count']:
-                self.__WorkDict[ParName] += 1
+                self[ParName] += 1
             else:
                 raise self.ParamError(self.__MakeErrorMsg(Type="NoAct",Param=ParName))
 
         for o, a in opts:
             o = self.__Make_OptName(o)
             if o in self.__Glob_ExportList:
-                self.__Glob_ExportStr = json.dumps(self.GetExportDict, sort_keys=True, indent=4, cls=self.PathEncoder)
-                self.__Glob_ExportStr += '\n'
-                if self.__Parent is None:
-                    print(self.__Glob_ExportStr)
+                self.__Glob_ExportStr = ''
+                if DispName is not None:
+                    self.__Glob_ExportStr += f'"{DispName}": \n'
+                    self.__Glob_ExportStr += json.dumps(self, sort_keys=True, indent=4, cls=self.PathEncoder)
+                    self.__Glob_ExportStr += '\n'
+                if self.__AllowProcessToExit:
                     sys.exit(0)
                 return True
             if o in self.__ExportList:
-                if self.__Prefix is not None:
-                    if self.__Prefix != '':
-                        print(f"//{'-'*60}\n// {self.__Prefix}\n//{'-'*60}\n")
+                if DispName is not None:
+                    print(f"//{'-'*60}\n// {DispName}\n//{'-'*60}\n")
                 print(json.dumps(self, sort_keys=True, indent=4, cls=self.PathEncoder))
-                if self.__Parent is None:
+                if self.__AllowProcessToExit:
                     sys.exit(0)
                 return True
 
@@ -1230,7 +1028,7 @@ This is only raised within the "Process"-function.
         if wMod == self.__WorkModes['text']:
             if wMulti:
                 if ParName not in self:
-                   self.__WorkDict[ParName] = [] 
+                   self[ParName] = [] 
             try:
                 ll = wPar[self.__WorkPars['lowlimit']]
                 if a < ll:
@@ -1244,9 +1042,9 @@ This is only raised within the "Process"-function.
             except:
                 pass
             if wMulti:
-                self.__WorkDict[ParName].append(a)
+                self[ParName].append(a)
             else:
-                self.__WorkDict[ParName] = a
+                self[ParName] = a
             return None
 #-------------------------
 # Integer
@@ -1254,7 +1052,7 @@ This is only raised within the "Process"-function.
         if wMod == self.__WorkModes['int']:
             if wMulti:
                 if ParName not in self:
-                   self.__WorkDict[ParName] = [] 
+                   self[ParName] = [] 
             try:
                 n = int(a)
             except:
@@ -1272,9 +1070,9 @@ This is only raised within the "Process"-function.
             except:
                 pass
             if wMulti:
-                self.__WorkDict[ParName].append(n)
+                self[ParName].append(n)
             else:
-                self.__WorkDict[ParName] = n
+                self[ParName] = n
             return None
 #-------------------------
 # Float
@@ -1282,7 +1080,7 @@ This is only raised within the "Process"-function.
         if wMod == self.__WorkModes['float']:
             if wMulti:
                 if ParName not in self:
-                   self.__WorkDict[ParName] = [] 
+                   self[ParName] = [] 
             try:
                 n = float(a)
             except:
@@ -1300,9 +1098,9 @@ This is only raised within the "Process"-function.
             except:
                 pass
             if wMulti:
-                self.__WorkDict[ParName].append(n)
+                self[ParName].append(n)
             else:
-                self.__WorkDict[ParName] = n
+                self[ParName] = n
             return None
 #-------------------------
 # Boolean
@@ -1313,10 +1111,10 @@ This is only raised within the "Process"-function.
             except:
                 return f"Value {a} for parameter {ParKey} is not valid"
             if n in 'jyt1':
-                self.__WorkDict[ParName] = True
+                self[ParName] = True
                 return None
             if n in 'n0':
-                self.__WorkDict[ParName] = False
+                self[ParName] = False
                 return None
             return f"Value {a} for parameter {ParKey} is not valid"
 #-------------------------
@@ -1325,7 +1123,7 @@ This is only raised within the "Process"-function.
         if wMod == self.__WorkModes['file']:
             if wMulti:
                 if ParName not in self:
-                   self.__WorkDict[ParName] = [] 
+                   self[ParName] = [] 
             if a[0] != "/":
                 a = self.__MyPwd + "/" + a
             try:
@@ -1335,9 +1133,9 @@ This is only raised within the "Process"-function.
             if n.exists():
                 if n.is_file():
                     if wMulti:
-                        self.__WorkDict[ParName].append(n)
+                        self[ParName].append(n)
                     else:
-                        self.__WorkDict[ParName] = n
+                        self[ParName] = n
                     return None
                 else:
                     return f"The path {a} ({n}) for parameter {ParKey} is not a file"
@@ -1348,7 +1146,7 @@ This is only raised within the "Process"-function.
         if wMod == self.__WorkModes['dir']:
             if wMulti:
                 if ParName not in self:
-                   self.__WorkDict[ParName] = [] 
+                   self[ParName] = [] 
             if a[0] != "/":
                 a = self.__MyPwd + "/" + a
             try:
@@ -1358,9 +1156,9 @@ This is only raised within the "Process"-function.
             if n.exists():
                 if n.is_dir():
                     if wMulti:
-                        self.__WorkDict[ParName].append(n)
+                        self[ParName].append(n)
                     else:
-                        self.__WorkDict[ParName] = n
+                        self[ParName] = n
                     return None
                 else:
                     return f"The path {a} ({n}) for parameter {ParKey} is not a directory"
@@ -1371,7 +1169,7 @@ This is only raised within the "Process"-function.
         if wMod == self.__WorkModes['path']:
             if wMulti:
                 if ParName not in self:
-                   self.__WorkDict[ParName] = [] 
+                   self[ParName] = [] 
             if a[0] != "/":
                 a = self.__MyPwd + "/" + a
             try:
@@ -1379,9 +1177,9 @@ This is only raised within the "Process"-function.
             except:
                 return f"The name {a} for parameter {ParKey} is not a valid path"
             if wMulti:
-                self.__WorkDict[ParName].append(n)
+                self[ParName].append(n)
             else:
-                self.__WorkDict[ParName] = n
+                self[ParName] = n
             return None
         
         return None
@@ -1425,18 +1223,174 @@ This is only raised within the "Process"-function.
     @property
     def GetExportDict(self):
         Erg = {}
-        for k in self.__WorkDict.keys():
-            Erg[k] = self.__WorkDict[k]
-        cDict = {}
-        for c in self.__Children.values():
-            e = c.GetExportDict
-            ek = list(e.keys())[0]
-            ev = list(e.values())[0]
-            cDict[ek] = ev
-            
-        Erg['Children'] = cDict
-        return { self.__Prefix: Erg }
+        for k in self.keys():
+            Erg[k] = self[k]
+        return Erg
 
+
+class MultiParam(dict):
+    class __ExceptionTemplate(Exception):
+        def __call__(self, *args):
+                return self.__class__(*(self.args + args))
+
+        def __str__(self):
+                return ': '.join(self.args)
+
+    class DeclarationError(__ExceptionTemplate):
+        '''
+This exception is raised if there is an declaration error within the 
+parameters of the class.
+        '''
+        pass
+
+    class ParamError(__ExceptionTemplate):
+        '''
+This exception is raised if there is an error within the runtime-parameters.
+This is only within the "Process"-function.
+        '''
+        pass
+
+    def __GetParSort(self, kv):
+        try:
+            v = kv[1]['__SortKey']
+        except:
+            v = 0
+        return v
+
+    def __init__(self,
+            ParDict: dict = None,
+            Global: dict = None,
+            Args: list = None, 
+            GlobalDescription = 'Global'):
+        super().__init__()       # Init parent -> make me a dict
+        
+        if type(ParDict) != dict:
+           raise TypeError('ParDict is not a dict') 
+        self.__MyParam = None
+        self.__GlobalDef = Global
+        self.__GlobalDescription = GlobalDescription
+        self.__ParDict = ParDict
+
+        if Global is not None:
+            if type(Global) != dict:
+                raise TypeError('Global is not a dict') 
+            self.__MyParam = Param(Def = self.__GlobalDef, Desc = self.__GlobalDescription, AllParams = True, AllowProcessToExit = False)
+        else:
+            self.__MyParam = Param()
+        self.__WorkPars = self.__MyParam.TheWorkPars
+        self.__WorkModes= self.__MyParam.TheWorkModes
+
+        for ParName in self.__ParDict.keys():         
+            ParVal = self.__ParDict[ParName]
+            if type(ParVal) != dict:
+                raise TypeError(f"ParDict[{ParName}] is not a dict") 
+            if 'Def' not in ParVal:
+                raise TypeError(f"ParDict[{ParName}] idoes not include 'Def'")
+            wDef = self.__GlobalDef
+            ParDef = {}
+            for p in wDef.keys():
+                Def = copy.deepcopy(wDef[p])
+                if not p in ParDef:
+#                    if Def[self.__WorkPars['mode']] != self.__WorkModes['glob_export']:
+                    if '__SortKey' not in Def:
+                        Def['__SortKey'] = 1000
+                    ParDef[p] = Def
+            if type(ParVal['Def']) != dict:
+                raise TypeError(f"ParDict[{ParName}]['Def'] is not a dict") 
+            wDef = ParVal['Def']
+            for p in wDef.keys():
+                Def = copy.deepcopy(wDef[p])
+#                if Def[self.__WorkPars['mode']] != self.__WorkModes['glob_export']:
+                if p in ParDef:
+                    if '__SortKey' in ParDef[p]:
+                        Def['__SortKey'] = ParDef[p]['__SortKey']
+                if '__SortKey' in Def:
+                    if Def['__SortKey'] < 1000:
+                        Def['__SortKey'] += 2000
+                else:
+                    Def['__SortKey'] = 2000
+                ParDef[p] = Def
+            ParDef = dict(sorted(ParDef.items(), key=lambda kv: self.__GetParSort(kv), reverse=False))
+            for p in ParDef.keys():
+                ParDef[p].pop('__SortKey')
+#            ParDef = ParVal['Def']
+
+            if 'Args' not in ParVal:
+                raise TypeError(f"ParDict[{ParName}] does not include 'Args'") 
+            ParArgs = copy.deepcopy(ParVal['Args'])
+            if type(ParArgs) != dict:
+                raise TypeError(f"ParDict[{ParName}]['Args'] is not a dict") 
+            ParArgs['AllowProcessToExit'] = False 
+            self[ParName] = Param(Def = ParDef, **ParArgs)
+        self.SetArgs(Args)
+   
+    def SetArgs(self, Args: list = None) -> None:
+        """
+        Set the argument list to process
+        if None: use sys.argv as the arguments
+
+        Args:
+            Args ([type], optional): Runtime Arguments. Defaults to None.
+
+        Raises:
+            TypeError: If Args is not a list
+        """
+        self.__MyParam.SetArgs(Args)
+        for p in self.keys():
+            self[p].SetArgs(Args) 
+ 
+    @property
+    def GlobalParam(self):
+        '''
+        Return globale Parameter
+        Das bedeutet: Die Auflösung der "Global" Angabe.
+        '''
+        if self.__MyParam is None:
+            return {}
+#        if self.__MyParam is None:
+#            self.__MyParam = Param(Def = self.__GlobalDef, Desc = self.__GlobalDescription, AllParams = True, AllowProcessToExit = False)
+#        self.__MyParam.Process('Global', Partial = True)
+        return self.__MyParam
+    
+    def Process(self):
+        IsError = False
+        ErrMsg = ''
+        Result = False
+        ExportStr = ''
+        try:
+            if self.__MyParam is None:
+                self.__MyParam = Param(Def = self.__GlobalDef, Desc = self.__GlobalDescription, AllParams = True, AllowProcessToExit = False)
+            Erg = self.__MyParam.Process('Global', Partial = True)
+            if Erg:
+                Result = True
+            
+        except Exception as exc:
+            IsError = True
+            ErrMsg += f"Global: {str(exc)}\n"
+        ExportStr = self.__MyParam.TheExportStr
+        if ExportStr != '':
+            ExportStr = '{\n' + ExportStr    
+        for ParName in self.keys():
+            SubPar = self[ParName]
+            try:
+                Erg = SubPar.Process(ParName, Partial = True)
+                if Erg:
+                    Result = True
+            except Exception as exc:
+                IsError = True
+                ErrMsg += f"{ParName}: {str(exc)}\n"
+            Exp = SubPar.TheExportStr
+            if ExportStr != '':
+                if Exp != '':
+                    ExportStr += ',\n' + Exp
+        if ExportStr != '':
+            ExportStr += '\n}\n'
+            print(ExportStr)
+            sys.exit(0)
+        if IsError:
+            raise self.ParamError(ErrMsg) from None
+        return Result
+                
 
 
 
@@ -1829,14 +1783,6 @@ Groß- oder Kleinschreibung wird ignoriert''',
                 'd': 'Sei gesprächig'
                 },
         }
-    TestDef_3 =     {
-        'Xy': {   
-                's': 'b',
-                'l': 'bbbb',
-                'm': 'b',
-                'd': 'Ein Switch'
-                },
-        }
 
     import shlex
 
@@ -1858,25 +1804,36 @@ Groß- oder Kleinschreibung wird ignoriert''',
 
     def main():
 
-        m = Param(Def=GlobalDef, Children = { 
+        m = MultiParam({ 
             'Alpha': 
-                {
-                'Desc': "Description Alpha", 
+                { 
                 'Def': TestDef_1, 
+                'Args':
+                    { 
+                    'Desc': "Dies ist ein Test\ndas bedeutet hier steht nur\nnonsens", 
+                    'AddPar': "File .... File", 
+                    'Translate': Trans,
+                    'AllParams': True,
+                    'Prefix': 'alpha'
+                    }
                 },
             'Beta':
                 {
                 'Def': TestDef_2, 
-                'Desc': "Description Beta", 
+                'Args':
+                    {
+                    'Desc': "Dies ist ein Test # 2", 
+                    'AllParams': True,
+                    'Prefix': 'beta'
+                    }
                 }
-            }
-            )
-        m.Child['alpha'].AddChild(Prefix='Gamma', Def=TestDef_3,Description="Eine eingefügte Ebene")
+            },
+            Global = GlobalDef)
         try:
-#            m.SetArgs(Args = shlex.split('Test --globexport'))
+            m.SetArgs(Args = shlex.split('Test --globexport'))
  
             Erg = m.Process()
-            # GlobPar = m.GlobalParam
+            GlobPar = m.GlobalParam
         except Exception as exc:
             dir(exc)
             print(exc)
@@ -1884,15 +1841,13 @@ Groß- oder Kleinschreibung wird ignoriert''',
         if Erg:
             return
         print(f"{'-' * 60}\nGlobal\n{'-' * 60}")
-        for key,value in m.items():
+        for key,value in GlobPar.items():
             print(f"Global -> {key}: {value}")
         
-        for Name, Par in m.Child.items():
+        for Name, Par in m.items():
             print(f"{'-' * 60}\n{Name}\n{'-' * 60}")
             for key,value in Par.items():
                 print(f"{Name} -> {key}: {value}")
-        print(f"\n{'-' * 80}\n\n")        
-        print(m.Usage())
         print(f"\n{'#' * 80}\n\n")
 
 
@@ -1901,7 +1856,8 @@ Groß- oder Kleinschreibung wird ignoriert''',
             Desc = "Dies ist ein Test\ndas bedeutet hier steht nur\nnonsens", 
             AddPar = "File .... File", 
             Translate = Trans,
-            AllParams = True
+            AllParams = True,
+            AllowProcessToExit = False
             )
         # a.SetArgs(Args = shlex.split('Test -v -CCC -f /Mist --dir=/tmp'))
         try:
@@ -1924,7 +1880,8 @@ Groß- oder Kleinschreibung wird ignoriert''',
             Desc = "Dies ist ein Test # 2", 
 #            AddPar = "File .... File", 
             Translate = Trans,
-            AllParams = True
+            AllParams = True,
+            Prefix = 'pre'
             )
 #        b.SetArgs(Args = shlex.split('Test --ignore.help -v -x'))
         try:
