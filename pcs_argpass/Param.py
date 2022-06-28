@@ -211,7 +211,8 @@ This is only raised within the "Process"-function.
         OwnLen = len(self.__WorkDict)
         if self.__Parent is None:
             return OwnLen
-        return len(set(self.__Parent.keys()) | set(self.__WorkDict.keys()))
+        return len(self.items())
+#        return len(set(self.__Parent.keys()) | set(self.__WorkDict.keys()))
 
     def __contains__(self, item):
         if item in self.__WorkDict:
@@ -305,10 +306,21 @@ This is only raised within the "Process"-function.
                 Res = []
         else:
             try:
-                p = list(self.__Parent.items())
+                p = dict(self.__Parent.items())
+#                p = list(self.__Parent.items())
             except:
-                p = []
-            Res = p + list(self.__WorkDict.items())
+                p = {}
+#                p = []
+            r = {}
+            for key,value in p.items():
+                r[key] = value
+            for key,value in self.__WorkDict.items():
+                r[key] = value
+            Res = []
+            for key,value in r.items():
+                Res.append( (key, value))
+            # Res = list({ **p , **dict(self.__WorkDict.items())})
+#            Res = p + list(self.__WorkDict.items())
         try:
             Res.sort()
         except:
@@ -1035,9 +1047,12 @@ This is only raised within the "Process"-function.
             self.ParamError: if an error occures within a parameter
             RuntimeError: if an internal error occures
         """
-        print(self.__Prefix)
+        # print(self.__Prefix)
+        Erg = False
         for c in self.__Children.values():
-            c.Process()
+            if c.Process():
+                Erg = True
+            
         if not self.__IsPrepared:
             self.__Prepare()
         PreList = []
@@ -1185,7 +1200,7 @@ This is only raised within the "Process"-function.
             if Req:
                 if not i in self.keys():
                     raise self.ParamError(self.__MakeErrorMsg(Type="Required",Param=i,OptList=self.__GetOptList(i))) from None
-        return False
+        return Erg
 
     def __GetOptList(self,Name: str) -> str:
         """ liste der möglichen Parameter eines Keys"""
@@ -1437,6 +1452,32 @@ This is only raised within the "Process"-function.
         Erg['Children'] = cDict
         return { self.__Prefix: Erg }
 
+    @property
+    def Prefix(self) -> str:
+        """Return the prefix of this class
+        
+        Returns:
+            str: the prefix value
+        """        
+        return self.__Prefix
+
+    def ParamStr(self, depth: int = 0, indent: int = 4, header: bool = True, all: bool = True, dotted: bool = False, dottedbase:str = '',  recursive: bool = True) -> str:
+        Erg = ''
+        Ls = ' ' * (depth * indent)
+        p = self.Prefix
+        if dotted:
+            if dottedbase != '':
+                p = dottedbase + '.' + p
+        if header:
+            Erg += f"{Ls}{'-' * 60}\n{Ls}{p}\n{Ls}{'-' * 60}\n"
+        TheItems = self.items()
+        for key,value in TheItems:
+            if all or self.IsOwnKey(key):
+                Erg += f"{Ls}{p} -> {key}: {value}\n"
+        if recursive:
+            for n in self.Child.values():
+                Erg += n.ParamStr(depth = depth + 1, indent = indent, header = header, all = all, dotted = dotted, dottedbase = p, recursive = recursive)
+        return Erg
 
 
 
@@ -1873,7 +1914,7 @@ Groß- oder Kleinschreibung wird ignoriert''',
             )
         m.Child['alpha'].AddChild(Prefix='Gamma', Def=TestDef_3,Description="Eine eingefügte Ebene")
         try:
-#            m.SetArgs(Args = shlex.split('Test --globexport'))
+            m.SetArgs(Args = shlex.split('Test --beta.help'))
  
             Erg = m.Process()
             # GlobPar = m.GlobalParam
@@ -1883,6 +1924,25 @@ Groß- oder Kleinschreibung wird ignoriert''',
             return
         if Erg:
             return
+        m['TopLevel'] = 'Top'
+        m.Child['alpha']['AlphaLevel'] = 'Alpha'
+        m.Child['alpha'].Child['gamma']['GammaLevel'] = 'Gamma'
+        
+        print(f"{'*' * 60}Dotted\n")
+        print(m.ParamStr(indent=0,dotted=True, all=False))    
+        
+        print(f"{'*' * 60}Default\n")
+        print(m.ParamStr())    
+        
+        print(f"{'*' * 60}No header\n")
+        print(m.ParamStr(indent=2, header=False))   
+        
+        print(f"{'*' * 60}Not all\n")
+        print(m.ParamStr(indent=8,all=False))    
+        
+        print(f"{'*' * 60}No Rec\n")
+        print(m.ParamStr(recursive=False))    
+        print(f"{'*' * 60}\n")
         print(f"{'-' * 60}\nGlobal\n{'-' * 60}")
         for key,value in m.items():
             print(f"Global -> {key}: {value}")
