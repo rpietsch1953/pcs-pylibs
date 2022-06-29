@@ -888,7 +888,7 @@ This is only raised within the "Process"-function.
             self.__Prepare()
         Ret = self.__UsageText
         for n,c in self.__Children.items():
-            Ret += f"\n    Subparam {n}\n"
+            Ret += f"\n    Child {n}\n"
             e = c.Usage()
             lines = e.splitlines()
             for l in lines:
@@ -1595,6 +1595,123 @@ This is only raised within the "Process"-function.
         return self.__Prefix
 
     def ParamStr(self, 
+                 indent: int = 4, 
+                 header: bool = True, 
+                 all: bool = True, 
+                 dotted: bool = False, 
+                 cmdpar: bool = True, 
+                 parentopts: bool = False, 
+                 recursive: bool = True) -> str:
+        """Returns a string with formatted output of the
+        processed parameters.
+
+        Args:
+            indent (int, optional): Number of leading spaces for children. Defaults to 4.
+                    this value is multiplied with the generation. So grandchildren have
+                    two times this number of leading spaces and children only one time
+                    this number of spaces.
+
+            header (bool, optional): If True a header with the name of the object are added. Defaults to True.
+    
+            all (bool, optional): Outputs all avallable options for this child, 
+                    included the inherited options. Defaults to True.
+                    
+            dotted (bool, optional): If True the names of the parameters are prefixed with the names
+                    of their parents. Defaults to False.
+            
+            cmdpar (bool, optional): If True the commandline-options ere included in the output. Defaults to True.
+            
+            parentopts (bool, optional): If True and cmdpar is also True the commandline-options of the parents 
+                    are anso included in the output. Defaults to False.
+                    
+            recursive (bool, optional): If True all descendants are include in the output, 
+                    else only the own parameters are included. Defaults to True.
+
+        Returns:
+            str: The formated string of the processed parameters
+            
+        
+Examples:
+########################################################################################
+
+        Assuming:
+            the topmost level includes 
+                "NoDaemon", "Quiet", "StdErr", and "Verbose"
+            child "alpha" includes
+                "Count", "Text" and "Verbose"
+            grandchild "alpha -> gamma" includes
+                "Xy"
+            child "beta" includes
+                "Verbose"
+                
+        The largest format is like:
+------------------------------------------------------------
+global
+------------------------------------------------------------
+global                     -> NoDaemon (-d, --[global.]nodaemon)              : False
+global                     -> Quiet    (-q, --[global.]quiet)                 : False
+global                     -> StdErr   (-s, --[global.]console)               : False
+global                     -> Verbose  (-v, --[global.]verbose)               : 2
+    ------------------------------------------------------------
+    global.alpha
+    ------------------------------------------------------------
+    global.alpha           -> Count    (-c, --[alpha.]count, --[alpha.]Count) : 7
+    global.alpha           -> NoDaemon (-d, --[global.]nodaemon)              : False
+    global.alpha           -> Quiet    (-q, --[global.]quiet)                 : False
+    global.alpha           -> StdErr   (-s, --[global.]console)               : False
+    global.alpha           -> Text     (-t, --[alpha.]text, --[alpha.]Text)   : ''
+    global.alpha           -> Verbose  (-v, --[alpha.]verbose)                : 2
+        ------------------------------------------------------------
+        global.alpha.gamma
+        ------------------------------------------------------------
+        global.alpha.gamma -> Count    (-c, --[alpha.]count, --[alpha.]Count) : 7
+        global.alpha.gamma -> NoDaemon (-d, --[global.]nodaemon)              : False
+        global.alpha.gamma -> Quiet    (-q, --[global.]quiet)                 : False
+        global.alpha.gamma -> StdErr   (-s, --[global.]console)               : False
+        global.alpha.gamma -> Text     (-t, --[alpha.]text, --[alpha.]Text)   : ''
+        global.alpha.gamma -> Verbose  (-v, --[alpha.]verbose)                : 2
+        global.alpha.gamma -> Xy       (-b, --[gamma.]bbbb)                   : False
+    ------------------------------------------------------------
+    global.beta
+    ------------------------------------------------------------
+    global.beta            -> NoDaemon (-d, --[global.]nodaemon)              : False
+    global.beta            -> Quiet    (-q, --[global.]quiet)                 : False
+    global.beta            -> StdErr   (-s, --[global.]console)               : False
+    global.beta            -> Verbose  (-v, --[beta.]verbose)                 : 5
+
+        The shortest format is like (recursive = True):
+
+global -> NoDaemon  : False
+global -> Quiet     : False
+global -> StdErr    : False
+global -> Verbose   : 2
+alpha  -> Count     : 7
+alpha  -> Text      : ''
+alpha  -> Verbose   : 2
+gamma  -> Xy        : False
+beta   -> Verbose   : 5
+
+        The shortest format is like (recursive = False):
+
+global -> NoDaemon  : False
+global -> Quiet     : False
+global -> StdErr    : False
+global -> Verbose   : 2
+
+########################################################################################
+
+        """        
+        return self.__ParamStr(depth = 0,
+                               indent = indent,
+                               header = header,
+                               all = all,
+                               dotted = dotted,
+                               dottedbase = '',
+                               cmdpar = cmdpar,
+                               parentopts = parentopts,
+                               recursive = recursive) 
+
+    def __ParamStr(self, 
                  depth: int = 0, 
                  indent: int = 4, 
                  header: bool = True, 
@@ -1604,6 +1721,16 @@ This is only raised within the "Process"-function.
                  cmdpar: bool = True, 
                  parentopts: bool = False, 
                  recursive: bool = True) -> str:
+        """This is the internal procedure. Look at "ParamStr" for all the args
+        depth and dottedbase are only used internaly so the user can't set them to the exported function
+
+        Args:
+            depth (int, optional): Depth of the aktual child. Defaults to 0.
+            dottedbase (str, optional): basename of the actual child (e.g. all the names of the parents). Defaults to ''.
+
+        Returns:
+            str: The formated string of the processed parameters
+        """        
         Erg = ''
         Ls = ' ' * (depth * indent)
         p = self.Prefix
@@ -1615,7 +1742,10 @@ This is only raised within the "Process"-function.
         TheItems = self.items()
         for key,value in TheItems:
             if all or self.IsOwnKey(key):
-                OptStr = self.GetCmdPar(Entry = key, dotted = dotted, parents = parentopts)
+                if cmdpar:
+                    OptStr = self.GetCmdPar(Entry = key, dotted = dotted, parents = parentopts)
+                else:
+                    OptStr = ''
                 if OptStr != '':
                     OptStr = '(' + OptStr + ')'
                 if type(value) == str:
@@ -1624,12 +1754,13 @@ This is only raised within the "Process"-function.
                     Erg += f"{Ls}{p}\t-> {key}\t{OptStr}\t: {value}\n"
         if recursive:
             for n in self.Child.values():
-                Erg += n.ParamStr(depth = depth + 1, 
+                Erg += n.__ParamStr(depth = depth + 1, 
                                   indent = indent, 
                                   header = header, 
                                   all = all, 
                                   dotted = dotted, 
                                   dottedbase = p, 
+                                  cmdpar = cmdpar,
                                   parentopts = parentopts, 
                                   recursive = recursive)
         if depth == 0:           # Auf der höchsten Ebene
@@ -1899,70 +2030,70 @@ Konsole und nicht auf syslog""",
                 'v': False,
                 'd': 'Start im Vordergrund (Nicht als Daemon) für Test',
                 },
-            'LogPath': {   
-                'l': 'logpath',
-                'r': False,
-                'M': True,
-                'o': True,
-                'm': 'p',
-                'v': '',
-                'd': 'Pfad zu einer Log-Datei. Diese wird täglich rotiert und neu erstellt'
-                },
-            'LogProcInfo': {
-                'l': 'logprocinfo',
-                'm': 'b',
-                'v': False,
-                'd': 'Ausgabe der Procedur und der Zeile',
-                },
-            'LogMultiProc': {
-                'l': 'logmultiproc',
-                'm': 'b',
-                'v': False,
-                'd': '''Nur wenn "logprocinfo" gesetzt ist.
-zusätzlich Ausgabe des Prozessnamens.
-Macht nur bei Programmen mit mehreren Prozessen sinn''',
-                },
-            'LogMultiThread': {
-                'l': 'logmultithread',
-                'm': 'b',
-                'v': False,
-                'd': '''Nur wenn "logprocinfo" gesetzt ist.
-zusätzlich Ausgabe des Threadnamens.
-Macht nur bei Programmen mit mehreren Threads sinn''',
-                },
-            'LogLevelType': {
-                'l': 'logleveltype',
-                'm': 'i',
-                'v': 2,
-                'd': '''Ausgabe des Loglevels.
-0 = Keine Ausgabe
-1 = Level-Nummer
-2 = Level-Name
-3 = Beide''',
-                },
-            'LogStackOnDebug': {
-                'l': 'logstack',
-                'm': 't',
-                'v': 'NONE',
-                'd': '''Ausgabe des Anwendungsstacks ab diesem Level.
-Bei verwendung von "LogP" sind die Levels:
-    ERROR
-    STATUS
-    WARNING
-    MSG
-    INFO
-    DEBUG
-    TRACE
-    NONE
-Alle anderen Werte werden als "NONE" interpretiert
-Groß- oder Kleinschreibung wird ignoriert''',
-                },
-            'LogStackDepth': {
-                'l': 'logstackdepth',
-                'm': 'i',
-                'v': 0,
-                'd': '''Anzahl der auszugebenden Stackzeilen, 0 = Disabled'''
-                },
+#             'LogPath': {   
+#                 'l': 'logpath',
+#                 'r': False,
+#                 'M': True,
+#                 'o': True,
+#                 'm': 'p',
+#                 'v': '',
+#                 'd': 'Pfad zu einer Log-Datei. Diese wird täglich rotiert und neu erstellt'
+#                 },
+#             'LogProcInfo': {
+#                 'l': 'logprocinfo',
+#                 'm': 'b',
+#                 'v': False,
+#                 'd': 'Ausgabe der Procedur und der Zeile',
+#                 },
+#             'LogMultiProc': {
+#                 'l': 'logmultiproc',
+#                 'm': 'b',
+#                 'v': False,
+#                 'd': '''Nur wenn "logprocinfo" gesetzt ist.
+# zusätzlich Ausgabe des Prozessnamens.
+# Macht nur bei Programmen mit mehreren Prozessen sinn''',
+#                 },
+#             'LogMultiThread': {
+#                 'l': 'logmultithread',
+#                 'm': 'b',
+#                 'v': False,
+#                 'd': '''Nur wenn "logprocinfo" gesetzt ist.
+# zusätzlich Ausgabe des Threadnamens.
+# Macht nur bei Programmen mit mehreren Threads sinn''',
+#                 },
+#             'LogLevelType': {
+#                 'l': 'logleveltype',
+#                 'm': 'i',
+#                 'v': 2,
+#                 'd': '''Ausgabe des Loglevels.
+# 0 = Keine Ausgabe
+# 1 = Level-Nummer
+# 2 = Level-Name
+# 3 = Beide''',
+#                 },
+#             'LogStackOnDebug': {
+#                 'l': 'logstack',
+#                 'm': 't',
+#                 'v': 'NONE',
+#                 'd': '''Ausgabe des Anwendungsstacks ab diesem Level.
+# Bei verwendung von "LogP" sind die Levels:
+#     ERROR
+#     STATUS
+#     WARNING
+#     MSG
+#     INFO
+#     DEBUG
+#     TRACE
+#     NONE
+# Alle anderen Werte werden als "NONE" interpretiert
+# Groß- oder Kleinschreibung wird ignoriert''',
+#                 },
+#             'LogStackDepth': {
+#                 'l': 'logstackdepth',
+#                 'm': 'i',
+#                 'v': 0,
+#                 'd': '''Anzahl der auszugebenden Stackzeilen, 0 = Disabled'''
+#                 },
             
         }
 
@@ -1973,15 +2104,15 @@ Groß- oder Kleinschreibung wird ignoriert''',
                 'l': 'help',
                 'm': 'H',
                 'd': 'Diesen Hilfetext anzeigen und beenden'},
-        'Export': { 's': 'x',
-                'l': 'export',
-                'm': 'X',
-                'd': 'Ausgabe der aktuellen Konfiguration und Beenden'},
-        'ConfFile': {   's': 'z',
-                'l': 'par',
-                'm': 'x',
-                'd': '''Zuerst die Werte aus der Datei lesen, 
-    danach erst die Komandozeilenparameter'''},
+    #     'Export': { 's': 'x',
+    #             'l': 'export',
+    #             'm': 'X',
+    #             'd': 'Ausgabe der aktuellen Konfiguration und Beenden'},
+    #     'ConfFile': {   's': 'z',
+    #             'l': 'par',
+    #             'm': 'x',
+    #             'd': '''Zuerst die Werte aus der Datei lesen, 
+    # danach erst die Komandozeilenparameter'''},
         'Verbose': {    's': 'v',
                 'l': 'verbose',
                 'r': False,
@@ -2002,42 +2133,42 @@ Groß- oder Kleinschreibung wird ignoriert''',
                 'v': '',
                 'm': 't',
                 'd': 'Ein Text'},
-        'MultiText': {  's': 'T',
-                'l': ('mtext','mText'),
-                'o': True,
-                'M': True,
-                'm': 't',
-                'd': 'Multi Text'},
-        'Float': {  's': 'F',
-                'l': ('float','Float'),
-                'o': True,
-                'v': 10.47,
-                'm': 'F',
-                'L': 1,
-                'U': 100.2,
-                'd': 'Eine Gleitkommazahl zwischen 1 und 100.2'},
-        'File': {   's': 'f',
-                'l': 'file',
-                'o': True,
-                'm': 'f',
-                'd': 'Eine existierende Datei'},
-        'Dir': {    's': 'D',
-                'l': 'dir',
-                'o': True,
-                'm': 'd',
-                'd': 'Ein existierendes Verzeichnis'},
-        'Path': {   's': 'p',
-                'l': 'path',
-                'r': 'true',
-                'M': True,
-                'o': True,
-                'm': 'p',
-                'd': 'Ein gültiger Path'},
-        'Counter': {    
-                's': 'C',
-                'o': False,
-                'm': 'C',
-                'd': 'Mehrmals zum hochzählen'},
+        # 'MultiText': {  's': 'T',
+        #         'l': ('mtext','mText'),
+        #         'o': True,
+        #         'M': True,
+        #         'm': 't',
+        #         'd': 'Multi Text'},
+        # 'Float': {  's': 'F',
+        #         'l': ('float','Float'),
+        #         'o': True,
+        #         'v': 10.47,
+        #         'm': 'F',
+        #         'L': 1,
+        #         'U': 100.2,
+        #         'd': 'Eine Gleitkommazahl zwischen 1 und 100.2'},
+        # 'File': {   's': 'f',
+        #         'l': 'file',
+        #         'o': True,
+        #         'm': 'f',
+        #         'd': 'Eine existierende Datei'},
+        # 'Dir': {    's': 'D',
+        #         'l': 'dir',
+        #         'o': True,
+        #         'm': 'd',
+        #         'd': 'Ein existierendes Verzeichnis'},
+        # 'Path': {   's': 'p',
+        #         'l': 'path',
+        #         'r': 'true',
+        #         'M': True,
+        #         'o': True,
+        #         'm': 'p',
+        #         'd': 'Ein gültiger Path'},
+        # 'Counter': {    
+        #         's': 'C',
+        #         'o': False,
+        #         'm': 'C',
+        #         'd': 'Mehrmals zum hochzählen'},
         }
     TestDef_Beta =     {
         'Help': {   
@@ -2108,86 +2239,92 @@ Groß- oder Kleinschreibung wird ignoriert''',
             return
         if Erg:
             return
-        m['TopLevel'] = 'Top'
-        m.Child['alpha']['AlphaLevel'] = 'Alpha'
-        m.Child['alpha'].Child['gamma']['GammaLevel'] = 'Gamma'
+        # m['TopLevel'] = 'Top'
+        # m.Child['alpha']['AlphaLevel'] = 'Alpha'
+        # m.Child['alpha'].Child['gamma']['GammaLevel'] = 'Gamma'
         
-        print(f"{'*' * 60}Dotted\n")
-        print(m.ParamStr(indent=0,dotted=True,cmdpar=True))    
+        print(f"{'*' * 60}All Options ON\n")
+        print(m.ParamStr(dotted=True,parentopts=True))    
         
-        print(f"{'*' * 60}Default\n")
-        print(m.ParamStr())    
+        print(f"{'*' * 60}Shortes\n")
+        print(m.ParamStr(dotted=False,parentopts=False,indent=0,header=False,cmdpar=False,all=False))    
         
-        print(f"{'*' * 60}No header\n")
-        print(m.ParamStr(indent=2, header=False))   
+#         print(f"{'*' * 60}Dotted\n")
+#         print(m.ParamStr(indent=0,dotted=True,cmdpar=True))    
         
-        print(f"{'*' * 60}Not all\n")
-        print(m.ParamStr(indent=8,all=False,parentopts=True))    
+#         print(f"{'*' * 60}Default\n")
+#         print(m.ParamStr())    
         
-        print(f"{'*' * 60}Alpha Rec\n")
-        print(m.Child['alpha'].ParamStr(dotted = True, parentopts = True))    
+#         print(f"{'*' * 60}No header\n")
+#         print(m.ParamStr(indent=2, header=False))   
         
-        print(f"{'*' * 60}No Rec\n")
-        print(m.ParamStr(recursive=False))    
+#         print(f"{'*' * 60}Not all\n")
+#         print(m.ParamStr(indent=8,all=False,parentopts=True))    
+        
+#         print(f"{'*' * 60}Alpha Rec\n")
+#         print(m.Child['alpha'].ParamStr(dotted = True, parentopts = True))    
+        
+#         print(f"{'*' * 60}No Rec\n")
+#         print(m.ParamStr(recursive=False))    
 
-        print(f"{'*' * 60}\n")
-        print(f"{'-' * 60}\nGlobal\n{'-' * 60}")
-        for key,value in m.items():
-            print(f"Global -> {key}: {value}")
+#         print(f"{'*' * 60}\n")
+#         print(f"{'-' * 60}\nGlobal\n{'-' * 60}")
+#         for key,value in m.items():
+#             print(f"Global -> {key}: {value}")
         
-        for Name, Par in m.Child.items():
-            print(f"{'-' * 60}\n{Name}\n{'-' * 60}")
-            for key,value in Par.items():
-                print(f"{Name} -> {key}: {value}")
-        print(f"\n{'-' * 80}\n\n")        
-        print(m.Usage())
-        print(f"\n{'#' * 80}\n\n")
+#         for Name, Par in m.Child.items():
+#             print(f"{'-' * 60}\n{Name}\n{'-' * 60}")
+#             for key,value in Par.items():
+#                 print(f"{Name} -> {key}: {value}")
+#         print(f"\n{'-' * 80}\n\n")        
+#         print(m.Usage())
+#         print(f"\n{'#' * 80}\n\n")
 
 
 
-        a = Param(Def = TestDef_Alpha, 
-            Desc = "Dies ist ein Test\ndas bedeutet hier steht nur\nnonsens", 
-            AddPar = "File .... File", 
-            Translate = Trans,
-            AllParams = True
-            )
-        # a.SetArgs(Args = shlex.split('Test -v -CCC -f /Mist --dir=/tmp'))
-        try:
-            a.Process()
-        except Exception as exc:
-            dir(exc)
-            print(exc)
-            return
-        for key,value in a.items():
-            print(key,value)
-        # print(dir(a))
-        print(f"ExportDict = {a.GetExportDict}")
-        print(f"Ergebnis: {a}")
-        print(f"Rest: {a.GetRemainder()}")
-        print(a.GetCmdPar('Text'))
-        print(a.Definition)
-        print(a.Usage())
-        print('-'*60)
-        b = Param(Def = TestDef_Beta, 
-            Desc = "Dies ist ein Test # 2", 
-#            AddPar = "File .... File", 
-            Translate = Trans,
-            AllParams = True
-            )
-#        b.SetArgs(Args = shlex.split('Test --ignore.help -v -x'))
-        try:
-            b.Process()
-        except Exception as exc:
-            dir(exc)
-            print(exc)
-            return
-        for key,value in b.items():
-            print(key,value)
-        # print(dir(a))
-        print(f"Ergebnis: {b}")
-        print(f"Rest: {b.GetRemainder()}")
-        print(b.GetCmdPar('Text'))
-        print(b.Definition)
-        print(b.Usage())
-        print('-'*60)
+#         a = Param(Def = TestDef_Alpha, 
+#             Desc = "Dies ist ein Test\ndas bedeutet hier steht nur\nnonsens", 
+#             AddPar = "File .... File", 
+#             Translate = Trans,
+#             AllParams = True
+#             )
+#         # a.SetArgs(Args = shlex.split('Test -v -CCC -f /Mist --dir=/tmp'))
+#         try:
+#             a.Process()
+#         except Exception as exc:
+#             dir(exc)
+#             print(exc)
+#             return
+#         for key,value in a.items():
+#             print(key,value)
+#         # print(dir(a))
+#         print(f"ExportDict = {a.GetExportDict}")
+#         print(f"Ergebnis: {a}")
+#         print(f"Rest: {a.GetRemainder()}")
+#         print(a.GetCmdPar('Text'))
+#         print(a.Definition)
+#         print(a.Usage())
+#         print('-'*60)
+#         b = Param(Def = TestDef_Beta, 
+#             Desc = "Dies ist ein Test # 2", 
+# #            AddPar = "File .... File", 
+#             Translate = Trans,
+#             AllParams = True
+#             )
+# #        b.SetArgs(Args = shlex.split('Test --ignore.help -v -x'))
+#         try:
+#             b.Process()
+#         except Exception as exc:
+#             dir(exc)
+#             print(exc)
+#             return
+#         for key,value in b.items():
+#             print(key,value)
+#         # print(dir(a))
+#         print(f"Ergebnis: {b}")
+#         print(f"Rest: {b.GetRemainder()}")
+#         print(b.GetCmdPar('Text'))
+#         print(b.Definition)
+#         print(b.Usage())
+#         print('-'*60)
     main()
