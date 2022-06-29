@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Param</title>
+  <style type="text/css">
+      code{white-space: pre-wrap;}
+      span.smallcaps{font-variant: small-caps;}
+      span.underline{text-decoration: underline;}
+      div.column{display: inline-block; vertical-align: top; width: 50%;}
+  </style>
+</head>
+<body>
+<h1 id="module-param">Module Param</h1>
+<p>Parameterverwaltung bedient die meisten Laufzeitparameter</p>
+<h2 id="classes">Classes</h2>
+<dl>
+<dt><code>GetoptError(msg, opt='')</code></dt>
+<dd><p>Common base class for all non-exit exceptions.</p>
+<h3 id="ancestors-in-mro">Ancestors (in MRO)</h3>
+<ul>
+<li>builtins.Exception</li>
+<li>builtins.BaseException</li>
+</ul>
+<h3 id="class-variables">Class variables</h3>
+<p><code>msg</code> :</p>
+<p><code>opt</code> :</p>
+</dd>
+<dt><code>Param(Def: dict = {}, Args: list = None, Chk=None, Desc: str = '', AddPar: str = '', AllParams: bool = True, UserPars: dict = None, UserModes: dict = None, Translate: &lt;built-in function callable&gt; = None, Children: dict = {})</code></dt>
+<dd><p>Main class and also the result-dictionary normally imported as</p>
+<p>from pcs_argpass.Param import Param</p>
+<p>This class can be used to create recursive sub-parameter classes. All children inherit the settings of their parents.</p>
+<p>The construktor Args: Def (dict, optional): See SetDef(). Defaults to {}. Args ([type], optional): See SetArgs(). Defaults to None. Chk ([type], optional): See SetChk(). Defaults to None. Desc (str, optional): See SetDesc(). Defaults to "“. AddPar (str, optional): See SetAddPar. Defaults to”“. AllParams (Boolean, optional): See SetAllParams. Defaults to True. UserPars (dict, optional): See SetUserKeys. Defaults to None. UserModes (dict, optional): See SetUserKeys. Defaults to None. Translate (callable): Function to translate error messages Children: (dict): Dictionary of Child-definition for this class. { ‘Name’: {‘Def’: {}, ‘Desc’: str, ‘AddPar’: str, ‘Children’: {} }, …. }<br />
+Name = The name of this child. Must be unique.<br />
+Is translated to lower case.<br />
+Can not bee”global" (this is the name of the root-class)<br />
+Def = A definition dictionary like our own “Def” parameter,<br />
+Children (optional) = dict of type Children, describes the grand-childer,<br />
+this can be done to any level.<br />
+Desc (optional) = A string that describes this class (like our own “Desc”-parameter.<br />
+AddPar (optional) = String used as additional info like our own “AddPar”-parameter.</p>
+<h3 id="class-variables-1">Class variables</h3>
+<dl>
+<dt><code>DeclarationError</code></dt>
+<dd>this exception is raised if there is an declaration error within the parameters of the class.
+</dd>
+<dt><code>ParamError</code></dt>
+<dd>This exception is raised if there is an error within the runtime-parameters. This is only raised within the “Process”-function.
+</dd>
+<dt><code>PathEncoder</code></dt>
+<dd>Subclass to encode path for json
+</dd>
+</dl>
+<h3 id="instance-variables">Instance variables</h3>
+<dl>
+<dt><code>Child: dict</code></dt>
+<dd><p>return all the children of this instance</p>
+<p>Returns: dict[str, Param]: Dictionary of the children of this instance</p>
+</dd>
+<dt><code>Definition: dict</code></dt>
+<dd><p>returns s copy of the definition</p>
+<p>Returns: dict: a definition dictionary</p>
+</dd>
+<dt><code>GetExportDict</code></dt>
+<dd><p>Return the dictionary for exporting all parameters</p>
+<p>Returns: dict: The complete parameter dictionary</p>
+</dd>
+<dt><code>Prefix: str</code></dt>
+<dd><p>Return the prefix of this class</p>
+<p>Returns: str: the prefix value</p>
+</dd>
+</dl>
+<h3 id="methods">Methods</h3>
+<dl>
+<dt><code>AddChild(self, Prefix: str, Def: dict = {}, Description: str = '', Children: dict = {}, AddPar: str = '') ‑&gt; NoneType</code></dt>
+<dd><p>Add a child to a instance</p>
+<p>Args: Prefix (str): The unique name of this child. Will be translated to lower case. can not be ‘global’ (this is the name of the topmost parent) Def (dict, optional): Definition for this instance (look at the constructor). Defaults to {}. Description (str, optional): Description of this instance. Defaults to ’‘. Children (dict, optional): Dictionary of children to the new instance (look at constructor). Defaults to {}. AddPar (str, optional): Additional parameter string of this instance. Defaults to’’.</p>
+<p>Raises: self.DeclarationError: If a parameter is invalid</p>
+</dd>
+<dt><code>GetCmdPar(self, Entry: str, dotted: bool = False, parents: bool = False) ‑&gt; str</code></dt>
+<dd><p>Return the commandline-options for one entry</p>
+<p>Args: Entry (str): The entry we are looking for dotted (bool, optional): show prefix for long params. parents (bool, optional): show also options from parents. Set also “dotted” to True</p>
+<p>Returns: str: the command-line options for this entry. E.g. “-h, –help”</p>
+</dd>
+<dt><code>GetLongOpts(self) ‑&gt; list</code></dt>
+<dd><p>Return list of long options (only? for debugging declarations)</p>
+<p>Returns: list: List of long options</p>
+</dd>
+<dt><code>GetParDict(self) ‑&gt; dict</code></dt>
+<dd><p>Return dict with references options -&gt; parameter-names (only? for debugging declarations)</p>
+<p>Returns: dict: {option: name, …}</p>
+</dd>
+<dt><code>GetRemainder(self) ‑&gt; list</code></dt>
+<dd><p>Return list of additionel arguments on command-line</p>
+<p>Returns: list: List of additional arguments within runtime-arguments</p>
+</dd>
+<dt><code>GetShortOpts(self) ‑&gt; list</code></dt>
+<dd>Return list of short options (only? for debugging declarations)
+</dd>
+<dt><code>IsInherited(self, key: str) ‑&gt; bool</code></dt>
+<dd><p>Check if key is from parent</p>
+<p>Args: key (str): Key to search for</p>
+<p>Returns: bool: True if key is inherited from parent</p>
+</dd>
+<dt><code>IsOwnKey(self, key: str) ‑&gt; bool</code></dt>
+<dd><p>Check if the key is from the own optionset</p>
+<p>Args: key (str): Key to search for</p>
+<p>Returns: bool: True if key is in the own optionset</p>
+</dd>
+<dt><code>MyProgName(self) ‑&gt; str</code></dt>
+<dd><p>Return the program-name</p>
+<p>Returns: str: Name of the executeable</p>
+</dd>
+<dt><code>MyProgPath(self) ‑&gt; str</code></dt>
+<dd><p>Return the program-path</p>
+<p>Returns: str: Path of the executeable</p>
+</dd>
+<dt><code>MyPwd(self) ‑&gt; str</code></dt>
+<dd><p>Return the directory at invocation of “Process”</p>
+<p>Returns: str: Directory at “Process”-time</p>
+</dd>
+<dt><code>ParamStr(self, indent: int = 4, header: bool = True, all: bool = True, dotted: bool = False, cmdpar: bool = True, parentopts: bool = False, recursive: bool = True) ‑&gt; str</code></dt>
+<dd><p>Returns a string with formatted output of the processed parameters.</p>
+<pre><code>    Args:
+        indent (int, optional): Number of leading spaces for children. Defaults to 4.
+                this value is multiplied with the generation. So grandchildren have
+                two times this number of leading spaces and children only one time
+                this number of spaces.
+
+        header (bool, optional): If True a header with the name of the object are added. Defaults to True.
+
+        all (bool, optional): Outputs all avallable options for this child, 
+                included the inherited options. Defaults to True.
+
+        dotted (bool, optional): If True the names of the parameters are prefixed with the names
+                of their parents. Defaults to False.
+
+        cmdpar (bool, optional): If True the commandline-options ere included in the output. Defaults to True.
+
+        parentopts (bool, optional): If True and cmdpar is also True the commandline-options of the parents 
+                are anso included in the output. Defaults to False.
+
+        recursive (bool, optional): If True all descendants are include in the output, 
+                else only the own parameters are included. Defaults to True.
+
+    Returns:
+        str: The formated string of the processed parameters</code></pre>
+<p>Examples:<br />
+########################################################################################</p>
+<pre><code>    Assuming:  
+        the topmost level includes   
+            &quot;NoDaemon&quot;, &quot;Quiet&quot;, &quot;StdErr&quot;, and &quot;Verbose&quot;  
+        child &quot;alpha&quot; includes  
+            &quot;Count&quot;, &quot;Text&quot; and &quot;Verbose&quot;  
+        grandchild &quot;alpha -&gt; gamma&quot; includes  
+            &quot;Xy&quot;  
+        child &quot;beta&quot; includes  
+            &quot;Verbose&quot;  
+
+    The largest format is like:  </code></pre>
+<table>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">global</td>
+</tr>
+</tbody>
+</table>
+<p>global⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀-&gt;⠀NoDaemon⠀(-d,⠀–[global.]nodaemon)⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀:⠀False<br />
+global⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀-&gt;⠀Quiet⠀⠀⠀⠀(-q,⠀–[global.]quiet)⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀:⠀False<br />
+global⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀-&gt;⠀StdErr⠀⠀⠀(-s,⠀–[global.]console)⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀:⠀False<br />
+global⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀-&gt;⠀Verbose⠀⠀(-v,⠀–[global.]verbose)⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀:⠀2<br />
+⠀⠀⠀⠀————————————————————<br />
+⠀⠀⠀⠀global.alpha<br />
+⠀⠀⠀⠀————————————————————<br />
+⠀⠀⠀⠀global.alpha⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀-&gt;⠀Count⠀⠀⠀⠀(-c,⠀–[alpha.]count,⠀–[alpha.]Count)⠀:⠀7<br />
+⠀⠀⠀⠀global.alpha⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀-&gt;⠀NoDaemon⠀(-d,⠀–[global.]nodaemon)⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀:⠀False<br />
+⠀⠀⠀⠀global.alpha⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀-&gt;⠀Quiet⠀⠀⠀⠀(-q,⠀–[global.]quiet)⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀:⠀False<br />
+⠀⠀⠀⠀global.alpha⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀-&gt;⠀StdErr⠀⠀⠀(-s,⠀–[global.]console)⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀:⠀False<br />
+⠀⠀⠀⠀global.alpha⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀-&gt;⠀Text⠀⠀⠀⠀⠀(-t,⠀–[alpha.]text,⠀–[alpha.]Text)⠀⠀⠀:⠀’’<br />
+⠀⠀⠀⠀global.alpha⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀-&gt;⠀Verbose⠀⠀(-v,⠀–[alpha.]verbose)⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀:⠀2<br />
+⠀⠀⠀⠀⠀⠀⠀⠀————————————————————<br />
+⠀⠀⠀⠀⠀⠀⠀⠀global.alpha.gamma<br />
+⠀⠀⠀⠀⠀⠀⠀⠀————————————————————<br />
+⠀⠀⠀⠀⠀⠀⠀⠀global.alpha.gamma⠀-&gt;⠀Count⠀⠀⠀⠀(-c,⠀–[alpha.]count,⠀–[alpha.]Count)⠀:⠀7<br />
+⠀⠀⠀⠀⠀⠀⠀⠀global.alpha.gamma⠀-&gt;⠀NoDaemon⠀(-d,⠀–[global.]nodaemon)⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀:⠀False<br />
+⠀⠀⠀⠀⠀⠀⠀⠀global.alpha.gamma⠀-&gt;⠀Quiet⠀⠀⠀⠀(-q,⠀–[global.]quiet)⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀:⠀False<br />
+⠀⠀⠀⠀⠀⠀⠀⠀global.alpha.gamma⠀-&gt;⠀StdErr⠀⠀⠀(-s,⠀–[global.]console)⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀:⠀False<br />
+⠀⠀⠀⠀⠀⠀⠀⠀global.alpha.gamma⠀-&gt;⠀Text⠀⠀⠀⠀⠀(-t,⠀–[alpha.]text,⠀–[alpha.]Text)⠀⠀⠀:⠀’’<br />
+⠀⠀⠀⠀⠀⠀⠀⠀global.alpha.gamma⠀-&gt;⠀Verbose⠀⠀(-v,⠀–[alpha.]verbose)⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀:⠀2<br />
+⠀⠀⠀⠀⠀⠀⠀⠀global.alpha.gamma⠀-&gt;⠀Xy⠀⠀⠀⠀⠀⠀⠀(-b,⠀–[gamma.]bbbb)⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀:⠀False<br />
+⠀⠀⠀⠀————————————————————<br />
+⠀⠀⠀⠀global.beta<br />
+⠀⠀⠀⠀————————————————————<br />
+⠀⠀⠀⠀global.beta⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀-&gt;⠀NoDaemon⠀(-d,⠀–[global.]nodaemon)⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀:⠀False<br />
+⠀⠀⠀⠀global.beta⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀-&gt;⠀Quiet⠀⠀⠀⠀(-q,⠀–[global.]quiet)⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀:⠀False<br />
+⠀⠀⠀⠀global.beta⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀-&gt;⠀StdErr⠀⠀⠀(-s,⠀–[global.]console)⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀:⠀False<br />
+global.beta -&gt; Verbose (-v, –[beta.]verbose) : 5</p>
+<pre><code>    The shortest format is like (recursive = True):  </code></pre>
+<p>global⠀-&gt;⠀NoDaemon⠀⠀:⠀False<br />
+global⠀-&gt;⠀Quiet⠀⠀⠀⠀⠀:⠀False<br />
+global⠀-&gt;⠀StdErr⠀⠀⠀⠀:⠀False<br />
+global⠀-&gt;⠀Verbose⠀⠀⠀:⠀2<br />
+alpha⠀⠀-&gt;⠀Count⠀⠀⠀⠀⠀:⠀7<br />
+alpha⠀⠀-&gt;⠀Text⠀⠀⠀⠀⠀⠀:⠀’’<br />
+alpha⠀⠀-&gt;⠀Verbose⠀⠀⠀:⠀2<br />
+gamma⠀⠀-&gt;⠀Xy⠀⠀⠀⠀⠀⠀⠀⠀:⠀False<br />
+beta⠀⠀⠀-&gt;⠀Verbose⠀⠀⠀:⠀5</p>
+<pre><code>    The shortest format is like (recursive = False):  </code></pre>
+<p>global⠀-&gt;⠀NoDaemon⠀⠀:⠀False<br />
+global⠀-&gt;⠀Quiet⠀⠀⠀⠀⠀:⠀False<br />
+global⠀-&gt;⠀StdErr⠀⠀⠀⠀:⠀False<br />
+global⠀-&gt;⠀Verbose⠀⠀⠀:⠀2</p>
+<p id="section"></p>
+</dd>
+<dt><code>Process(self) ‑&gt; bool</code></dt>
+<dd><p>Process the runtime-arguments</p>
+<p>Raises: self.ParamError: if an error occures within a parameter RuntimeError: if an internal error occures</p>
+</dd>
+<dt><code>SetAddPar(self, AddPar: str = '') ‑&gt; NoneType</code></dt>
+<dd><p>Description of additional parameters for usage-function. printed in first line after “OPTIONS”</p>
+<p>Args: AddPar (str, optional): The text or additional parameters. Defaults to "".</p>
+<p>Raises: TypeError: if AddPar is not a string</p>
+</dd>
+<dt><code>SetAllParams(self, AllParams: bool = True) ‑&gt; NoneType</code></dt>
+<dd><p>Set the flag for All Params</p>
+<p>Args: AllParams (bool, optional): If True, all params are initialized, at least with None. If False params with no default and no setting on the commandline are not defined within the dictionary. Defaults to True.</p>
+</dd>
+<dt><code>SetArgs(self, Args: list = None) ‑&gt; NoneType</code></dt>
+<dd><p>Set the argument list to process if None: use sys.argv as the arguments</p>
+<p>Args: Args ([type], optional): Runtime Arguments. Defaults to None.</p>
+<p>Raises: TypeError: If Args is not a list</p>
+</dd>
+<dt><code>SetChk(self, Chk=None)</code></dt>
+<dd><p>Set the check-function. Not implementet now</p>
+<p>Args: Chk ([type], optional): [description]. Defaults to None.</p>
+<p>Raises: TypeError: if function is not of the proper type</p>
+</dd>
+<dt><code>SetDef(self, Def: dict = {}) ‑&gt; NoneType</code></dt>
+<dd><p>Set the definition for processing arguments</p>
+<pre><code>    Args:
+        Def (dict, optional): A definition-dict. Defaults to {}.
+
+    Raises:
+        TypeError: on error within the definition</code></pre>
+<p>Describes the definition for arg-parsing.<br />
+Def-dict: a dictionary of dictionaries<br />
+⠀⠀⠀⠀{ ‘Name1’: {.. declaration ..},<br />
+⠀⠀⠀⠀…<br />
+⠀⠀⠀⠀‘Name2’: {.. declaration ..}, }<br />
+⠀⠀⠀⠀“NameN” is the index under which at runtime you get the values<br />
+⠀⠀⠀⠀⠀⠀⠀⠀within the resulting dictionary.<br />
+⠀⠀⠀⠀The individual definitions look like:<br />
+⠀⠀⠀⠀⠀⠀⠀⠀{‘s’: ‘a’,<br />
+⠀⠀⠀⠀⠀⠀⠀⠀‘l’: ‘longval’,<br />
+⠀⠀⠀⠀⠀⠀⠀⠀‘o’: True,<br />
+⠀⠀⠀⠀⠀⠀⠀⠀‘v’: “LuLu”,<br />
+⠀⠀⠀⠀⠀⠀⠀⠀‘m’: ‘t’,<br />
+⠀⠀⠀⠀⠀⠀⠀⠀‘d’: ‘Description’,<br />
+⠀⠀⠀⠀⠀⠀⠀⠀‘L’: ‘Low’,<br />
+⠀⠀⠀⠀⠀⠀⠀⠀‘U’: ‘Up’,<br />
+⠀⠀⠀⠀⠀⠀⠀⠀‘r’: False },<br />
+⠀⠀⠀⠀where:<br />
+⠀⠀⠀⠀⠀⠀⠀⠀m : Mode -&gt;<br />
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀‘t’ = Text,<br />
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀‘b’ = Bool,<br />
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀‘p’ = Path,<br />
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀‘f’ = Existing File,<br />
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀‘d’ = Exist. Dir,<br />
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀‘i’ = Integer,<br />
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀‘F’ = Float,<br />
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀‘C’ = Counter (start default as 0 and increment each time found)<br />
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀Special case: short option takes no argument,<br />
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀long option NEEDS argument<br />
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀short option increments the value,<br />
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀long option adds the argument to the value<br />
+⠀⠀⠀⠀⠀⠀⠀⠀The following are processed BEVOR all others:<br />
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀‘H’ = Show help and exit<br />
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀‘x’ = Import config-file as json (file must exist like “f”)<br />
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀can be given more than once!<br />
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀‘&lt;’ = MultiImport config-file as json<br />
+⠀⠀⠀⠀⠀⠀⠀⠀The following are processed AFTER all others:<br />
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀‘X’ = Export config as json to stdout und exit<br />
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀‘&gt;’ = MultiExport config as json to stdout und exit<br />
+⠀⠀⠀⠀⠀⠀⠀⠀r : Required -&gt; True or False, False is default<br />
+⠀⠀⠀⠀⠀⠀⠀⠀s : Short Option(s) -&gt; string or list or tuple of strings<br />
+⠀⠀⠀⠀⠀⠀⠀⠀l : Long Option(s) -&gt; string or list or tuple of strings<br />
+⠀⠀⠀⠀⠀⠀⠀⠀o : Ein Parameter notendig -&gt; True oder False, False is default<br />
+⠀⠀⠀⠀⠀⠀⠀⠀v : Default value -&gt; if not given:<br />
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"" for Text,<br />
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀False for Bool,<br />
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀None for Path, File and Dir,<br />
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀0 for Int und Counter,<br />
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀0. for Float<br />
+⠀⠀⠀⠀⠀⠀⠀⠀L : Lower Limit, value &gt;= L if present<br />
+⠀⠀⠀⠀⠀⠀⠀⠀U : Upper Limit, value &lt;= U if present<br />
+⠀⠀⠀⠀⠀⠀⠀⠀d : Description for helptext<br />
+⠀⠀⠀⠀The entries “m” and (“s” or “l”) must be present, all others are optional.</p>
+</dd>
+<dt><code>SetDesc(self, Desc: str = '') ‑&gt; NoneType</code></dt>
+<dd><p>Set the description of the program for usage-string</p>
+<p>Args: Desc (str, optional): A descriptive string for the Program. printed bevore the parameters. Defaults to "".</p>
+<p>Raises: TypeError: if Desc is not a string.</p>
+</dd>
+<dt><code>SetTranslate(self, Translate=None) ‑&gt; NoneType</code></dt>
+<dd><p>Set translation routine for error-messages</p>
+<pre><code>    Args:
+        Translate (callable, optional): Defaults to None.</code></pre>
+<p>Example:<br />
+⠀⠀⠀⠀⠀⠀⠀⠀TransFunc(*,Type:str,Param:str, Path:str, FullPath:str, Msg:str, OptList:str) -&gt; str:<br />
+⠀⠀⠀⠀This function is called with the folowing parameters:<br />
+⠀⠀⠀⠀⠀⠀⠀⠀Type, Param, Path, FullPath, Msg, OptList<br />
+⠀⠀⠀⠀all of them are strings. The return value is the error-msg, also<br />
+⠀⠀⠀⠀a string.<br />
+⠀⠀⠀⠀The default messages are:<br />
+⠀⠀⠀⠀⠀⠀⠀⠀if Type is “ImpFail”<br />
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀“Import failed, {Path} for parameter {Param} is not a valid file”<br />
+⠀⠀⠀⠀⠀⠀⠀⠀if Type is “ErrMsg”<br />
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀“Error ‘{Msg}’ in {Path} ({FullPath}) for parameter {Param}”<br />
+⠀⠀⠀⠀⠀⠀⠀⠀if Type is “NoFile”<br />
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀“The path {Path} ({FullPath}) for parameter {Param} is not a file”<br />
+⠀⠀⠀⠀⠀⠀⠀⠀if Type is “NoPath”<br />
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀“The path {Path} ({FullPath}) for parameter {Param} does not exist”<br />
+⠀⠀⠀⠀⠀⠀⠀⠀if Type is “NoAct”<br />
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀“No action defined for {Param}”<br />
+⠀⠀⠀⠀⠀⠀⠀⠀if Type is “Required”<br />
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀“{Param} ({OptList}) required but not given”<br />
+⠀⠀⠀⠀⠀⠀⠀⠀for all other Type values<br />
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀“Undefined error Type=‘{Type}’, Param=‘{Param}’, Path=‘{Path}’, FullPath=‘{FullPath}’, Msg=‘{Msg}’, OptList=‘{OptList}’”<br />
+⠀⠀⠀⠀If this function is given it has to translate ALL messages.<br />
+⠀⠀⠀⠀If an error occures, the default messages are used</p>
+<pre><code>    Raises:
+        self.DeclarationError: if Translate not callable or None</code></pre>
+</dd>
+<dt><code>SetUserKeys(self, UserPars: dict = None, UserModes: dict = None) ‑&gt; NoneType</code></dt>
+<dd><p>Set the key-table for the definition-dictionary</p>
+<p>Args: UserPars (dict, optional): ignored if None. Defaults to None. Dictionary of keys used within the definition-dictionary. All key-value pairs are optional. Only the keys from self.__WorkPars are valid. The value has to be a string. This string replaces the keysting for this key. After all changes are made the values within self.__WorkPars have to be unique! UserModes (dict, optional): ignored if None. Defaults to None. Dictionary of modes used within the definition-dictionary. All key-value pairs are optional. Only the keys from self.__WorkModes are valid. The value has to be a string. This string replaces the keysting for this key. After all changes are made the values within self.__WorkModes have to be unique!</p>
+</dd>
+<dt><code>Usage(self) ‑&gt; str</code></dt>
+<dd><p>Return the helptext</p>
+<p>Returns: str: The help-text</p>
+</dd>
+<dt><code>items(self) ‑&gt; list</code></dt>
+<dd><p>Return the items list including the items of all parents</p>
+<p>Returns: list: the items</p>
+</dd>
+<dt><code>keys(self) ‑&gt; list</code></dt>
+<dd><p>Return the keys list including the keys of all parentsof</p>
+<p>Returns: list: the keys list</p>
+</dd>
+<dt><code>values(self) ‑&gt; list</code></dt>
+<dd><p>Return the values list including the values of all parents</p>
+<p>Returns: list: the values</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</body>
+</html>
