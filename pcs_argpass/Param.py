@@ -534,7 +534,7 @@ This is only raised within the "Process"-function.
                 {'s': 'a',
                 'l': 'longval', 
                 'o': True, 
-                'v':"LuLu",
+                'v': "LuLu",
                 'm': 't',
                 'd': 'Description',
                 'L': 'Low', 
@@ -549,6 +549,8 @@ This is only raised within the "Process"-function.
                             'i' = Integer, 
                             'F' = Float, 
                             'C' = Counter (start default as 0 and increment each time found)
+                                    Special case: short option takes no argument, long option NEEDS argument
+                                    short option increments the value, long option adds the argument to the value
                         The following are processed BEVOR all others:
                             'H' = Show help and exit
                             'x' = Import config-file as json (file must exist like "f")
@@ -1873,7 +1875,8 @@ danach erst die Komandozeilenparameter'''
                 'r': False,
                 'm': 'C',
                 'd': """Ausgabe von Statusmeldungen
-für mehr Details mehrmals angeben""",
+für mehr Details die kurze Option mehrmals angeben oder 
+die lange Option mit einer höheren Zahl verwenden.""",
                 },
             'Quiet': {
                 's': 'q', 
@@ -2046,7 +2049,6 @@ Groß- oder Kleinschreibung wird ignoriert''',
         'Verbose': {
                 's': 'v',
                 'l': 'verbose',
-                'o': True,
                 'r': False,
                 'm': 'C',
                 'd': 'Sei gesprächig'
