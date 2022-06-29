@@ -17,6 +17,7 @@ import copy
 import os
 from itertools import chain
 
+# Use json5 if it is avallable else use json 
 try:
     import json5
     JsonLoads = json5.loads
@@ -33,7 +34,8 @@ normally imported as
 
 from pcs_argpass.Param import Param
 
-Multiple sub-params are supported
+This class can be used to create recursive sub-parameter classes.
+All children inherit the settings of their parents. 
     '''
     class __ExceptionTemplate(Exception):
         def __call__(self, *args):
@@ -57,11 +59,21 @@ This is only raised within the "Process"-function.
         pass
 
     class PathEncoder(json.JSONEncoder):
+        """Subclass to encode path for json
+        """        
         def default(self, z):
+            """The "real" encoder
+
+            Args:
+                z (any): the object to encode
+
+            Returns:
+                any: the encoded Path or the default result
+            """            
             if isinstance(z, Path) or isinstance(z, PurePath):
-                return (str(z))
+                return (str(z))             # return the string representation of the Path
             else:
-                return super().default(z)
+                return super().default(z)   # let the default library do the work
 
         
     def __init__(   self, 
@@ -85,6 +97,17 @@ This is only raised within the "Process"-function.
             AllParams (Boolean, optional): See SetAllParams. Defaults to True.
             UserPars (dict, optional): See SetUserKeys. Defaults to None.
             UserModes (dict, optional): See SetUserKeys. Defaults to None.
+            Translate (callable): Function to translate error messages
+            Children: (dict): Dictionary of Child-definition for this class.
+                { 'Name': {'Def': {}, 'Desc': str, 'AddPar': str, 'Children': {} }, .... }
+                Name = The name of this child. Must be unique. 
+                        Is translated to lower case.
+                        Can not bee "global" (this is the name of the root-class)
+                Def = A definition dictionary like our own "Def" parameter,
+                Children (optional) = dict of type Children, describes the grand-childer,
+                        this can be done to any level. 
+                Desc (optional) = A string that describes this class (like our own "Desc"-parameter.
+                AddPar (optional) = String used as additional info like our own "AddPar"-parameter.
         """
 
 #---------------------------------------------
@@ -133,7 +156,7 @@ This is only raised within the "Process"-function.
             'uplimit':      'U', 
             'required':     'r',
             'multiple':     'M'
-        }
+            }
     
     
         self.__WorkModes = {
@@ -150,7 +173,7 @@ This is only raised within the "Process"-function.
             'export':       'X',
             'glob_import':  '<',
             'glob_export':  '>'
-        }
+            }
     
         self.__ModeToList = {
             self.__WorkModes['help']: self.__HelpList,
@@ -159,7 +182,7 @@ This is only raised within the "Process"-function.
             self.__WorkModes['glob_import']: self.__Glob_ImportList,
             self.__WorkModes['glob_export']: self.__Glob_ExportList,
             }
-            # set the parameters with the individual functions
+# set the parameters with the individual functions
         self.__UserPars = UserPars
         self.__UserModes = UserModes
         self.SetDesc(Desc)
@@ -170,51 +193,86 @@ This is only raised within the "Process"-function.
         self.SetAllParams(AllParams)
         self.SetAddPar(AddPar)
         self.SetTranslate(Translate)
-        if Children is None:
+        if Children is None:            # fix issue if Children is None
             Children = {}
         for wPrefix, wDict in Children.items():
+            
+            # Prefix (=Name) must be a string and not empty
             if type(wPrefix) != str:
                 raise self.DeclarationError(f"Name of child '{wPrefix} is not a string")
+            wPrefix = wPrefix.strip()
+            if wPrefix == '':
+                raise self.DeclarationError(f"Name of child could not be blank")
+            
+            # the declaration of a child has to bee a dictionary
             if type(wDict) != dict:
                 raise self.DeclarationError(f"Child definition for '{wPrefix} is not a dictionary")
+            
+            # the declaration of a child needs at least a 'Def' entry whitch is a dictionary
             if 'Def' not in wDict:
                 raise self.DeclarationError(f"Child definition for '{wPrefix} does not include 'Def'")
             if type(wDict['Def']) != dict:
                 raise self.DeclarationError(f"'Def' in child definition for '{wPrefix} is not a dictionary")
+            
+            # if 'Children' not given set it to an empty dictionary
             if 'Children' not in wDict:
                 wDict['Children'] = {}
             if wDict ['Children'] is None:
                 wDict['Children'] = {}
+                
+            # the declaration of "Children" has to bee a dictionary
             if type(wDict['Children']) != dict:
                 raise self.DeclarationError(f"'Children' in child definition for '{wPrefix} is not a dictionary")
+            
+            # if 'Desc' not given set it to ''
             if 'Desc' not in wDict:
                 wDict['Desc'] = ''
+                
+            # the declaration of "Desc" has to bee a string
             if type(wDict['Desc']) != str:
                 raise self.DeclarationError(f"'Desc' in child definition for '{wPrefix} is not a string")
+            
+            # if 'AddPar' not given set it to ''
             if 'AddPar' not in wDict:
                 wDict['AddPar'] = ''
+            
+            # the declaration of "AddPar" has to bee a string
             if type(wDict['AddPar']) != str:
                 raise self.DeclarationError(f"'AddPar' in child definition for '{wPrefix} is not a string")
+            
+            # now add all the children (if necessary also recursive)
             self.AddChild(Prefix = wPrefix, 
                           Def = wDict['Def'],  
                           Children = wDict['Children'], 
                           Description = wDict['Desc'],
                           AddPar = wDict['AddPar'])
+        
+        # show that we need preparation
         self.__IsPrepared = False
 
 #
 #---------------------------------------------
 # Make the class look like a dictionary
+# but this dictionary also includes all keys 
+# of all the parents
 #---------------------------------------------
 
     def __len__(self):
+        """The Python __len__ method returns a positive integer that 
+        represents the length of the object on which it is called. 
+        It implements the built-in len() function.
+        """        
         OwnLen = len(self.__WorkDict)
         if self.__Parent is None:
             return OwnLen
         return len(self.items())
-#        return len(set(self.__Parent.keys()) | set(self.__WorkDict.keys()))
 
     def __contains__(self, item):
+        """The Python __contains__() magic method implements the 
+        membership operation, i.e., the in keyword. Semantically, 
+        the method returns True if the argument object exists in 
+        the sequence on which it is called, and False otherwise.
+        """        
         if item in self.__WorkDict:
             return True
         if self.__Parent is None:
@@ -222,45 +280,58 @@ This is only raised within the "Process"-function.
         return item in self.__Parent
 
     def __getitem__(self, item):
+        """Python’s magic method __getitem__(self, key) to 
+        evaluate the expression self[key].
+        """        
         if item in self.__WorkDict:
             return self.__WorkDict[item]
         return self.__Parent.__getitem__(item)
 
     def __setitem__(self, key, value):
+        """Python’s magic method __setitem__(self, key, value) 
+        implements the assignment operation to self[key].
+        """        
         self.__WorkDict[key] = value
 
     def __delitem__(self, key):
+        """Python’s magic method __delitem__(self, key) 
+        implements the deletion of self[key].
+        """
         self.__WorkDict.__delitem__(key)
         
     def __missing__(self, key):
+        """The __missing__(self, key) method defines the behavior 
+        of a dictionary subclass if you access a non-existent key. 
+        More specifically, Python’s __getitem__() dictionary method 
+        internally calls the __missing__() method if the key doesn’t 
+        exist. The return value of __missing__() is the value to be 
+        returned when trying to access a non-existent key.
+        """
         if self.__Parent is None:
             raise KeyError(key)
         return self.__Parent[key]
 
     def __get__(self, instance, owner):
+        """Python’s __get__() magic method defines the dynamic return 
+        value when accessing a specific instance and class attribute. 
+        It is defined in the attribute’s class and not in the class 
+        holding the attribute (= the owner class). More specifically, 
+        when accessing the attribute through the owner class, Python 
+        dynamically executes the attribute’s __get__() method to 
+        obtain the attribute value.  
+        """
         return self.__get__(instance, owner)
 
     def __iter__(self):
+        """The Python __iter__ method returns an iterator object. 
+        An iterator object is an object that implements the __next__() 
+        dunder method that returns the next element of the iterable 
+        object and raises a StopIteration error if the iteration is done. 
+        """
         if self.__Parent is None:
             return self.v.__iter__()
         else:
             return chain(self.__Parent__iter__(), self.v.__iter__())
-
-    def keys(self) -> list:
-        """Return the keys list including the keys of all parentsof 
-
-        Returns:
-            list: the keys list
-        """        
-        if self.__Parent is None:
-            KeyList = list(self.__WorkDict.keys())
-        else:
-            KeyList = list(set(self.__Parent.keys()) | set(self.__WorkDict.keys()))
-        try:
-            KeyList.sort()
-        except:
-            pass
-        return KeyList
 
     def IsOwnKey(self,key: str) -> bool:
         """Check if the key is from the own optionset
@@ -283,6 +354,22 @@ This is only raised within the "Process"-function.
             bool: True if key is inherited from parent
         """        
         return (not self.IsOwnKey(key))
+
+    def keys(self) -> list:
+        """Return the keys list including the keys of all parentsof 
+
+        Returns:
+            list: the keys list
+        """        
+        if self.__Parent is None:
+            KeyList = list(self.__WorkDict.keys())
+        else:
+            KeyList = list(set(self.__Parent.keys()) | set(self.__WorkDict.keys()))
+        try:
+            KeyList.sort()
+        except:
+            pass
+        return KeyList
 
     def values(self) -> list:
         """Return the values list including the values of all parents
@@ -492,42 +579,65 @@ This is only raised within the "Process"-function.
         self.__IsPrepared = False   # we need a Prepare-call after this 
 
     @property
-    def TheExportStr(self):
-        return self.__Glob_ExportStr
+    def Definition(self) -> dict:
+        """returns s copy of the definition
 
-    @property
-    def TheWorkModes(self):
-        return copy.deepcopy(self.__WorkModes)
-
-    @property
-    def TheWorkPars(self):
-        return copy.deepcopy(self.__WorkPars)
-
-    @property
-    def Definition(self):
+        Returns:
+            dict: a definition dictionary
+        """        
         return copy.deepcopy(self.__Definition)
 
-    def GetCmdPar(self, Entry: str) -> str:
+    def GetCmdPar(self, Entry: str, dotted: bool = False, parents: bool = False) -> str:
+        """Return the commandline-options for one entry
+
+        Args:
+            Entry (str): The entry we are looking for
+            dotted (bool, optional): show prefix for long params. 
+            parents (bool, optional): show also options from parents. Set also "dotted" to True
+
+        Returns:
+            str: the command-line options for this entry. E.g. "-h, --help"
+        """        
         Erg = ""
+        if parents:
+            dotted = True
         try:
             SingleDef = self.__Definition[Entry]
         except:
+            if parents:
+                if self.__Parent is None:
+                    return ''
+                return self.__Parent.GetCmdPar(Entry = Entry, dotted = dotted, parents = parents)
             return ''
         try:
             wText = SingleDef[self.__WorkPars['shortpar']]
             for w in wText:
-                Erg += "-" + w + " "
+                if Erg != '':
+                    Erg += ', '
+                Erg += "-" + w 
         except:
             pass
+        if dotted:
+            Lp = '[' + self.__Prefix +'.]'
+        else:
+            Lp = ''
         try:
             wText = SingleDef[self.__WorkPars['longpar']]
             if type(wText) == list or type(wText) == tuple:
                 for w in wText:
-                    Erg += "--" + w + " "
+                    if Erg != '':
+                        Erg += ', '
+                    Erg += "--" + Lp + w 
             elif type(wText) == str:
-                Erg += "--" + wText + " "
+                if Erg != '':
+                    Erg += ', '
+                Erg += "--" + Lp + wText
         except: 
             pass
+        if Erg == '':
+            if parents:
+                if self.__Parent is not None:
+                    Erg = self.__Parent.GetCmdPar(Entry = Entry, dotted = dotted, parents = parents)
         return Erg
 
     def SetUserKeys(self, UserPars: dict = None, UserModes: dict = None) -> None:
@@ -844,6 +954,8 @@ This is only raised within the "Process"-function.
                 SingleDef[self.__WorkPars['needoption']] = True
             elif ParMode == self.__WorkModes['count']:
                 Ut_Type = 'counter'
+                ##Test
+                SingleDef[self.__WorkPars['needoption']] = True
             elif ParMode == self.__WorkModes['help']:
                 Ut_Type = 'help'
             elif ParMode == self.__WorkModes['import']:
@@ -995,7 +1107,9 @@ This is only raised within the "Process"-function.
                         Ut_Short.append(c)
                         self.__ShortList += c
                         if NeedOpt:
-                            self.__ShortList += ":"
+                            ##Test
+                            if SingleDef[self.__WorkPars['mode']] != self.__WorkModes['count']:
+                                self.__ShortList += ":"
                 if ShortParLen == 0:
                     ShortParLen = 1
             if self.__WorkPars['description'] in ParKeys:
@@ -1162,7 +1276,8 @@ This is only raised within the "Process"-function.
                     Res = self.__CheckOption(ParName,o,wPar,a)
                     if not Res is None:
                         raise self.ParamError(Res)
-                    continue
+                    if wPar[self.__WorkPars['mode']] != self.__WorkModes['count']:
+                        continue
             if wPar[self.__WorkPars['mode']] == self.__WorkModes['bool']:
                 try:
                     bVal = wPar[self.__WorkPars['default']]
@@ -1170,7 +1285,8 @@ This is only raised within the "Process"-function.
                     bVal = False
                 self.__WorkDict[ParName] = not bVal
             elif wPar[self.__WorkPars['mode']] == self.__WorkModes['count']:
-                self.__WorkDict[ParName] += 1
+                if '--' not in o:
+                    self.__WorkDict[ParName] += 1
             else:
                 raise self.ParamError(self.__MakeErrorMsg(Type="NoAct",Param=ParName))
 
@@ -1288,6 +1404,21 @@ This is only raised within the "Process"-function.
                 pass
             if wMulti:
                 self.__WorkDict[ParName].append(n)
+            else:
+                self.__WorkDict[ParName] = n
+            return None
+#-------------------------
+# Count
+#-------------------------
+        if wMod == self.__WorkModes['count']:
+            if a == '':
+                return None
+            try:
+                n = int(a)
+            except:
+                return f"Value {a} for parameter {ParKey} is not an integer"
+            if ParName in self.__WorkDict:
+                self.__WorkDict[ParName] += n
             else:
                 self.__WorkDict[ParName] = n
             return None
@@ -1461,7 +1592,16 @@ This is only raised within the "Process"-function.
         """        
         return self.__Prefix
 
-    def ParamStr(self, depth: int = 0, indent: int = 4, header: bool = True, all: bool = True, dotted: bool = False, dottedbase:str = '',  recursive: bool = True) -> str:
+    def ParamStr(self, 
+                 depth: int = 0, 
+                 indent: int = 4, 
+                 header: bool = True, 
+                 all: bool = True, 
+                 dotted: bool = False, 
+                 dottedbase:str = '', 
+                 cmdpar: bool = True, 
+                 parentopts: bool = False, 
+                 recursive: bool = True) -> str:
         Erg = ''
         Ls = ' ' * (depth * indent)
         p = self.Prefix
@@ -1473,10 +1613,50 @@ This is only raised within the "Process"-function.
         TheItems = self.items()
         for key,value in TheItems:
             if all or self.IsOwnKey(key):
-                Erg += f"{Ls}{p} -> {key}: {value}\n"
+                OptStr = self.GetCmdPar(Entry = key, dotted = dotted, parents = parentopts)
+                if OptStr != '':
+                    OptStr = '(' + OptStr + ')'
+                if type(value) == str:
+                    Erg += f"{Ls}{p}\t-> {key}\t{OptStr}\t: '{value}'\n"
+                else:
+                    Erg += f"{Ls}{p}\t-> {key}\t{OptStr}\t: {value}\n"
         if recursive:
             for n in self.Child.values():
-                Erg += n.ParamStr(depth = depth + 1, indent = indent, header = header, all = all, dotted = dotted, dottedbase = p, recursive = recursive)
+                Erg += n.ParamStr(depth = depth + 1, 
+                                  indent = indent, 
+                                  header = header, 
+                                  all = all, 
+                                  dotted = dotted, 
+                                  dottedbase = p, 
+                                  parentopts = parentopts, 
+                                  recursive = recursive)
+        if depth == 0:           # Auf der höchsten Ebene
+            l = [0,0,0]
+            lList = []
+            Lines = Erg.splitlines()
+            for Line in Lines:
+                if '\t' not in Line:
+                    lList.append(Line)
+                else:
+                    w = Line.split('\t')
+                    lList.append(w)             # gesplittete zeile anhängen
+                    for i in range(3):
+                        try:
+                            ll = len(w[i])
+                            if l[i] < ll:
+                                l[i] = ll
+                        except:
+                            pass
+            Erg = ''
+            Pad = ' ' * (max(l) + 1)
+            for Line in lList:
+                if type(Line) == str:
+                    Erg += Line + '\n'
+                else:
+                    wErg = ''
+                    for i in range(3):
+                        wErg += (Line[i] + Pad)[:l[i] + 1]
+                    Erg += wErg + Line[3] + '\n'
         return Erg
 
 
@@ -1785,7 +1965,7 @@ Groß- oder Kleinschreibung wird ignoriert''',
 
 
 
-    TestDef_1 =     {
+    TestDef_Alpha =     {
         'Help': {   's': 'h',
                 'l': 'help',
                 'm': 'H',
@@ -1850,12 +2030,13 @@ Groß- oder Kleinschreibung wird ignoriert''',
                 'o': True,
                 'm': 'p',
                 'd': 'Ein gültiger Path'},
-        'Counter': {    's': 'C',
+        'Counter': {    
+                's': 'C',
                 'o': False,
                 'm': 'C',
                 'd': 'Mehrmals zum hochzählen'},
         }
-    TestDef_2 =     {
+    TestDef_Beta =     {
         'Help': {   
                 's': 'h',
                 'l': 'help',
@@ -1865,12 +2046,13 @@ Groß- oder Kleinschreibung wird ignoriert''',
         'Verbose': {
                 's': 'v',
                 'l': 'verbose',
+                'o': True,
                 'r': False,
                 'm': 'C',
                 'd': 'Sei gesprächig'
                 },
         }
-    TestDef_3 =     {
+    TestDef_Gamma =     {
         'Xy': {   
                 's': 'b',
                 'l': 'bbbb',
@@ -1903,18 +2085,18 @@ Groß- oder Kleinschreibung wird ignoriert''',
             'Alpha': 
                 {
                 'Desc': "Description Alpha", 
-                'Def': TestDef_1, 
+                'Def': TestDef_Alpha, 
                 },
             'Beta':
                 {
-                'Def': TestDef_2, 
+                'Def': TestDef_Beta, 
                 'Desc': "Description Beta", 
                 }
             }
             )
-        m.Child['alpha'].AddChild(Prefix='Gamma', Def=TestDef_3,Description="Eine eingefügte Ebene")
+        m.Child['alpha'].AddChild(Prefix='Gamma', Def=TestDef_Gamma, Description="Eine eingefügte Ebene")
         try:
-            m.SetArgs(Args = shlex.split('Test --beta.help'))
+            m.SetArgs(Args = shlex.split('Test -vv --beta.verbose=3'))
  
             Erg = m.Process()
             # GlobPar = m.GlobalParam
@@ -1929,7 +2111,7 @@ Groß- oder Kleinschreibung wird ignoriert''',
         m.Child['alpha'].Child['gamma']['GammaLevel'] = 'Gamma'
         
         print(f"{'*' * 60}Dotted\n")
-        print(m.ParamStr(indent=0,dotted=True, all=False))    
+        print(m.ParamStr(indent=0,dotted=True,cmdpar=True))    
         
         print(f"{'*' * 60}Default\n")
         print(m.ParamStr())    
@@ -1938,10 +2120,14 @@ Groß- oder Kleinschreibung wird ignoriert''',
         print(m.ParamStr(indent=2, header=False))   
         
         print(f"{'*' * 60}Not all\n")
-        print(m.ParamStr(indent=8,all=False))    
+        print(m.ParamStr(indent=8,all=False,parentopts=True))    
+        
+        print(f"{'*' * 60}Alpha Rec\n")
+        print(m.Child['alpha'].ParamStr(dotted = True, parentopts = True))    
         
         print(f"{'*' * 60}No Rec\n")
         print(m.ParamStr(recursive=False))    
+
         print(f"{'*' * 60}\n")
         print(f"{'-' * 60}\nGlobal\n{'-' * 60}")
         for key,value in m.items():
@@ -1957,7 +2143,7 @@ Groß- oder Kleinschreibung wird ignoriert''',
 
 
 
-        a = Param(Def = TestDef_1, 
+        a = Param(Def = TestDef_Alpha, 
             Desc = "Dies ist ein Test\ndas bedeutet hier steht nur\nnonsens", 
             AddPar = "File .... File", 
             Translate = Trans,
@@ -1980,7 +2166,7 @@ Groß- oder Kleinschreibung wird ignoriert''',
         print(a.Definition)
         print(a.Usage())
         print('-'*60)
-        b = Param(Def = TestDef_2, 
+        b = Param(Def = TestDef_Beta, 
             Desc = "Dies ist ein Test # 2", 
 #            AddPar = "File .... File", 
             Translate = Trans,

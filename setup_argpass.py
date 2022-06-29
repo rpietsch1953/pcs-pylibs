@@ -8,7 +8,7 @@ with open("README_Argpass.md", "r") as fh:
 
 setuptools.setup(
     name="pcs_argpass",
-    version="0.8.1",
+    version="0.8.2",
     author="Rainer Pietsch",
     author_email="r.pietsch@pcs-at.com",
     description="Argument parser and checker. Generic logger",
