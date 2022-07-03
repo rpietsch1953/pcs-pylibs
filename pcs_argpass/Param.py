@@ -467,29 +467,29 @@ This is only raised within the "Process"-function.
 
         Args:
             Translate (callable, optional): Defaults to None.
-Example:  
-⠀⠀⠀⠀⠀⠀⠀⠀TransFunc(*,Type:str,Param:str, Path:str, FullPath:str, Msg:str, OptList:str) -> str:  
-⠀⠀⠀⠀This function is called with the folowing parameters:  
-⠀⠀⠀⠀⠀⠀⠀⠀Type, Param, Path, FullPath, Msg, OptList  
-⠀⠀⠀⠀all of them are strings. The return value is the error-msg, also  
-⠀⠀⠀⠀a string.  
-⠀⠀⠀⠀The default messages are:  
-⠀⠀⠀⠀⠀⠀⠀⠀if Type is "ImpFail"  
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"Import failed, {Path} for parameter {Param} is not a valid file"  
-⠀⠀⠀⠀⠀⠀⠀⠀if Type is "ErrMsg"  
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"Error '{Msg}' in {Path} ({FullPath}) for parameter {Param}"  
-⠀⠀⠀⠀⠀⠀⠀⠀if Type is "NoFile"  
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"The path {Path} ({FullPath}) for parameter {Param} is not a file"  
-⠀⠀⠀⠀⠀⠀⠀⠀if Type is "NoPath"  
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"The path {Path} ({FullPath}) for parameter {Param} does not exist"  
-⠀⠀⠀⠀⠀⠀⠀⠀if Type is "NoAct"  
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"No action defined for {Param}"  
-⠀⠀⠀⠀⠀⠀⠀⠀if Type is "Required"  
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"{Param} ({OptList}) required but not given"  
-⠀⠀⠀⠀⠀⠀⠀⠀for all other Type values  
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"Undefined error Type='{Type}', Param='{Param}', Path='{Path}', FullPath='{FullPath}', Msg='{Msg}', OptList='{OptList}'"  
-⠀⠀⠀⠀If this function is given it has to translate ALL messages.  
-⠀⠀⠀⠀If an error occures, the default messages are used  
+        Example:  
+                TransFunc(*,Type:str,Param:str, Path:str, FullPath:str, Msg:str, OptList:str) -> str:  
+            This function is called with the folowing parameters:  
+                Type, Param, Path, FullPath, Msg, OptList  
+            all of them are strings. The return value is the error-msg, also  
+            a string.  
+            The default messages are:  
+                if Type is "ImpFail"  
+                    "Import failed, {Path} for parameter {Param} is not a valid file"  
+                if Type is "ErrMsg"  
+                    "Error '{Msg}' in {Path} ({FullPath}) for parameter {Param}"  
+                if Type is "NoFile"  
+                    "The path {Path} ({FullPath}) for parameter {Param} is not a file"  
+                if Type is "NoPath"  
+                    "The path {Path} ({FullPath}) for parameter {Param} does not exist"  
+                if Type is "NoAct"  
+                    "No action defined for {Param}"  
+                if Type is "Required"  
+                    "{Param} ({OptList}) required but not given"  
+                for all other Type values  
+                    "Undefined error Type='{Type}', Param='{Param}', Path='{Path}', FullPath='{FullPath}', Msg='{Msg}', OptList='{OptList}'"  
+            If this function is given it has to translate ALL messages.  
+            If an error occures, the default messages are used  
   
         Raises:
             self.DeclarationError: if Translate not callable or None
@@ -1658,55 +1658,55 @@ Examples:
 ------------------------------------------------------------  
 global  
 ------------------------------------------------------------  
-global⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀->⠀NoDaemon⠀(-d,⠀--[global.]nodaemon)⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀:⠀False  
-global⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀->⠀Quiet⠀⠀⠀⠀(-q,⠀--[global.]quiet)⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀:⠀False  
-global⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀->⠀StdErr⠀⠀⠀(-s,⠀--[global.]console)⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀:⠀False  
-global⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀->⠀Verbose⠀⠀(-v,⠀--[global.]verbose)⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀:⠀2  
-⠀⠀⠀⠀------------------------------------------------------------  
-⠀⠀⠀⠀global.alpha  
-⠀⠀⠀⠀------------------------------------------------------------  
-⠀⠀⠀⠀global.alpha⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀->⠀Count⠀⠀⠀⠀(-c,⠀--[alpha.]count,⠀--[alpha.]Count)⠀:⠀7  
-⠀⠀⠀⠀global.alpha⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀->⠀NoDaemon⠀(-d,⠀--[global.]nodaemon)⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀:⠀False  
-⠀⠀⠀⠀global.alpha⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀->⠀Quiet⠀⠀⠀⠀(-q,⠀--[global.]quiet)⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀:⠀False  
-⠀⠀⠀⠀global.alpha⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀->⠀StdErr⠀⠀⠀(-s,⠀--[global.]console)⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀:⠀False  
-⠀⠀⠀⠀global.alpha⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀->⠀Text⠀⠀⠀⠀⠀(-t,⠀--[alpha.]text,⠀--[alpha.]Text)⠀⠀⠀:⠀''  
-⠀⠀⠀⠀global.alpha⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀->⠀Verbose⠀⠀(-v,⠀--[alpha.]verbose)⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀:⠀2  
-⠀⠀⠀⠀⠀⠀⠀⠀------------------------------------------------------------  
-⠀⠀⠀⠀⠀⠀⠀⠀global.alpha.gamma  
-⠀⠀⠀⠀⠀⠀⠀⠀------------------------------------------------------------  
-⠀⠀⠀⠀⠀⠀⠀⠀global.alpha.gamma⠀->⠀Count⠀⠀⠀⠀(-c,⠀--[alpha.]count,⠀--[alpha.]Count)⠀:⠀7  
-⠀⠀⠀⠀⠀⠀⠀⠀global.alpha.gamma⠀->⠀NoDaemon⠀(-d,⠀--[global.]nodaemon)⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀:⠀False  
-⠀⠀⠀⠀⠀⠀⠀⠀global.alpha.gamma⠀->⠀Quiet⠀⠀⠀⠀(-q,⠀--[global.]quiet)⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀:⠀False  
-⠀⠀⠀⠀⠀⠀⠀⠀global.alpha.gamma⠀->⠀StdErr⠀⠀⠀(-s,⠀--[global.]console)⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀:⠀False  
-⠀⠀⠀⠀⠀⠀⠀⠀global.alpha.gamma⠀->⠀Text⠀⠀⠀⠀⠀(-t,⠀--[alpha.]text,⠀--[alpha.]Text)⠀⠀⠀:⠀''  
-⠀⠀⠀⠀⠀⠀⠀⠀global.alpha.gamma⠀->⠀Verbose⠀⠀(-v,⠀--[alpha.]verbose)⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀:⠀2  
-⠀⠀⠀⠀⠀⠀⠀⠀global.alpha.gamma⠀->⠀Xy⠀⠀⠀⠀⠀⠀⠀(-b,⠀--[gamma.]bbbb)⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀:⠀False  
-⠀⠀⠀⠀------------------------------------------------------------  
-⠀⠀⠀⠀global.beta  
-⠀⠀⠀⠀------------------------------------------------------------  
-⠀⠀⠀⠀global.beta⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀->⠀NoDaemon⠀(-d,⠀--[global.]nodaemon)⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀:⠀False  
-⠀⠀⠀⠀global.beta⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀->⠀Quiet⠀⠀⠀⠀(-q,⠀--[global.]quiet)⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀:⠀False  
-⠀⠀⠀⠀global.beta⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀->⠀StdErr⠀⠀⠀(-s,⠀--[global.]console)⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀:⠀False  
+global                     -> NoDaemon (-d, --[global.]nodaemon)              : False  
+global                     -> Quiet    (-q, --[global.]quiet)                 : False  
+global                     -> StdErr   (-s, --[global.]console)               : False  
+global                     -> Verbose  (-v, --[global.]verbose)               : 2  
+    ------------------------------------------------------------  
+    global.alpha  
+    ------------------------------------------------------------  
+    global.alpha           -> Count    (-c, --[alpha.]count, --[alpha.]Count) : 7  
+    global.alpha           -> NoDaemon (-d, --[global.]nodaemon)              : False  
+    global.alpha           -> Quiet    (-q, --[global.]quiet)                 : False  
+    global.alpha           -> StdErr   (-s, --[global.]console)               : False  
+    global.alpha           -> Text     (-t, --[alpha.]text, --[alpha.]Text)   : ''  
+    global.alpha           -> Verbose  (-v, --[alpha.]verbose)                : 2  
+        ------------------------------------------------------------  
+        global.alpha.gamma  
+        ------------------------------------------------------------  
+        global.alpha.gamma -> Count    (-c, --[alpha.]count, --[alpha.]Count) : 7  
+        global.alpha.gamma -> NoDaemon (-d, --[global.]nodaemon)              : False  
+        global.alpha.gamma -> Quiet    (-q, --[global.]quiet)                 : False  
+        global.alpha.gamma -> StdErr   (-s, --[global.]console)               : False  
+        global.alpha.gamma -> Text     (-t, --[alpha.]text, --[alpha.]Text)   : ''  
+        global.alpha.gamma -> Verbose  (-v, --[alpha.]verbose)                : 2  
+        global.alpha.gamma -> Xy       (-b, --[gamma.]bbbb)                   : False  
+    ------------------------------------------------------------  
+    global.beta  
+    ------------------------------------------------------------  
+    global.beta            -> NoDaemon (-d, --[global.]nodaemon)              : False  
+    global.beta            -> Quiet    (-q, --[global.]quiet)                 : False  
+    global.beta            -> StdErr   (-s, --[global.]console)               : False  
     global.beta            -> Verbose  (-v, --[beta.]verbose)                 : 5  
   
         The shortest format is like (recursive = True):  
   
-global⠀->⠀NoDaemon⠀⠀:⠀False  
-global⠀->⠀Quiet⠀⠀⠀⠀⠀:⠀False  
-global⠀->⠀StdErr⠀⠀⠀⠀:⠀False  
-global⠀->⠀Verbose⠀⠀⠀:⠀2  
-alpha⠀⠀->⠀Count⠀⠀⠀⠀⠀:⠀7  
-alpha⠀⠀->⠀Text⠀⠀⠀⠀⠀⠀:⠀''  
-alpha⠀⠀->⠀Verbose⠀⠀⠀:⠀2  
-gamma⠀⠀->⠀Xy⠀⠀⠀⠀⠀⠀⠀⠀:⠀False  
-beta⠀⠀⠀->⠀Verbose⠀⠀⠀:⠀5  
+global -> NoDaemon  : False  
+global -> Quiet     : False  
+global -> StdErr    : False  
+global -> Verbose   : 2  
+alpha  -> Count     : 7  
+alpha  -> Text      : ''  
+alpha  -> Verbose   : 2  
+gamma  -> Xy        : False  
+beta   -> Verbose   : 5  
   
         The shortest format is like (recursive = False):  
   
-global⠀->⠀NoDaemon⠀⠀:⠀False  
-global⠀->⠀Quiet⠀⠀⠀⠀⠀:⠀False  
-global⠀->⠀StdErr⠀⠀⠀⠀:⠀False  
-global⠀->⠀Verbose⠀⠀⠀:⠀2  
+global -> NoDaemon  : False  
+global -> Quiet     : False  
+global -> StdErr    : False  
+global -> Verbose   : 2  
   
 ########################################################################################
 
