@@ -9,7 +9,8 @@ import time
 import os
 import sys
 import warnings
-
+from PortLogServer import PortLogServer, PortLogQueueHandler, DummyPortLogServer
+import multiprocessing
 from functools import partial
 #import LogP
 
@@ -239,22 +240,29 @@ def _AddLoggingLevel(level_name, level_num, method_name=None,
 
 
 
-def SetupLogging(   AppName: str, 
-                    Verbose: int = 0, 
-                    NoDaemon: bool = True, 
-                    StdErr: bool = False, 
-                    LogFile: str = '', 
-                    LogFileInterval: int = 60*60*24,
-                    LogFileCount: int = 14,
-                    Quiet: bool = False, 
-                    ProcInfo: bool = False, 
-                    LevelInfo: bool = True, 
-                    LevelType: int = 2,
-                    MultiProc: bool = False, 
-                    MultiThread: bool = False,
-                    StackOnDebug: str = 'NONE',
-                    StackDepth: int = 5,
-                    NoReset: bool = False):
+def SetupLogging(   *,
+                AppName:str, 
+                Verbose:int = 0, 
+                NoDaemon:bool = True, 
+                StdErr:bool = False, 
+                LogFile:str = '', 
+                LogFileInterval:int = 60*60*24,
+                LogFileCount:int = 14,
+                Quiet:bool = False, 
+                ProcInfo:bool = False, 
+                ProcInfoModLen:int = 15,
+                ProcInfoFuncLen:int = 15,
+                LevelType:int = 2,
+                MultiProc:bool = False,
+                MultiProcLen:int = 15,
+                MultiThread:bool = False,
+                MultiThreadLen:int = 15,
+                StackOnDebug:str = 'NONE',
+                StackDepth:int = 5,
+                DebugIp:str = '127.0.0.1',
+                DebugPort:int = 0,
+                DebugCacheSize:int = 100,
+                NoReset:bool = False) -> PortLogServer:
     """Erzeugt eine definierte Log-Umgebung
 
     Args:
@@ -356,15 +364,65 @@ def SetupLogging(   AppName: str,
 
                         
                         
-    """    
+    """
+    
     if not NoReset:
         for handler in logging.root.handlers[:]:
             logging.root.removeHandler(handler)
+
+
 # Add the 3 additional log-level
     _AddLoggingLevel('TRACE', logging.DEBUG -5, 'trace')
     _AddLoggingLevel('MSG', logging.WARNING - 1, 'msg')
     _AddLoggingLevel('STATUS', logging.ERROR - 1, 'status')
+
+# Check Port option
+    try:
+        DebugPort = int(DebugPort)
+    except:
+        raise ValueError(f"SetupLogging 'DebugPort' can't be converted to an integer")
+    if DebugPort < 0:
+        DebugPort = 0
+# Check Len options
+    try:
+        ProcInfoModLen = int(ProcInfoModLen)
+    except:
+        raise ValueError(f"SetupLogging 'ProcInfoModLen' can't be converted to an integer")
+    if ProcInfoModLen < 0:
+        raise ValueError(f"SetupLogging 'ProcInfoModLen' can't be negative")
+
+    try:
+        ProcInfoFuncLen = int(ProcInfoFuncLen)
+    except:
+        raise ValueError(f"SetupLogging 'ProcInfoFuncLen' can't be converted to an integer")
+    if ProcInfoModLen < 0:
+        raise ValueError(f"SetupLogging 'ProcInfoFuncLen' can't be negative")
+
+    try:
+        MultiProcLen = int(MultiProcLen)
+    except:
+        raise ValueError(f"SetupLogging 'MultiProcLen' can't be converted to an integer")
+    if ProcInfoModLen < 0:
+        raise ValueError(f"SetupLogging 'MultiProcLen' can't be negative")
+
+    try:
+        MultiThreadLen = int(MultiThreadLen)
+    except:
+        raise ValueError(f"SetupLogging 'MultiThreadLen' can't be converted to an integer")
+    if ProcInfoModLen < 0:
+        raise ValueError(f"SetupLogging 'MultiThreadLen' can't be negative")
+
+    try:
+        DebugCacheSize = int(DebugCacheSize)
+    except:
+        raise ValueError(f"SetupLogging 'DebugCacheSize' can't be converted to an integer")
+    if ProcInfoModLen < 0:
+        raise ValueError(f"SetupLogging 'DebugCacheSize' can't be negative")
+    
+    
 # Add the Filter to implement stack-traces
+    if not isinstance(StackOnDebug, str):
+        raise ValueError(f"SetupLogging 'StackOnDebug' is not a string")
     wTxt = StackOnDebug.upper()
     if wTxt =='ERROR':
         Sd = logging.ERROR
@@ -403,43 +461,116 @@ def SetupLogging(   AppName: str,
         LogLevel = logging.TRACE
     else:  # Quiet
         LogLevel = logging.ERROR
+        
+    try:
+        LevelType = int(LevelType)
+    except:
+        raise ValueError(f"SetupLogging 'LevelType' can't be converted to an integer")
     if LevelType == 1:
-        ShowLevel = ' - %(levelno)02d'
+        ShowLevel = '%(levelno)02d '
     elif LevelType == 2:
-        ShowLevel = ' - %(levelname)7s'
+        ShowLevel = '%(levelname)7s '
     elif LevelType == 3:
-        ShowLevel = ' - %(levelno)02d=%(levelname)7s'
+        ShowLevel = '%(levelno)02d=%(levelname)7s '
     else:
         ShowLevel = ''
+    
     if ProcInfo:
         AddPar = ''
         if MultiProc:
-            AddPar += '%(processName)s'
+            if MultiProcLen == 0: 
+                AddPar += '%(processName)s'
+            else:
+                AddPar += f"%(processName){MultiProcLen}s"
         if MultiThread:
             if AddPar != '':
                 AddPar += ':'
-            AddPar += '%(threadName)s'
-        AddPar += ' %(module)s:%(funcName)s:%(lineno)d'
+            if MultiThreadLen == 0:
+                AddPar += '%(threadName)s'
+            else:
+                AddPar += f"%(threadName)-{MultiThreadLen}s"
+        if ProcInfoModLen == 0:
+            AddPar += ' %(module)s'
+        else:
+            AddPar += f" %(module){ProcInfoModLen}s"
+        if ProcInfoFuncLen == 0:
+            AddPar += ':%(funcName)s:'
+        else:
+            AddPar += f":%(funcName)-{ProcInfoFuncLen}s:"
+        AddPar += '%(lineno)4d'
     else:
         AddPar = ''
     
     if LogFile != '':
-        Format = f"%(asctime)s - {AppName}:{AddPar}{ShowLevel} - %(message)s%(stack)s"
+        Format = f"%(asctime)s - {AppName} {ShowLevel}{AddPar} - %(message)s%(stack)s"
         FileLogHand = logging.handlers.TimedRotatingFileHandler(LogFile, when = 'S',interval = LogFileInterval, backupCount = LogFileCount)
-        logging.basicConfig(handlers = [FileLogHand], level = LogLevel, format = Format)
+
+        FileLogHand.setLevel(LogLevel)
+        Formatter = logging.Formatter(Format)
+        FileLogHand.setFormatter(Formatter)
+        logging.getLogger().addHandler(FileLogHand)
+
+        # logging.basicConfig(handlers = [FileLogHand], level = LogLevel, format = Format)
         FileLogHand.doRollover()
     elif StdErr:
-        if AddPar != '':
-            AddPar += '\t'
         if AddPar == '' and ShowLevel == '':
             Format = f"%(asctime)s %(message)s%(stack)s"
         else:
-            Format = f"%(asctime)s {AddPar}{ShowLevel} - %(message)s%(stack)s"
-        logging.basicConfig(stream = sys.stderr, level = LogLevel, format = Format)
+            Format = f"%(asctime)s {ShowLevel}{AddPar} - %(message)s%(stack)s"
+
+        StdErrHandler = logging.StreamHandler()
+        StdErrHandler.setLevel(LogLevel)
+        Formatter = logging.Formatter(Format)
+        StdErrHandler.setFormatter(Formatter)
+        logging.getLogger().addHandler(StdErrHandler)
+        
+#        logging.basicConfig(stream = sys.stderr, level = LogLevel, format = Format)
     else:
-        Format = f"{AppName}:{AddPar}{ShowLevel} - %(message)s%(stack)s" 
+        Format = f"{AppName} {ShowLevel}{AddPar} - %(message)s%(stack)s" 
         SysLogHand = logging.handlers.SysLogHandler(address = '/dev/log')
-        logging.basicConfig(handlers = [SysLogHand], level = LogLevel, format = Format)
+
+        SysLogHand.setLevel(LogLevel)
+        Formatter = logging.Formatter(Format)
+        SysLogHand.setFormatter(Formatter)
+        logging.getLogger().addHandler(SysLogHand)
+        
+#        logging.basicConfig(handlers = [SysLogHand], level = LogLevel, format = Format)
+    logging.getLogger().setLevel(1)
+
+    LogServer = DummyPortLogServer()
+    if DebugPort != 0:
+        AddPar = ''
+        if MultiProcLen == 0: 
+            AddPar += '%(processName)s'
+        else:
+            AddPar += f"%(processName){MultiProcLen}s"
+        if AddPar != '':
+            AddPar += ':'
+        if MultiThreadLen == 0:
+            AddPar += '%(threadName)s'
+        else:
+            AddPar += f"%(threadName)-{MultiThreadLen}s"
+        if ProcInfoModLen == 0:
+            AddPar += ' %(module)s'
+        else:
+            AddPar += f" %(module){ProcInfoModLen}s"
+        if ProcInfoFuncLen == 0:
+            AddPar += ':%(funcName)s:'
+        else:
+            AddPar += f":%(funcName)-{ProcInfoFuncLen}s:"
+        AddPar += '%(lineno)4d'
+        ShowLevel = '%(levelname)7s '
+        Format = f"%(asctime)s {ShowLevel}{AddPar} - %(message)s%(stack)s"
+        LogServer = PortLogServer(host=DebugIp,port=DebugPort,queue=LogQueue,logsize=DebugCacheSize,format=Format)
+        qh = PortLogQueueHandler(LogServer, LogQueue)
+        qh.setLevel(1)
+        logging.getLogger().addHandler(qh)
+        LogServer.Run()
+
+    return LogServer
+        
+        
+LogQueue = multiprocessing.Queue()
 
 _AddLoggingLevel('TRACE', logging.DEBUG -5, 'trace')
 _AddLoggingLevel('MSG', logging.WARNING - 1, 'msg')
@@ -506,19 +637,21 @@ if __name__ == '__main__':
         AppName = "LogP"
     
     
-        LogP.SetupLogging(AppName, 
-            Verbose = MyParam['Verbose'], 
-            StdErr = MyParam['StdErr'], 
-            NoDaemon = MyParam['NoDaemon'], 
-            Quiet = MyParam['Quiet'],
-            LogFile = MyParam['LogFile'],
-            ProcInfo = False,
-            StackOnDebug = "Warning",
-            StackDepth=2,
-            LevelType = 0,
-            MultiProc = False, 
-            MultiThread = False
-            ) 
+        LogServer = LogP.SetupLogging(AppName = AppName, 
+                        Verbose = MyParam['Verbose'], 
+                        StdErr = MyParam['StdErr'], 
+                        NoDaemon = MyParam['NoDaemon'], 
+                        Quiet = MyParam['Quiet'],
+                        LogFile = MyParam['LogFile'],
+                        ProcInfo = False,
+#                        StackOnDebug = "debug",
+#                        StackDepth=2,
+                        LevelType = 0,
+                        MultiProc = False, 
+                        MultiThread = False,
+                        ProcInfoModLen=5,
+                        DebugPort=65432
+                        ) 
     
         LogP.error('Error')
         LogP.warning('Warning')
@@ -528,18 +661,24 @@ if __name__ == '__main__':
         LogP.trace('Trace')
         LogP.debug('Debug')
         abc()
-    
-        LogP.SetupLogging(AppName, 
-            Verbose = MyParam['Verbose'], 
-            StdErr = MyParam['StdErr'], 
-            NoDaemon = MyParam['NoDaemon'], 
-            Quiet = MyParam['Quiet'],
-            LogFile = MyParam['LogFile'],
-            ProcInfo = True,
-            MultiProc = True, 
-            StackOnDebug = "Warning",
-            MultiThread = True
-            ) 
+        LogServer.Stop()
+        LogServer.Join(2)
+        LogServer.Kill()
+        
+        LogServer = LogP.SetupLogging(AppName = AppName, 
+                        Verbose = MyParam['Verbose'], 
+                        StdErr = MyParam['StdErr'], 
+                        NoDaemon = MyParam['NoDaemon'], 
+                        Quiet = MyParam['Quiet'],
+                        LogFile = MyParam['LogFile'],
+                        LevelType=3,
+                        ProcInfo = True,
+                        MultiProc = False, 
+                        MultiThread = False,
+                        ProcInfoModLen=15,
+                        ProcInfoFuncLen=15,
+                        DebugPort=65432
+                        ) 
     
         LogP.error('Error')
         LogP.warning('Warning')
@@ -549,6 +688,8 @@ if __name__ == '__main__':
         LogP.trace('Trace')
         LogP.debug('Debug')
         abc()
-    
+        LogServer.Stop()
+        LogServer.Join(2)
+        LogServer.Kill()
     
     main()
