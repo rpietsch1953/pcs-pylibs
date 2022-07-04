@@ -602,14 +602,6 @@ Def-dict: a dictionary of dictionaries
     
 
     @property
-    def PartPrefix(self) -> str:
-        """Returns the full qualified prefix without global of this instance
-        e.g.: alpha.gamma
-        if alpha is a child of global and gamma (this instance) is a child of alpha
-        """   
-        return self.FullPrefix.replace(GLOBAL_NAME + '.','')     
-
-    @property
     def Parents(self) -> str:
         """Returns the full qualified parents of this instance
         e.g.: global.alpha
@@ -839,7 +831,7 @@ Def-dict: a dictionary of dictionaries
         """
         return self.__MyPwd
 
-    def __GenUsageText(self,ShortLen: int, LongLen: int, IsChild = False) -> None:
+    def __GenUsageText(self,ShortLen: int, LongLen: int) -> None:
         """
         Generate the "Usage"-text
 
@@ -851,17 +843,13 @@ Def-dict: a dictionary of dictionaries
             wPrefText = ''
         else:
             if self.__Prefix != GLOBAL_NAME:
-                wPrefText = ''
-                # wPrefText = f'active prefix = "{self.__Prefix}." only for long (--) options\n'
+                wPrefText = f'active prefix = "{self.__Prefix}." only for long (--) options\n\n'
             else:
                 wPrefText = ''
         wDesc = self.__Description
         if wDesc != '':
-            wDesc += '\n'
-        if IsChild:
-            Text = f"\n{wDesc}"
-        else:
-            Text = f"Usage:\n{self.__MyProgName} OPTIONS {self.__AddPar}\n\n{wDesc}{wPrefText}Options:\n"
+            wDesc += '\n\n'
+        Text = f"Usage:\n{self.__MyProgName} OPTIONS {self.__AddPar}\n\n{wDesc}{wPrefText}Options:\n"
         for Single in self.__UsageTextList:
             Ut_Short = Single[0]
             Ut_Long = Single[1]
@@ -927,11 +915,7 @@ Def-dict: a dictionary of dictionaries
             self.__Prepare()
         Ret = self.__UsageText
         for n,c in self.__Children.items():
-            Ret += f"""
-    ------------------------------
-    {c.PartPrefix}
-    ------------------------------
-            """
+            Ret += f"\n    Child {n}\n"
             e = c.Usage()
             lines = e.splitlines()
             for l in lines:
@@ -1160,10 +1144,7 @@ Def-dict: a dictionary of dictionaries
             if self.__WorkPars['description'] in ParKeys:
                 Ut_Text = SingleDef[self.__WorkPars['description']]
             self.__UsageTextList.append( [Ut_Short,Ut_Long,Ut_Param,Ut_Type,Ut_Default,Ut_Text] )
-        IsChild = True
-        if self.__Parent is None:
-            IsChild = False
-        self.__GenUsageText(ShortParLen,LongParLen,IsChild=IsChild)
+        self.__GenUsageText(ShortParLen,LongParLen)
         self.__IsPrepared = True
 
 
@@ -1241,7 +1222,7 @@ Def-dict: a dictionary of dictionaries
             o = self.__Make_OptName(o)
             if o in self.__HelpList:
                 if self.__Prefix is not None:
-                    if self.__Prefix != '' and self.__Prefix != GLOBAL_NAME:
+                    if self.__Prefix != '':
                         print(f"#{'-'*60}\n# {self.__Prefix}\n#{'-'*60}\n")
                 print(self.Usage())
                 if self.__Parent is None:
@@ -2152,10 +2133,10 @@ Konsole und nicht auf syslog""",
 
 
     TestDef_Alpha =     {
-        # 'Help': {   's': 'h',
-        #         'l': 'help',
-        #         'm': 'H',
-        #         'd': 'Diesen Hilfetext anzeigen und beenden'},
+        'Help': {   's': 'h',
+                'l': 'help',
+                'm': 'H',
+                'd': 'Diesen Hilfetext anzeigen und beenden'},
     #     'Export': { 's': 'x',
     #             'l': 'export',
     #             'm': 'X',
@@ -2223,12 +2204,12 @@ Konsole und nicht auf syslog""",
         #         'd': 'Mehrmals zum hochzählen'},
         }
     TestDef_Beta =     {
-        # 'Help': {   
-        #         's': 'h',
-        #         'l': 'help',
-        #         'm': 'H',
-        #         'd': 'Diesen Hilfetext anzeigen und beenden'
-        #         },
+        'Help': {   
+                's': 'h',
+                'l': 'help',
+                'm': 'H',
+                'd': 'Diesen Hilfetext anzeigen und beenden'
+                },
         'Verbose': {
                 's': 'v',
                 'l': 'verbose',
@@ -2281,7 +2262,7 @@ Konsole und nicht auf syslog""",
             )
         m.Child['alpha'].AddChild(Prefix='Gamma', Def=TestDef_Gamma, Description="Eine eingefügte Ebene")
         try:
-            m.SetArgs(Args = shlex.split('Test -vv -h'))
+            m.SetArgs(Args = shlex.split('Test -vv --beta.verbose=3'))
  
             Erg = m.Process()
             # GlobPar = m.GlobalParam
@@ -2295,9 +2276,9 @@ Konsole und nicht auf syslog""",
         print(g.Parents)
         print(g.FullPrefix)
         
-        m['TopLevel'] = 'Top'
-        m.Child['alpha']['AlphaLevel'] = 'Alpha'
-        m.Child['alpha'].Child['gamma']['GammaLevel'] = 'Gamma'
+        # m['TopLevel'] = 'Top'
+        # m.Child['alpha']['AlphaLevel'] = 'Alpha'
+        # m.Child['alpha'].Child['gamma']['GammaLevel'] = 'Gamma'
         
         print(f"{'*' * 60}All Options ON\n")
         print(m.ParamStr(dotted=True,parentopts=True))    

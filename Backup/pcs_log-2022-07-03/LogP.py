@@ -9,420 +9,18 @@ import time
 import os
 import sys
 import warnings
-# from PortLogServer import PortLogServer, PortLogQueueHandler, DummyPortLogServer
+from PortLogServer import PortLogServer, PortLogQueueHandler, DummyPortLogServer
 import multiprocessing
 from functools import partial
-import socket
-import time
-import sys
-import signal
-import logging
-import logging.config
-import multiprocessing
-from ctypes import c_bool
-import netifaces
-import setproctitle
+#import LogP
 
 _KEEP = 'keep'
 _KEEP_WARN = 'keep-warn'
 _RAISE = 'raise'
 _OVERWRITE_WARN = 'overwrite-warn'
-_LOGSTATUS = logging.ERROR - 1
-
-Run = multiprocessing.Value(c_bool, True)
-
-class DummyPortLogServer():
-    def __init__(self, *args, **kwargs):
-        """The dummy-version of the 'PortLogServer'-class
-        This class is used to return it to a user if no real Log-server is requested.
-        So the programmer can call the functions without the need to question if
-        a real server is running. All functions are No-Ops.
-        """        
-        pass
-    
-    def Run(self, *args, **kwargs) -> None:
-        pass
-    
-    def Stop(self, *args, **kwargs) -> None:
-        pass
-    
-    @property
-    def RunFlag(self) -> bool:
-        return False
-    
-    @property
-    def Name(self) -> str:    
-        return ''
-    
-    @property
-    def Port(self) -> int:
-        return 0
-
-    @property
-    def IsAlive(self) -> bool:
-        return False
-    
-    def PollRestart(self) -> None:
-        pass
-    
-    def Kill(self) -> None:
-        pass
-    
-    def Join(self, *args, **kwargs) -> None:
-        pass
-        
-
-class PortLogServer():
-    def __init__(self, *,   # only key-word arguments from here on
-                 host:str = '127.0.0.1', 
-                 port:int = 0, 
-                 name:str = '', 
-                 queue:multiprocessing.Queue = None, 
-                 logsize:int = 0,
-                 format:str = '') -> None:
-        """Send the messages from the input-Queue to a tcp-client
-        on the defined address and port.
-
-        Args:
-            port (int, optional): The port to use (1024 to 65535). Defaults to 0.
-            name (str, optional): The process-name of this class. Defaults to ''.
-            queue (multiprocessing.Queue, optional): The input queue. Defaults to None.
-            logsize (int, optional): if >0 logsize messages are buffered and send to the client on connection. Defaults to 0.
-
-        Raises:
-            ValueError: if invalid arguments are given.
-        """       
-        self.__RunFlag = multiprocessing.Value(c_bool, True)
-        self.__CanReload = True         # prevent restarting after Stop, Join or Kill
-        
-        self.__FormatStr = format.strip()
-        self.__Formatter = None
-        if self.__FormatStr != '':
-            self.__Formatter = logging.Formatter(self.__FormatStr)
-            
-        self.__Name = name.strip()
-        #
-        # Logging cache
-        #
-        try:
-            logsize = int(logsize)
-            if logsize < 0:
-                logsize = 0
-        except:
-            logsize = 0
-        self.__LogSize = logsize
-        self.__LogCache = []
-        #
-        # Ip addr for server
-        #
-        if not isinstance(host, str):
-            raise ValueError(f"{__class__.__name__} host (type={type(host)}) is not a string - object")
-        if host.lower() == 'localhost':
-            host = '127.0.0.1'
-        if not host in self.__MyValidIps:
-            raise ValueError(f"{__class__.__name__} host '{host}' is not an valid IP of this computer")
-        self.__Host = host
-        #
-        # the input queue
-        #
-        if queue is not None:
-            if not isinstance(queue, multiprocessing.queues.Queue):
-                raise ValueError(f"{__class__.__name__} queue (type={type(queue)}) is not a multiprocessing.Queue - object")
-        self.__Queue = queue
-        #
-        # set the port
-        #
-        try:
-            port = int(port)
-        except:
-            port = 0
-        if port < 1024 or port > 65535:
-            raise ValueError(f"{__class__.__name__} port must be between 1024 and 65535")
-        self.__Port = port
-        
-        self.__Connections = {}         # clear connection-dict
-        self.__ReaderProcess = None     # the reader process
-    
-    def Run(self, *,  
-            name:str = '', 
-            queue:multiprocessing.Queue = None) -> None:
-        """Starts the reader-process
-
-        Args:
-            name (str, optional): Can overwrite the process-name of this instance. Defaults to ''.
-            queue (multiprocessing.Queue, optional): can overwrite the input queue of this instance. 
-                        If not given the name from the creation is used Defaults to None.
-
-        Raises:
-            ValueError: if invalid arguments are given.
-        """        
-        if queue is not None:
-            if not isinstance(queue, multiprocessing.queues.Queue):
-                raise ValueError(f"{__class__.__name__}.Run queue (type={type(queue)}) is not a multiprocessing.Queue - object")
-            self.__Queue = queue
-        if self.__Queue is None:
-            raise ValueError(f"{__class__.__name__} .Run queue (type={type(self.__Queue)}) is not a multiprocessing.Queue - object")
-        name = name.strip()
-        if name == '':
-            name = 'PortLogServer'
-        self.__Name = name
-        self.__RunFlag = True
-        self.__StartReader()
-        
-    
-    def Stop(self) -> None:
-        """Stop the reader-process
-        """
-        self.__RunFlag = False
-        logging.log(_LOGSTATUS,"Stop Log-server")
-        self.__Queue.put_nowait('DONE')
-        self.__CanReload = False
-    
-    @property
-    def RunFlag(self) -> bool:
-        """Return True if the process is running
-        """        
-        return self.__RunFlag
-    
-    @property
-    def Name(self) -> str:
-        """Return the process-name of this instance
-        """
-        return self.__Name
-    
-    @property
-    def Port(self) -> int:
-        """Return the port-number of this instance
-        """
-        return self.__Port
-        
-    @property
-    def __MyValidIps(self) -> list:
-        """Return a list of all valid IPs of this computer
-        """
-        Erg = []
-        for interface in netifaces.interfaces():
-            AddrDict = netifaces.ifaddresses(interface)
-            if netifaces.AF_INET in AddrDict:
-                for link in AddrDict[netifaces.AF_INET]:
-                    Erg.append(link['addr'])
-        if len(Erg) != 0:
-            Erg.append('0.0.0.0')
-        return Erg
-         
-    def __TermConnection(self, Client: str) -> None:
-        """Terminate a connection
-        """
-        # try:
-        #     SendBuff = 'Quit\n'.encode('utf-8')
-        #     QuitBuff = bytearray(b'\x00')
-        #     self.__Connections[Client].sendall(SendBuff)
-        #     self.__Connections[Client].sendall(QuitBuff)
-        # except:
-        #     pass
-        self.__Connections[Client].close()
-        logging.log(_LOGSTATUS,f'reader_proc disconnect client {Client}')
-        self.__Connections[Client] = None
-
-    def __CollectClients(self) -> None:
-        """Clear dead connections from dict
-        """
-        KillConnection = []
-        for Client, Connection in self.__Connections.items():
-            if Connection is None:
-                KillConnection.append(Client)
-        for Client in KillConnection:
-            del self.__Connections[Client]
-            
-    def __TermHandler(self, signum, frame):
-        """The term-handler for this process
-        """
-        logging.warning(f'reader_proc - Termination handler invoked with signal {signum}')
-        self.__RunFlag = False
-        
-    def __StartReader(self) -> None:
-        """Start the reader-process
-        """
-        if self.__ReaderProcess is not None:
-            if self.__ReaderProcess.is_alive():
-                return
-            e = self.__ReaderProcess.exitcode
-        
-        self.__ReaderProcess = multiprocessing.Process(target=self.__ReaderProc, name=self.__Name)
-        self.__ReaderProcess.daemon = True
-        self.__RunFlag = True
-        self.__ReaderProcess.start()  # Launch self.__ReaderProcess() as another proc
-        logging.log(_LOGSTATUS,"Start Log-server at {self.__Host}:{self.__Port}")
-        return
-    
-    @property
-    def IsAlive(self) -> bool:
-        """Returnm True if the process is alive
-        """
-        Ret = False
-        try:
-            Ret = self.__ReaderProcess.is_alive()
-        except:
-            pass
-        return Ret
-    
-    def PollRestart(self) -> None:
-        """Restart the process if it is not alive
-        """
-        if self.__CanReload:
-            if not self.IsAlive:
-                self.Run()
-        
-    def Kill(self) -> None:
-        """Kill this process
-        """
-        self.__CanReload = False
-        try:
-            self.__ReaderProcess.kill()
-        except:
-            pass
-    
-    def Join(self, Timeout: float = None) -> None:
-        """Join this process
-        If the optional argument timeout is None (the default), the method blocks until 
-        the process whose join() method is called terminates. If timeout is a positive 
-        number, it blocks at most timeout seconds. Note that the method returns None 
-        if its process terminates or if the method times out. 
-        """
-        self.__CanReload = False
-        try:
-            self.__ReaderProcess.join(Timeout)
-        except:
-            pass
-    
-    def __ReaderProc(self) -> None:
-        """Read from the queue; this spawns as a separate Process"""
-            
-        setproctitle.setproctitle(multiprocessing.current_process().name)
-        logging.log(_LOGSTATUS,f'reader_proc - Starting')
-        signal.signal(signal.SIGINT, self.__TermHandler)   # Setze Signalhandler
-        signal.signal(signal.SIGTERM, self.__TermHandler)
-        server = socket.socket(socket.AF_INET, socket.SOCK_STREAM | socket.SOCK_NONBLOCK)
-        server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT,1)
-        server.setblocking(False)
-        IsOk = False
-        for i in range(10):
-            if not self.__RunFlag:
-                return 0
-            try:
-                server.bind((self.__Host, self.__Port))
-                server.setblocking(False)
-                server.listen()
-                IsOk = True
-                break
-            except:
-                logging.warning(f'reader_proc - Can not connect')
-                time.sleep(1)
-        if not IsOk:
-            self.__RunFlag = False
-            return
-        server.listen(5)
-
-        while self.__RunFlag:
-            try:
-                Connection, Address = server.accept()
-                Connection.setblocking(False)
-                ClientStr = f"{Address[0]}:{Address[1]}"
-                logging.log(_LOGSTATUS,f'reader_proc connection from {ClientStr}')
-                self.__Connections[ClientStr] = Connection
-                for l in self.__LogCache:
-                    try:
-                        Connection.sendall(l.encode('utf-8'))
-                    except:
-                        self.__TermConnection(Client)
-            except :
-                pass
-            if not self.__RunFlag:
-                break
-            for Client, Connection in self.__Connections.items():
-                if not self.__RunFlag:
-                    break
-                if Connection is not None:
-                    try:
-                        message = None
-                        message = Connection.recv(4096) # .decode('utf-8')
-                        if message[0] == 0xFF and message[1] == 0xF4:
-                            self.__TermConnection(Client)
-                            break
-                        if len(message) != 0:
-                            try:
-                                m = message.decode('utf-8').strip()
-                                if m == 'q' or m == 'Q':
-                                    self.__TermConnection(Client)
-                                    break
-                            except:
-                                continue
-                    except BlockingIOError:
-                        continue
-                    except Exception as exc:
-                        logging.warning(f'reader_proc exception - {exc}')
-            self.__CollectClients()        
-            try:
-                Msg = self.__Queue.get(False,1)
-                if isinstance(Msg, logging.LogRecord):
-                   if self.__Formatter is not None:
-                       Msg =  self.__Formatter.format(Msg) + '\n'
-                   else:
-                       Msg = None
-                # print(type(Msg))
-            except:
-                Msg = None
-            if Msg is not None:
-                if Msg == "DONE":
-                    break
-                if self.__LogSize != 0: 
-                    self.__LogCache.append(Msg)
-                    if len(self.__LogCache) > self.__LogSize:
-                        self.__LogCache.pop(0)
-                for Client, Connection in self.__Connections.items():
-                    if not self.__RunFlag:
-                        break
-                    try:
-                        if Connection is not None:
-                            Connection.sendall(Msg.encode('utf-8'))
-                    except:
-                        self.__TermConnection(Client)
-                self.__CollectClients()
-
-        for Client, Connection in self.__Connections.items():
-            self.__TermConnection(Client)
-        self.__CollectClients()
-        server.close()
-        self.__RunFlag = False
-        logging.log(_LOGSTATUS,f'reader_proc - Terminating')
-    
-        
-class PortLogQueueHandler(logging.handlers.QueueHandler):
-    """
-    
-    """
-    def __init__(self, ProcClass:PortLogServer, *args, **kwargs):
-        """A queue-handler that allowes the automatic restart of the Log-server
-
-        Args:
-            ProcClass (PortLogServer): An instance of the listening PortLogServer.
-                                        Needet to automatically restart if the
-                                        server is terminated. All other parametrs
-                                        look at the documentation of 
-                                        'logging.handlers.QueueHandler'
-        """        
-        super().__init__(*args, **kwargs)
-        self.__ProcClass = ProcClass
-        
-    def enqueue(self, record):
-        """Overwritten enqueue function of the 'logging.handlers.QueueHandler' class.
-        """        
-        self.__ProcClass.PollRestart()
-        super().enqueue(record)
-        
 
 class _AddStackContextFilter(logging.Filter):
-    def __init__(self, trim_amount: int = 5, below_level: int = -1, is_syslog: bool = False):
+    def __init__(self, trim_amount: int = 5, below_level: int = -1):
         """Class to prepaire the "stack"-variable within logrecord
 
         Args:
@@ -431,7 +29,6 @@ class _AddStackContextFilter(logging.Filter):
         """        
         self.trim_amount = trim_amount
         self.below_level = below_level
-        self.is_syslog = is_syslog
         
     def IsLast(self,s):
         Such = '\n    root.log(level, msg, *args, **kwargs)\n'
@@ -439,21 +36,16 @@ class _AddStackContextFilter(logging.Filter):
 
     def filter(self, record):
         import traceback
-        if self.is_syslog:
-            Delim = '\u21B2'
-        else:
-            Delim = '\n'
-
         if record.levelno <= self.below_level:
             wStack = traceback.format_stack()
+            ResStr = '\n'
             ResList = []
             for r in wStack:
                 s = str(r)
                 if self.IsLast(s):
                     break
-                ResList.append(s.replace('\n', Delim))
-            
-            record.stack = Delim + ''.join(ResList[0-self.trim_amount:])
+                ResList.append(s)
+            record.stack = '\n' + ''.join(ResList[0-self.trim_amount:])
         else:
             record.stack = ''
         return True
@@ -653,23 +245,23 @@ def SetupLogging(   *,
                 Verbose:int = 0, 
                 NoDaemon:bool = True, 
                 StdErr:bool = False, 
-                LogPath:str = '', 
+                LogFile:str = '', 
                 LogFileInterval:int = 60*60*24,
                 LogFileCount:int = 14,
                 Quiet:bool = False, 
-                LogProcInfo:bool = False, 
-                LogProcInfoModLen:int = 15,
-                LogProcInfoFuncLen:int = 15,
-                LogLevelType:int = 2,
-                LogMultiProc:bool = False,
-                LogMultiProcLen:int = 15,
-                LogMultiThread:bool = False,
-                LogMultiThreadLen:int = 15,
-                LogStackOnDebug:str = 'NONE',
-                LogStackDepth:int = 5,
-                LogDebugIp:str = '127.0.0.1',
-                LogDebugPort:int = 0,
-                LogDebugCacheSize:int = 100,
+                ProcInfo:bool = False, 
+                ProcInfoModLen:int = 15,
+                ProcInfoFuncLen:int = 15,
+                LevelType:int = 2,
+                MultiProc:bool = False,
+                MultiProcLen:int = 15,
+                MultiThread:bool = False,
+                MultiThreadLen:int = 15,
+                StackOnDebug:str = 'NONE',
+                StackDepth:int = 5,
+                DebugIp:str = '127.0.0.1',
+                DebugPort:int = 0,
+                DebugCacheSize:int = 100,
                 NoReset:bool = False) -> PortLogServer:
     """Creates a defined Log-setting with rich options
 
@@ -692,7 +284,7 @@ Args:
                             If this is set the log goes to StdErr.
                             Ignored if we are a daemon.
 
-    LogPath (str, optional): Log to a Log-file. Defaults to ''.
+    LogFile (str, optional): Log to a Log-file. Defaults to ''.
                             Log to the file which is given as the argument.
                             this file is rotated on a daily base and holded up to 14 files
 
@@ -703,16 +295,16 @@ Args:
 
     Quiet (bool, optional): Output only errors. Defaults to False.
 
-    LogProcInfo (bool, optional): Show process and thread. Defaults to False.
+    ProcInfo (bool, optional): Show process and thread. Defaults to False.
 
-    LogLevelType (int, optional): Format of LevelInfo. 0=None, 1=Number, 2=Name, 3=Both. 
+    LevelType (int, optional): Format of LevelInfo. 0=None, 1=Number, 2=Name, 3=Both. 
                                 Defaults to 2.
 
-    LogMultiProc (bool, optional): Show process-names. Defaults to False.
+    MultiProc (bool, optional): Show process-names. Defaults to False.
 
-    LogMultiThread (bool, optional): Show thread-names. Defaults to False.
+    MultiThread (bool, optional): Show thread-names. Defaults to False.
 
-    LogStackOnDebug (str, optional): Log-level below or equal a call-stack trace is included.
+    StackOnDebug (str, optional): Log-level below or equal a call-stack trace is included.
                                 Defaults to "NONE" => Disabled.
                                 The levels are:
                                     "ERROR"
@@ -726,16 +318,16 @@ Args:
                                 All other values are interpretet as "NONE".
                                 Value is not case-sensitive.
 
-    LogStackDepth (int, optional): Maximum number of call-stack entries to display. Defaults to 5.
+    StackDepth (int, optional): Maximum number of call-stack entries to display. Defaults to 5.
 
-    LogDebugPort (int, optional): If 0 no debug-server is started. Else the value has to be 
-                                between 1024 and 65535. A log-server is started on 'LogDebugIp' 
-                                at port 'LogDebugPort'. 
+    DebugPort (int, optional): If 0 no debug-server is started. Else the value has to be 
+                                between 1024 and 65535. A log-server is started on 'DebugIp' 
+                                at port 'DebugPort'. 
                                 It is possible to connect to this port (e.g with telnet) to 
                                 receive ALL log-messages from this program. ALL means really
                                 all, no mather which loglevel is set. This output also 
                                 includes all possible information about process, thread, 
-                                module and function. The stacktrace ('LogStackOnDebug') is also
+                                module and function. The stacktrace ('StackOnDebug') is also
                                 honored. This output can be really heavy, but can help to debug
                                 already running programs without the need to restart with 
                                 another loglevel.
@@ -747,15 +339,15 @@ Args:
                                 by any means except you call the above mentioned functions.
                                 This port has to be free. Defaults to 0.
                                 
-    LogDebugIp (str, optional): The IP-address to bind to. This address must exist on the host 
+    DebugIp (str, optional): The IP-address to bind to. This address must exist on the host 
                                 this program is running. '0.0.0.0' for 'all IPs' is also 
-                                valid. Only examined if 'LogDebugPort' > 0. 
+                                valid. Only examined if 'DebugPort' > 0. 
                                 Defaults to '127.0.0.1',
                                 
-    LogDebugCacheSize (int, optional): Only used if 'LogDebugPort' > 0. This is the number of 
+    DebugCacheSize (int, optional): Only used if 'DebugPort' > 0. This is the number of 
                                 log-messages cached for use at a new connection to the 
                                 server. So if someone connects to the server he receives the
-                                last 'LogDebugCacheSize' log messages and after them all new 
+                                last 'DebugCacheSize' log messages and after them all new 
                                 messages.
                                 This is like a history. if set to 0 this function is disabled.
                                 Defaults to 100.
@@ -770,13 +362,13 @@ Output format:
         Name of application ----+       |           |          |               |     |       |
             only if not StdErr          |           |          |               |     |       |
         Name of procvess ---------------+           |          |               |     |       |
-            if LogMultiProc = true                  |          |               |     |       |
+            if MultiProc = true                     |          |               |     |       |
         Name of thread if --------------------------+          |               |     |       |
-            LogMultiThread = true                              |               |     |       |
+            MultiThread = true                                 |               |     |       |
         Module, function and linenumber -----------------------+               |     |       |
-            only if LogProcInfo = true                                         |     |       |
-        Level-number of message if LogLevelType = 1 or 3 ----------------------+     |       |
-        Level-name of message if LogLevelType = 2 or 3 ------------------------------+       |
+            only if ProcInfo = true                                            |     |       |
+        Level-number of message if LevelType = 1 or 3 -------------------------+     |       |
+        Level-name of message if LevelType = 2 or 3 ---------------------------------+       |
         The message given to the log-call ---------------------------------------------------+
 
         The minimal log entry for StdErr is:
@@ -819,52 +411,52 @@ Output format:
 
 # Check Port option
     try:
-        LogDebugPort = int(LogDebugPort)
+        DebugPort = int(DebugPort)
     except:
-        raise ValueError(f"SetupLogging 'LogDebugPort' can't be converted to an integer")
-    if LogDebugPort < 0:
-        LogDebugPort = 0
+        raise ValueError(f"SetupLogging 'DebugPort' can't be converted to an integer")
+    if DebugPort < 0:
+        DebugPort = 0
 # Check Len options
     try:
-        LogProcInfoModLen = int(LogProcInfoModLen)
+        ProcInfoModLen = int(ProcInfoModLen)
     except:
-        raise ValueError(f"SetupLogging 'LogProcInfoModLen' can't be converted to an integer")
-    if LogProcInfoModLen < 0:
-        raise ValueError(f"SetupLogging 'LogProcInfoModLen' can't be negative")
+        raise ValueError(f"SetupLogging 'ProcInfoModLen' can't be converted to an integer")
+    if ProcInfoModLen < 0:
+        raise ValueError(f"SetupLogging 'ProcInfoModLen' can't be negative")
 
     try:
-        LogProcInfoFuncLen = int(LogProcInfoFuncLen)
+        ProcInfoFuncLen = int(ProcInfoFuncLen)
     except:
-        raise ValueError(f"SetupLogging 'LogProcInfoFuncLen' can't be converted to an integer")
-    if LogProcInfoFuncLen < 0:
-        raise ValueError(f"SetupLogging 'LogProcInfoFuncLen' can't be negative")
+        raise ValueError(f"SetupLogging 'ProcInfoFuncLen' can't be converted to an integer")
+    if ProcInfoModLen < 0:
+        raise ValueError(f"SetupLogging 'ProcInfoFuncLen' can't be negative")
 
     try:
-        LogMultiProcLen = int(LogMultiProcLen)
+        MultiProcLen = int(MultiProcLen)
     except:
-        raise ValueError(f"SetupLogging 'LogMultiProcLen' can't be converted to an integer")
-    if LogProcInfoModLen < 0:
-        raise ValueError(f"SetupLogging 'LogMultiProcLen' can't be negative")
+        raise ValueError(f"SetupLogging 'MultiProcLen' can't be converted to an integer")
+    if ProcInfoModLen < 0:
+        raise ValueError(f"SetupLogging 'MultiProcLen' can't be negative")
 
     try:
-        LogMultiThreadLen = int(LogMultiThreadLen)
+        MultiThreadLen = int(MultiThreadLen)
     except:
-        raise ValueError(f"SetupLogging 'LogMultiThreadLen' can't be converted to an integer")
-    if LogProcInfoModLen < 0:
-        raise ValueError(f"SetupLogging 'LogMultiThreadLen' can't be negative")
+        raise ValueError(f"SetupLogging 'MultiThreadLen' can't be converted to an integer")
+    if ProcInfoModLen < 0:
+        raise ValueError(f"SetupLogging 'MultiThreadLen' can't be negative")
 
     try:
-        LogDebugCacheSize = int(LogDebugCacheSize)
+        DebugCacheSize = int(DebugCacheSize)
     except:
-        raise ValueError(f"SetupLogging 'LogDebugCacheSize' can't be converted to an integer")
-    if LogProcInfoModLen < 0:
-        raise ValueError(f"SetupLogging 'LogDebugCacheSize' can't be negative")
+        raise ValueError(f"SetupLogging 'DebugCacheSize' can't be converted to an integer")
+    if ProcInfoModLen < 0:
+        raise ValueError(f"SetupLogging 'DebugCacheSize' can't be negative")
     
     
 # Add the Filter to implement stack-traces
-    if not isinstance(LogStackOnDebug, str):
-        raise ValueError(f"SetupLogging 'LogStackOnDebug' is not a string")
-    wTxt = LogStackOnDebug.upper()
+    if not isinstance(StackOnDebug, str):
+        raise ValueError(f"SetupLogging 'StackOnDebug' is not a string")
+    wTxt = StackOnDebug.upper()
     if wTxt =='ERROR':
         Sd = logging.ERROR
     elif wTxt =='STATUS':
@@ -881,10 +473,8 @@ Output format:
         Sd = logging.TRACE
     else:
         Sd = -1
-    IsSyslog = False
-    if LogPath == '' and not StdErr:
-        IsSyslog = True
-    logging.getLogger().addFilter(_AddStackContextFilter(trim_amount = LogStackDepth,below_level = Sd, is_syslog = IsSyslog))
+
+    logging.getLogger().addFilter(_AddStackContextFilter(StackDepth, Sd))
     
     if not NoDaemon:  # Ausgabe auf StdErr macht als Daemon keinen Sinn
         StdErr = False
@@ -906,47 +496,47 @@ Output format:
         LogLevel = logging.ERROR
         
     try:
-        LogLevelType = int(LogLevelType)
+        LevelType = int(LevelType)
     except:
-        raise ValueError(f"SetupLogging 'LogLevelType' can't be converted to an integer")
-    if LogLevelType == 1:
+        raise ValueError(f"SetupLogging 'LevelType' can't be converted to an integer")
+    if LevelType == 1:
         ShowLevel = '%(levelno)02d '
-    elif LogLevelType == 2:
+    elif LevelType == 2:
         ShowLevel = '%(levelname)7s '
-    elif LogLevelType == 3:
+    elif LevelType == 3:
         ShowLevel = '%(levelno)02d=%(levelname)7s '
     else:
         ShowLevel = ''
     
-    if LogProcInfo:
+    if ProcInfo:
         AddPar = ''
-        if LogMultiProc:
-            if LogMultiProcLen == 0: 
+        if MultiProc:
+            if MultiProcLen == 0: 
                 AddPar += '%(processName)s'
             else:
-                AddPar += f"%(processName){LogMultiProcLen}s"
-        if LogMultiThread:
+                AddPar += f"%(processName){MultiProcLen}s"
+        if MultiThread:
             if AddPar != '':
                 AddPar += ':'
-            if LogMultiThreadLen == 0:
+            if MultiThreadLen == 0:
                 AddPar += '%(threadName)s'
             else:
-                AddPar += f"%(threadName)-{LogMultiThreadLen}s"
-        if LogProcInfoModLen == 0:
+                AddPar += f"%(threadName)-{MultiThreadLen}s"
+        if ProcInfoModLen == 0:
             AddPar += ' %(module)s'
         else:
-            AddPar += f" %(module){LogProcInfoModLen}s"
-        if LogProcInfoFuncLen == 0:
+            AddPar += f" %(module){ProcInfoModLen}s"
+        if ProcInfoFuncLen == 0:
             AddPar += ':%(funcName)s:'
         else:
-            AddPar += f":%(funcName)-{LogProcInfoFuncLen}s:"
+            AddPar += f":%(funcName)-{ProcInfoFuncLen}s:"
         AddPar += '%(lineno)4d'
     else:
         AddPar = ''
     
-    if LogPath != '':
+    if LogFile != '':
         Format = f"%(asctime)s - {AppName} {ShowLevel}{AddPar} - %(message)s%(stack)s"
-        FileLogHand = logging.handlers.TimedRotatingFileHandler(LogPath, when = 'S',interval = LogFileInterval, backupCount = LogFileCount)
+        FileLogHand = logging.handlers.TimedRotatingFileHandler(LogFile, when = 'S',interval = LogFileInterval, backupCount = LogFileCount)
 
         FileLogHand.setLevel(LogLevel)
         Formatter = logging.Formatter(Format)
@@ -981,30 +571,30 @@ Output format:
     logging.getLogger().setLevel(1)
 
     LogServer = DummyPortLogServer()
-    if LogDebugPort != 0:
+    if DebugPort != 0:
         AddPar = ''
-        if LogMultiProcLen == 0: 
+        if MultiProcLen == 0: 
             AddPar += '%(processName)s'
         else:
-            AddPar += f"%(processName){LogMultiProcLen}s"
+            AddPar += f"%(processName){MultiProcLen}s"
         if AddPar != '':
             AddPar += ':'
-        if LogMultiThreadLen == 0:
+        if MultiThreadLen == 0:
             AddPar += '%(threadName)s'
         else:
-            AddPar += f"%(threadName)-{LogMultiThreadLen}s"
-        if LogProcInfoModLen == 0:
+            AddPar += f"%(threadName)-{MultiThreadLen}s"
+        if ProcInfoModLen == 0:
             AddPar += ' %(module)s'
         else:
-            AddPar += f" %(module){LogProcInfoModLen}s"
-        if LogProcInfoFuncLen == 0:
+            AddPar += f" %(module){ProcInfoModLen}s"
+        if ProcInfoFuncLen == 0:
             AddPar += ':%(funcName)s:'
         else:
-            AddPar += f":%(funcName)-{LogProcInfoFuncLen}s:"
+            AddPar += f":%(funcName)-{ProcInfoFuncLen}s:"
         AddPar += '%(lineno)4d'
         ShowLevel = '%(levelname)7s '
         Format = f"%(asctime)s {ShowLevel}{AddPar} - %(message)s%(stack)s"
-        LogServer = PortLogServer(host=LogDebugIp,port=LogDebugPort,queue=LogQueue,logsize=LogDebugCacheSize,format=Format)
+        LogServer = PortLogServer(host=DebugIp,port=DebugPort,queue=LogQueue,logsize=DebugCacheSize,format=Format)
         qh = PortLogQueueHandler(LogServer, LogQueue)
         qh.setLevel(1)
         logging.getLogger().addHandler(qh)
@@ -1073,10 +663,10 @@ if __name__ == '__main__':
         MyParam['StdErr'] = True
         MyParam['NoDaemon'] = True
         MyParam['Quiet'] = False
-        MyParam['LogPath'] = ''
-        MyParam['LogProcInfo'] = True
+        MyParam['LogFile'] = ''
+        MyParam['ProcInfo'] = True
     
-    #    MyParam['LogPath'] = './TheLog.log'
+    #    MyParam['LogFile'] = './TheLog.log'
         AppName = "LogP"
     
     
@@ -1085,15 +675,15 @@ if __name__ == '__main__':
                         StdErr = MyParam['StdErr'], 
                         NoDaemon = MyParam['NoDaemon'], 
                         Quiet = MyParam['Quiet'],
-                        LogPath = MyParam['LogPath'],
-                        LogProcInfo = False,
-#                        LogStackOnDebug = "debug",
-#                        LogStackDepth=2,
-                        LogLevelType = 0,
-                        LogMultiProc = False, 
-                        LogMultiThread = False,
-                        LogProcInfoModLen=5,
-                        LogDebugPort=65432
+                        LogFile = MyParam['LogFile'],
+                        ProcInfo = False,
+#                        StackOnDebug = "debug",
+#                        StackDepth=2,
+                        LevelType = 0,
+                        MultiProc = False, 
+                        MultiThread = False,
+                        ProcInfoModLen=5,
+                        DebugPort=65432
                         ) 
     
         LogP.error('Error')
@@ -1113,14 +703,14 @@ if __name__ == '__main__':
                         StdErr = MyParam['StdErr'], 
                         NoDaemon = MyParam['NoDaemon'], 
                         Quiet = MyParam['Quiet'],
-                        LogPath = MyParam['LogPath'],
-                        LogLevelType=3,
-                        LogProcInfo = True,
-                        LogMultiProc = False, 
-                        LogMultiThread = False,
-                        LogProcInfoModLen=15,
-                        LogProcInfoFuncLen=15,
-                        LogDebugPort=65432
+                        LogFile = MyParam['LogFile'],
+                        LevelType=3,
+                        ProcInfo = True,
+                        MultiProc = False, 
+                        MultiThread = False,
+                        ProcInfoModLen=15,
+                        ProcInfoFuncLen=15,
+                        DebugPort=65432
                         ) 
     
         LogP.error('Error')

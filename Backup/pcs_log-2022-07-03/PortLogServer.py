@@ -19,6 +19,11 @@ Run = multiprocessing.Value(c_bool, True)
 
 class DummyPortLogServer():
     def __init__(self, *args, **kwargs):
+        """The dummy-version of the 'PortLogServer'-class
+        This class is used to return it to a user if no real Log-server is requested.
+        So the programmer can call the functions without the need to question if
+        a real server is running. All functions are No-Ops.
+        """        
         pass
     
     def Run(self, *args, **kwargs) -> None:
@@ -375,11 +380,25 @@ class PortLogServer():
     
         
 class PortLogQueueHandler(logging.handlers.QueueHandler):
+    """
+    
+    """
     def __init__(self, ProcClass:PortLogServer, *args, **kwargs):
+        """A queue-handler that allowes the automatic restart of the Log-server
+
+        Args:
+            ProcClass (PortLogServer): An instance of the listening PortLogServer.
+                                        Needet to automatically restart if the
+                                        server is terminated. All other parametrs
+                                        look at the documentation of 
+                                        'logging.handlers.QueueHandler'
+        """        
         super().__init__(*args, **kwargs)
         self.__ProcClass = ProcClass
         
     def enqueue(self, record):
+        """Overwritten enqueue function of the 'logging.handlers.QueueHandler' class.
+        """        
         self.__ProcClass.PollRestart()
         super().enqueue(record)
         
@@ -388,15 +407,11 @@ class PortLogQueueHandler(logging.handlers.QueueHandler):
     
     
     
-    
-        
+##############################################################
+# Test if called as standalone program
+##############################################################
 
-            
-                 
-
-
-def main():
-    global Run
+if __name__ == '__main__':
     LogQueue = multiprocessing.Queue()    # create the Queue 
 
     HOST = "127.0.0.1"  # Standard loopback interface Address (localhost)
@@ -459,6 +474,4 @@ def main():
         
     logging.info(f'main - Terminating')
     
-if __name__ == '__main__':
-    main()
     
