@@ -22,6 +22,8 @@ import multiprocessing
 from ctypes import c_bool
 import netifaces
 import setproctitle
+import copy
+import pprint
 
 _KEEP = 'keep'
 _KEEP_WARN = 'keep-warn'
@@ -30,6 +32,27 @@ _OVERWRITE_WARN = 'overwrite-warn'
 _LOGSTATUS = logging.ERROR - 1
 
 Run = multiprocessing.Value(c_bool, True)
+_Translation = {}
+_InitTranslation = {
+    'HostIsNoString':           "{ClassName} host (type = {HostType}) is not a string - object",
+    'HostIsNoValidIp':          "{ClassName} host '{host}' is not an valid IP of this computer",
+    'InvalidPortNumber':        "{ClassName} port (={port}) must be between 1024 and 65535",
+    'QueueIsInvalid':           "{ClassName} queue (type={QueueType}) is not a multiprocessing.Queue - object",
+    'LogDebugPortNoInt':        "{ClassName} 'LogDebugPort' (= {LogDebugPort}) can't be converted to an integer",
+    'LogProcInfoModLenNoInt':   "{ClassName} 'LogProcInfoModLen' (= {LogProcInfoModLen}) can't be converted to an integer",
+    'LogProcInfoModLenNeg':     "{ClassName} 'LogProcInfoModLen' (= {LogProcInfoModLen}) can't be negative",
+    'LogProcInfoFuncLenNoInt':  "{ClassName} 'LogProcInfoFuncLen' (= {LogProcInfoFuncLen}) can't be converted to an integer",
+    'LogProcInfoFuncLenNeg':    "{ClassName} 'LogProcInfoFuncLen' (= {LogProcInfoFuncLen}) can't be negative",
+    'LogMultiProcLenNoInt':     "{ClassName} 'LogMultiProcLen' (= {LogMultiProcLen}) can't be converted to an integer",
+    'LogMultiProcLenNeg':       "{ClassName} 'LogMultiProcLen' (= {LogMultiProcLen}) can't be negative",
+    'LogMultiThreadLenNoInt':   "{ClassName} 'LogMultiThreadLen' (= {LogMultiThreadLen}) can't be converted to an integer",
+    'LogMultiThreadLenNeg':     "{ClassName} 'LogMultiThreadLen' (= {LogMultiThreadLen}) can't be negative",
+    'LogDebugCacheSizeNoInt':   "{ClassName} 'LogDebugCacheSize' (= {LogDebugCacheSize}) can't be converted to an integer",
+    'LogDebugCacheSizeNeg':     "{ClassName} 'LogDebugCacheSize' (= {LogDebugCacheSize}) can't be negative",
+    'LogStackOnDebugNoStr':     "{ClassName} 'LogStackOnDebug' (= {LogStackOnDebug}) is not a string",
+    'LogLevelTypeNoInt':        "{ClassName} 'LogLevelType' (= {LogLevelType}) can't be converted to an integer",
+    }
+
 
 class DummyPortLogServer():
     def __init__(self, *args, **kwargs):
@@ -79,7 +102,8 @@ class PortLogServer():
                  name:str = '', 
                  queue:multiprocessing.Queue = None, 
                  logsize:int = 0,
-                 format:str = '') -> None:
+                 format:str = '',
+                translation:dict = None) -> None:
         """Send the messages from the input-Queue to a tcp-client
         on the defined address and port.
 
@@ -92,6 +116,7 @@ class PortLogServer():
         Raises:
             ValueError: if invalid arguments are given.
         """       
+        self._Translation = translation
         self.__RunFlag = multiprocessing.Value(c_bool, True)
         self.__CanReload = True         # prevent restarting after Stop, Join or Kill
         
@@ -99,7 +124,7 @@ class PortLogServer():
         self.__Formatter = None
         if self.__FormatStr != '':
             self.__Formatter = logging.Formatter(self.__FormatStr)
-            
+        ClassName = __class__.__name__    
         self.__Name = name.strip()
         #
         # Logging cache
@@ -112,22 +137,27 @@ class PortLogServer():
             logsize = 0
         self.__LogSize = logsize
         self.__LogCache = []
+         
         #
         # Ip addr for server
         #
         if not isinstance(host, str):
-            raise ValueError(f"{__class__.__name__} host (type={type(host)}) is not a string - object")
+            HostType = type(host)
+            raise ValueError(self._Translation['HostIsNoString'].format(**{'ClassName': ClassName,'HostType': HostType}))
+            # raise ValueError(f"{__class__.__name__} host (type={type(host)}) is not a string - object")
         if host.lower() == 'localhost':
             host = '127.0.0.1'
         if not host in self.__MyValidIps:
-            raise ValueError(f"{__class__.__name__} host '{host}' is not an valid IP of this computer")
+            raise ValueError(self._Translation['HostIsNoValidIp'].format(**{'ClassName': ClassName,'host': host}))
+            # raise ValueError(f"{__class__.__name__} host '{host}' is not an valid IP of this computer")
         self.__Host = host
         #
         # the input queue
         #
         if queue is not None:
             if not isinstance(queue, multiprocessing.queues.Queue):
-                raise ValueError(f"{__class__.__name__} queue (type={type(queue)}) is not a multiprocessing.Queue - object")
+                raise ValueError(self._Translation['HostIsNoValidIp'].format(**{'ClassName': ClassName,'QueueType': type(queue)}))
+                # raise ValueError(f"{__class__.__name__} queue (type={type(queue)}) is not a multiprocessing.Queue - object")
         self.__Queue = queue
         #
         # set the port
@@ -137,11 +167,20 @@ class PortLogServer():
         except:
             port = 0
         if port < 1024 or port > 65535:
-            raise ValueError(f"{__class__.__name__} port must be between 1024 and 65535")
+            raise ValueError(self._Translation['InvalidPortNumber'].format(**{'ClassName': ClassName,'port': port}))
+            # raise ValueError(f"{__class__.__name__} port must be between 1024 and 65535")
         self.__Port = port
         
         self.__Connections = {}         # clear connection-dict
         self.__ReaderProcess = None     # the reader process
+    
+    def _PrintInitTranslation(self):
+        print(pprint.pformat(_InitTranslation, indent=4))
+    
+    def _PrintAktualTranslation(self):
+        print(pprint.pformat(_Translation, indent=4))
+        
+              
     
     def Run(self, *,  
             name:str = '', 
@@ -155,13 +194,17 @@ class PortLogServer():
 
         Raises:
             ValueError: if invalid arguments are given.
-        """        
+        """
+        global _Translation
+        ClassName = __class__.__name__ + '.Run'
         if queue is not None:
             if not isinstance(queue, multiprocessing.queues.Queue):
-                raise ValueError(f"{__class__.__name__}.Run queue (type={type(queue)}) is not a multiprocessing.Queue - object")
+                raise ValueError(self._Translation['QueueIsInvalid'].format(**{'ClassName': ClassName,'QueueType': type(queue)}))
+                # raise ValueError(f"{__class__.__name__}.Run queue (type={type(queue)}) is not a multiprocessing.Queue - object")
             self.__Queue = queue
         if self.__Queue is None:
-            raise ValueError(f"{__class__.__name__} .Run queue (type={type(self.__Queue)}) is not a multiprocessing.Queue - object")
+            raise ValueError(self._Translation['QueueIsInvalid'].format(**{'ClassName': ClassName,'QueueType': type(self.__Queue)}))
+            # raise ValueError(f"{__class__.__name__} .Run queue (type={type(self.__Queue)}) is not a multiprocessing.Queue - object")
         name = name.strip()
         if name == '':
             name = 'PortLogServer'
@@ -670,7 +713,8 @@ def SetupLogging(   *,
                 LogDebugIp:str = '127.0.0.1',
                 LogDebugPort:int = 0,
                 LogDebugCacheSize:int = 100,
-                NoReset:bool = False) -> PortLogServer:
+                NoReset:bool = False,
+                translation:dict = None) -> PortLogServer:
     """Creates a defined Log-setting with rich options
 
 Args:
@@ -806,7 +850,18 @@ Output format:
                         
                         
     """
-    
+    _Translation = copy.deepcopy(_InitTranslation)
+    ClassName = __name__ + '.SetupLogging'
+
+    if translation is not None and isinstace(translation,dict):     # Überschreibe die Übersetungen
+        for k in _InitTranslation.keys():
+            try:
+                w = translation[k]
+            except KeyError:
+                _Translation[k] = _InitTranslation[k] 
+            if not isinstance(w,str):
+                _Translation[k] = _InitTranslation[k]
+
     if not NoReset:
         for handler in logging.root.handlers[:]:
             logging.root.removeHandler(handler)
@@ -816,54 +871,65 @@ Output format:
     _AddLoggingLevel('TRACE', logging.DEBUG -5, 'trace')
     _AddLoggingLevel('MSG', logging.WARNING - 1, 'msg')
     _AddLoggingLevel('STATUS', logging.ERROR - 1, 'status')
-
 # Check Port option
     try:
         LogDebugPort = int(LogDebugPort)
     except:
-        raise ValueError(f"SetupLogging 'LogDebugPort' can't be converted to an integer")
+        raise ValueError(_Translation['LogDebugPortNoInt'].format(**{'ClassName': ClassName, 'LogDebugPort': LogDebugPort}))
+        # raise ValueError(f"SetupLogging 'LogDebugPort' (= {LogDebugPort}) can't be converted to an integer")
     if LogDebugPort < 0:
         LogDebugPort = 0
 # Check Len options
     try:
         LogProcInfoModLen = int(LogProcInfoModLen)
     except:
-        raise ValueError(f"SetupLogging 'LogProcInfoModLen' can't be converted to an integer")
+        raise ValueError(_Translation['LogProcInfoModLenNoInt'].format(**{'ClassName': ClassName, 'LogProcInfoModLen': LogProcInfoModLen}))
+        # raise ValueError(f"SetupLogging 'LogProcInfoModLen' can't be converted to an integer")
     if LogProcInfoModLen < 0:
-        raise ValueError(f"SetupLogging 'LogProcInfoModLen' can't be negative")
+        raise ValueError(_Translation['LogProcInfoModLenNeg'].format(**{'ClassName': ClassName, 'LogProcInfoModLen': LogProcInfoModLen}))
+        # raise ValueError(f"SetupLogging 'LogProcInfoModLen' can't be negative")
 
     try:
         LogProcInfoFuncLen = int(LogProcInfoFuncLen)
     except:
-        raise ValueError(f"SetupLogging 'LogProcInfoFuncLen' can't be converted to an integer")
+        raise ValueError(_Translation['LogProcInfoFuncLenNoInt'].format(**{'ClassName': ClassName, 'LogProcInfoFuncLen': LogProcInfoFuncLen}))
+        # raise ValueError(f"SetupLogging 'LogProcInfoFuncLen' can't be converted to an integer")
     if LogProcInfoFuncLen < 0:
-        raise ValueError(f"SetupLogging 'LogProcInfoFuncLen' can't be negative")
+        raise ValueError(_Translation['LogProcInfoFuncLenNeg'].format(**{'ClassName': ClassName, 'LogProcInfoFuncLen': LogProcInfoFuncLen}))
+        # raise ValueError(f"SetupLogging 'LogProcInfoFuncLen' can't be negative")
 
     try:
         LogMultiProcLen = int(LogMultiProcLen)
     except:
-        raise ValueError(f"SetupLogging 'LogMultiProcLen' can't be converted to an integer")
-    if LogProcInfoModLen < 0:
-        raise ValueError(f"SetupLogging 'LogMultiProcLen' can't be negative")
+        raise ValueError(_Translation['LogMultiProcLenNoInt'].format(**{'ClassName': ClassName, 'LogMultiProcLen': LogMultiProcLen}))
+        # raise ValueError(f"SetupLogging 'LogMultiProcLen' can't be converted to an integer")
+    if LogMultiProcLen < 0:
+        raise ValueError(_Translation['LogMultiProcLenNeg'].format(**{'ClassName': ClassName, 'LogMultiProcLen': LogMultiProcLen}))
+        # raise ValueError(f"SetupLogging 'LogMultiProcLen' can't be negative")
 
     try:
         LogMultiThreadLen = int(LogMultiThreadLen)
     except:
-        raise ValueError(f"SetupLogging 'LogMultiThreadLen' can't be converted to an integer")
-    if LogProcInfoModLen < 0:
-        raise ValueError(f"SetupLogging 'LogMultiThreadLen' can't be negative")
+        raise ValueError(_Translation['LogMultiThreadLenNoInt'].format(**{'ClassName': ClassName, 'LogMultiThreadLen': LogMultiThreadLen}))
+        # raise ValueError(f"SetupLogging 'LogMultiThreadLen' can't be converted to an integer")
+    if LogMultiThreadLen < 0:
+        raise ValueError(_Translation['LogMultiThreadLenNeg'].format(**{'ClassName': ClassName, 'LogMultiThreadLen': LogMultiThreadLen}))
+        # raise ValueError(f"SetupLogging 'LogMultiThreadLen' can't be negative")
 
     try:
         LogDebugCacheSize = int(LogDebugCacheSize)
     except:
-        raise ValueError(f"SetupLogging 'LogDebugCacheSize' can't be converted to an integer")
-    if LogProcInfoModLen < 0:
-        raise ValueError(f"SetupLogging 'LogDebugCacheSize' can't be negative")
+        raise ValueError(_Translation['LogDebugCacheSizeNoInt'].format(**{'ClassName': ClassName, 'LogDebugCacheSize': LogDebugCacheSize}))
+        # raise ValueError(f"SetupLogging 'LogDebugCacheSize' can't be converted to an integer")
+    if LogDebugCacheSize < 0:
+        raise ValueError(_Translation['LogDebugCacheSizeNeg'].format(**{'ClassName': ClassName, 'LogDebugCacheSize': LogDebugCacheSize}))
+        # raise ValueError(f"SetupLogging 'LogDebugCacheSize' can't be negative")
     
     
 # Add the Filter to implement stack-traces
     if not isinstance(LogStackOnDebug, str):
-        raise ValueError(f"SetupLogging 'LogStackOnDebug' is not a string")
+        raise ValueError(_Translation['LogStackOnDebugNoStr'].format(**{'ClassName': ClassName, 'LogStackOnDebug': LogStackOnDebug}))
+        # raise ValueError(f"SetupLogging 'LogStackOnDebug' is not a string")
     wTxt = LogStackOnDebug.upper()
     if wTxt =='ERROR':
         Sd = logging.ERROR
@@ -908,7 +974,8 @@ Output format:
     try:
         LogLevelType = int(LogLevelType)
     except:
-        raise ValueError(f"SetupLogging 'LogLevelType' can't be converted to an integer")
+        raise ValueError(_Translation['LogLevelTypeNoInt'].format(**{'ClassName': ClassName, 'LogLevelType': LogLevelType}))
+        # raise ValueError(f"SetupLogging 'LogLevelType' can't be converted to an integer")
     if LogLevelType == 1:
         ShowLevel = '%(levelno)02d '
     elif LogLevelType == 2:
@@ -1004,7 +1071,7 @@ Output format:
         AddPar += '%(lineno)4d'
         ShowLevel = '%(levelname)7s '
         Format = f"%(asctime)s {ShowLevel}{AddPar} - %(message)s%(stack)s"
-        LogServer = PortLogServer(host=LogDebugIp,port=LogDebugPort,queue=LogQueue,logsize=LogDebugCacheSize,format=Format)
+        LogServer = PortLogServer(host=LogDebugIp,port=LogDebugPort,queue=LogQueue,logsize=LogDebugCacheSize,format=Format,translation=_Translation)
         qh = PortLogQueueHandler(LogServer, LogQueue)
         qh.setLevel(1)
         logging.getLogger().addHandler(qh)
@@ -1056,6 +1123,8 @@ if __name__ == '__main__':
     import LogP
     import LogP as XXLogP
     
+    x = {}
+    x.update
     
     def abc():
         LogP.error('Error')
@@ -1078,6 +1147,29 @@ if __name__ == '__main__':
     
     #    MyParam['LogPath'] = './TheLog.log'
         AppName = "LogP"
+        try:
+            LogServer = LogP.SetupLogging(AppName = AppName, 
+                        Verbose = MyParam['Verbose'], 
+                        StdErr = MyParam['StdErr'], 
+                        NoDaemon = MyParam['NoDaemon'], 
+                        Quiet = MyParam['Quiet'],
+                        LogPath = MyParam['LogPath'],
+                        LogLevelType=3,
+                        LogProcInfo = True,
+                        LogMultiProc = True, 
+                        LogMultiThread = True,
+                        LogProcInfoModLen=15,
+                        LogProcInfoFuncLen=15,
+                        LogMultiProcLen=13,
+                        LogMultiThreadLen=12,
+                        LogDebugCacheSize=11,
+                        LogDebugIp='127.0.0.1',
+                        LogDebugPort=65432
+                        ) 
+            
+        except Exception as exc:
+            print(exc)
+            sys.exit(1)
     
     
         LogServer = LogP.SetupLogging(AppName = AppName, 

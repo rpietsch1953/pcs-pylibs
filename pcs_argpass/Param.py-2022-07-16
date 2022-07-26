@@ -5,8 +5,6 @@
 Parameterverwaltung
     bedient die meisten Laufzeitparameter
 '''
-
-
 # from re import X
 import sys
 from typing import Union, Dict #,  List, Set, Tuple, Optional
@@ -29,164 +27,7 @@ except ModuleNotFoundError:
     JsonLoad = json.load
 GLOBAL_NAME = 'global'
 
-
-Translation_en_US:dict = {
-    'PrefixError':
-        "Error in prefixed parameter {OptionName}",
-    'JsonError':
-        "Import failed '{wMsg}' in {OptionPath} ({FullPath}) for parameter {OptionName}",
-    'PathNoFile':
-        "The path '{OptionPath}' ({FullPath}) for parameter {OptionName} is not a file",
-    'PathNoDir':
-        "The path '{OptionPath}' ({FullPath}) for parameter {OptionName} is not a directory",
-    'PathNoPath':
-        "The path '{OptionPath}' ({FullPath}) for parameter {OptionName} is not valid on this filesystem",
-    'LessLow':
-        "Value '{OptValue}' for parameter {ParKey} is less than lower limit ({LowLimit})",
-    'HigherUp':
-        "Value '{OptValue}' for parameter {ParKey} is bigger than upper limit ({UppLimit})",
-    'NoInt':
-        "Value '{OptValue}' for parameter {ParKey} is not a valid integer",
-    'NoFloat':
-        "Value '{OptValue}' for parameter {ParKey} is not a valid floating point number",
-    'NoBool':
-        "Value '{OptValue}' for parameter {ParKey} is not valid boolean (YyTtJj1NnFf0)",
-    'OptionNotDefined':
-        "No action defined for {OptionName}",
-    'OptionRequired':
-        "{DefArgName} ({ParList}) required but not given",
-    'TypePath':
-        "path",
-    'TypeInteger':
-        "integer",
-    'TypeBool':
-        "bool",
-    'TypeFloat':
-        "float",
-    'TypeFile':
-        "file",
-    'TypeDir':
-        "directory",
-    'TypeCount':
-        "counter",
-    'TypeHelp':
-        "help",
-    'TypeImport':
-        "import",
-    'TypeExport':
-        "export",
-    'TypeGlobImport':
-        "global import",
-    'TypeGlobExport':
-        "global export",
-    'TypeStr':
-        "string",
-    'HelpDefault':
-        "Default",
-    'HelpValue':
-        "value",
-    'HelpUsage':
-        "Usage:",
-    'HelpOptions':
-        "Options:",
-    'HelpOptionInline':
-        "[OPTIONS ...]",
-    'OptionRequiresArgumentLong':
-        "option --{opt} requires argument",
-    'OptionNeedNoArgs':
-        "option --{opt} must not have an argument",
-    'OptionNotRecognizedLong':
-        "option --{opt} not recognized",
-    'ParNoUniquePrefix':
-        "option --{opt} not a unique prefix",
-    'OptionRequiresArgumentShort':
-        "option -{opt} requires argument",
-    'OptionNotRecognizedShort':
-        "option -{opt} not recognized",
-    'UndefinedOptionSingle':
-        "option {OptStr} not recognized",
-    'UndefinedOptionMultiple':
-        "options {OptStr} not recognized",
-    }
-
-Translation_de_DE:dict = {
-   'HigherUp':
-        "Der Wert '{OptValue}' für den Parameter {ParKey} ist größer als das obere Limit ({UppLimit})",
-    'JsonError':
-        "Fehler beim Import '{wMsg}' aus der Datei {OptionPath} ({FullPath}) für den Parameter {OptionName}",
-    'LessLow':
-        "Der Wert '{OptValue}' für den Parameter {ParKey} ist kleiner als das untere Limit ({LowLimit})",
-    'NoBool':
-        "Der Wert '{OptValue}' für den Parameter {ParKey} ist kein Wahrheitswert (YyTtJj1NnFf0)",
-    'NoFloat':
-        "Der Wert '{OptValue}' für den Parameter {ParKey} ist keine gültige Fließkommazahl",
-    'NoInt':
-        "Value '{OptValue}' für den Parameter {ParKey} ist keine gültige Ganzzahl",
-    'OptionNotDefined':
-        "Die Option '{OptionName}' ist ungültig",
-    'OptionRequired':
-        "Der Parameter '{DefArgName}' ({ParList}) muß angegeben werden",
-    'PathNoDir':
-        "Die Pfadangabe '{OptionPath}' ({FullPath}) für die Option {OptionName} ist kein Verzeichnis",
-    'PathNoFile':
-        "Die Pfadangabe '{OptionPath}' ({FullPath}) für die Option {OptionName} ist keine Datei",
-    'PathNoPath':
-        "Die Pfadangabe '{OptionPath}' ({FullPath}) für den Option {OptionName} ist bei diesem Dateisystem ungültig",
-    'PrefixError':
-        "Der angegebene Prefix für die Option '{OptionName}' ist ungültig",
-    'TypePath':
-        "Pfad",
-    'TypeInteger':
-        "Ganzzahl",
-    'TypeBool':
-        "Wahrheitswert",
-    'TypeFloat':
-        "Fliesskommazahl",
-    'TypeFile':
-        "Datei",
-    'TypeDir':
-        "Verzeichnis",
-    'TypeCount':
-        "Zähler",
-    'TypeHelp':
-        "Hilfe",
-    'TypeImport':
-        "Import",
-    'TypeExport':
-        "Export",
-    'TypeGlobImport':
-        "Globaler Import",
-    'TypeGlobExport':
-        "Global Export",
-    'TypeStr':
-        "Zeichenkette",
-    'HelpDefault':
-        "Standardwert",
-    'HelpValue':
-        "Wert",
-    'HelpUsage':
-        "Verwendung:",
-    'HelpOptions':
-        "Folgende Optionen sind möglich:",
-    'HelpOptionInline':
-        "[OPTION ...]",
-    'OptionRequiresArgumentLong':
-        "Option --{opt} verlangt einen Wert",
-    'OptionNeedNoArgs':
-        "Option --{opt} darf keinen Wert haben",
-    'OptionNotRecognizedLong':
-        "Option --{opt} ist unbekannt",
-    'ParNoUniquePrefix':
-        "Option --{opt} ist mehrdeutig",
-    'OptionRequiresArgumentShort':
-        "Option -{opt} verlangt einen Wert",
-    'OptionNotRecognizedShort':
-        "Option -{opt} ist unbekannt",
-    'UndefinedOptionSingle':
-        "Unbekannte Option {OptStr} angegeben",
-    'UndefinedOptionMultiple':
-        "Unbekannte Optionen {OptStr} angegeben",
-    }
+# _Translation:dict = {}
 
 class Param():
     '''
@@ -203,8 +44,6 @@ Main class and also the result-dictionary
         '''
 this exception is raised if there is an declaration error within the
 parameters of the class.
-NOTE:   This error messages are NEVER translated since they are not user
-        initiated errors.
         '''
         pass                            # pylint: disable=unnecessary-pass
 
@@ -212,13 +51,6 @@ NOTE:   This error messages are NEVER translated since they are not user
         '''
 This exception is raised if there is an error within the runtime-parameters.
 This is only raised within the "Process"-function.
-NOTE:   This errors are translated with the 'translation' dictionary. There
-        is the initial state of this dict using 'en_US' texts.
-        This module also provide a 'Translation_de_DE' entry giving a german
-        translation of the error-messages.
-        If you can provide translations to other languages send me this
-        declarations to <r.pietsch@pcs-at.com> and I will add them to this
-        module.
         '''
         pass                            # pylint: disable=unnecessary-pass
 
@@ -239,7 +71,9 @@ NOTE:   This errors are translated with the 'translation' dictionary. There
             else:
                 return super().default(o)   # let the default library do the work
 
-    _InitTranslation = {
+    @property
+    def _InitTranslation(self) -> dict:
+        return {
             'PrefixError':
                 "Error in prefixed parameter {OptionName}",
             'JsonError':
@@ -260,278 +94,91 @@ NOTE:   This errors are translated with the 'translation' dictionary. There
                 "Value '{OptValue}' for parameter {ParKey} is not a valid floating point number",
             'NoBool':
                 "Value '{OptValue}' for parameter {ParKey} is not valid boolean (YyTtJj1NnFf0)",
-            'OptionNotDefined':
+            'ParamNotDefined':
                 "No action defined for {OptionName}",
-            'OptionRequired':
+            'ParamRequired':
                 "{DefArgName} ({ParList}) required but not given",
-            'TypePath':
-                "path",
-            'TypeInteger':
-                "integer",
-            'TypeBool':
-                "bool",
-            'TypeFloat':
-                "float",
-            'TypeFile':
-                "file",
-            'TypeDir':
-                "directory",
-            'TypeCount':
-                "counter",
-            'TypeHelp':
-                "help",
-            'TypeImport':
-                "import",
-            'TypeExport':
-                "export",
-            'TypeGlobImport':
-                "global import",
-            'TypeGlobExport':
-                "global export",
-            'TypeStr':
-                "string",
-            'HelpDefault':
-                "Default",
-            'HelpValue':
-                "value",
-            'HelpUsage':
-                "Usage:",
-            'HelpOptions':
-                "Options:",
-            'HelpOptionInline':
-                "[OPTIONS ...]",
-            'OptionRequiresArgumentLong':
-                "option --{opt} requires argument",
-            'OptionNeedNoArgs':
-                "option --{opt} must not have an argument",
-            'OptionNotRecognizedLong':
-                "option --{opt} not recognized",
-            'ParNoUniquePrefix':
-                "option --{opt} not a unique prefix",
-            'OptionRequiresArgumentShort':
-                "option -{opt} requires argument",
-            'OptionNotRecognizedShort':
-                "option -{opt} not recognized",
-            'UndefinedOptionSingle':
-                "option {OptStr} not recognized",
-            'UndefinedOptionMultiple':
-                "options {OptStr} not recognized",
         }
 
 
-    def __init__(self, *,                          # pylint: disable=dangerous-default-value
-            Def:dict = {},
-            Args:list = None,
+    def __init__(   self,                           # pylint: disable=dangerous-default-value
+            Def: dict = {},
+            Args: list = None,
             Chk = None,
-            Desc:str = "",
-            AddPar:str = "",
-            AllParams:bool = True,
+            Desc: str = "",
+            AddPar: str = "",
+            AllParams: bool = True,
             UserPars:dict = None,
-            UserModes:dict = None,
-            ErrorOnUnknown:bool = True,
-            HelpType:int = 0,
+            UserModes: dict = None,
+            Translate: callable = None,
             Children:dict = {},
             translation:dict = {},
             _Child = False):
         """
 normally imported as
 
-from pcs_argpass.Param import Param, Translation_??_??
+from pcs_argpass.Param import Param
 
 This class can be used to create recursive sub-parameter classes.
 All children inherit the settings of their parents.
-    Args:
-        Def (dict, optional): See SetDef(). Defaults to {}.
-        Args ([type], optional): See SetArgs(). Defaults to None.
-        Chk ([type], optional): See SetChk(). Defaults to None.
-        Desc (str, optional): See SetDesc(). Defaults to "".
-        AddPar (str, optional): See SetAddPar. Defaults to "".
-        AllParams (Boolean, optional): See SetAllParams. Defaults to True.
-        UserPars (dict, optional): See SetUserKeys. Defaults to None.
-        UserModes (dict, optional): See SetUserKeys. Defaults to None.
-        HelpType (int, optional): Type of helptext.
-            0: No Type, no standard defaults
-            1: No Type, all defaults
-            2: Type, no standard defaults
-            3: Type and all defaults
-        ErrorOnUnknown (bool, optional): If True an error is raised if
-            there are undefined options on the commandline, If False: no error is raised.
-            UnusedArgs is always populated with all undefined args from the commandline.
-            This error is raised only on the topmost Param-object (not on children)
-            Defaults to True.
-            So if set to False you can test the 'UnusedArgs' property after return
-            of the 'Process'-function to get the list of undefined args and process
-            this situation on your own.
-        Children: (dict): Dictionary of Child-definition for this class.
-            { 'Name': {'Def': {}, 'Desc': str, 'AddPar': str, 'Children': {} }, .... }
-            Name = The name of this child. Must be unique.
-                    Is translated to lower case.
-                    Can not bee "global" (this is the name of the root-class)
-            Def = A definition dictionary like our own "Def" parameter,
-            Children (optional) = dict of type Children, describes the grand-childer,
-                    this can be done to any level.
-            Desc (optional) = A string that describes this class (like our own "Desc"-parameter.
-            AddPar (optional) = String used as additional info like our own "AddPar"-parameter.
-        translation: (dict, optional): A dictionary used for translating error messages.
-            There are 2 'Hidden' function to help debug the translations:
-                _PrintInitTranslation() and
-                _PrintActualTranslation()
-            This function do exactly what they say: print the values out to stdout. You can
-            use them to get the exact values used. The following default may not be accurate
-            at all - do not rely on this info, print the dict yourselve.
-             
-            defaults to:
-                {
-                'PrefixError':
-                    "Error in prefixed parameter {OptionName}",
-                'JsonError':
-                    "Import failed '{wMsg}' in {OptionPath} ({FullPath}) for parameter {OptionName}",
-                'PathNoFile':
-                    "The path '{OptionPath}' ({FullPath}) for parameter {OptionName} is not a file",
-                'PathNoDir':
-                    "The path '{OptionPath}' ({FullPath}) for parameter {OptionName} is not a directory",
-                'PathNoPath':
-                    "The path '{OptionPath}' ({FullPath}) for parameter {OptionName} is not valid on this filesystem",
-                'LessLow':
-                    "Value '{OptValue}' for parameter {ParKey} is less than lower limit ({LowLimit})",
-                'HigherUp':
-                    "Value '{OptValue}' for parameter {ParKey} is bigger than upper limit ({UppLimit})",
-                'NoInt':
-                    "Value '{OptValue}' for parameter {ParKey} is not a valid integer",
-                'NoFloat':
-                    "Value '{OptValue}' for parameter {ParKey} is not a valid floating point number",
-                'NoBool':
-                    "Value '{OptValue}' for parameter {ParKey} is not valid boolean (YyTtJj1NnFf0)",
-                'OptionNotDefined':
-                    "No action defined for {OptionName}",
-                'OptionRequired':
-                    "{DefArgName} ({ParList}) required but not given",
-                'TypePath':
-                    "path",
-                'TypeInteger':
-                    "integer",
-                'TypeBool':
-                    "bool",
-                'TypeFloat':
-                    "float",
-                'TypeFile':
-                    "file",
-                'TypeDir':
-                    "directory",
-                'TypeCount':
-                    "counter",
-                'TypeHelp':
-                    "help",
-                'TypeImport':
-                    "import",
-                'TypeExport':
-                    "export",
-                'TypeGlobImport':
-                    "global import",
-                'TypeGlobExport':
-                    "global export",
-                'TypeStr':
-                    "string",
-                'HelpDefault':
-                    "Default",
-                'HelpValue':
-                    "value",
-                'HelpUsage':
-                    "Usage:",
-                'HelpOptions':
-                    "Options:",
-                'HelpOptionInline':
-                    "[OPTIONS ...]",
-                'OptionRequiresArgumentLong':
-                    "option --{opt} requires argument",
-                'OptionNeedNoArgs':
-                    "option --{opt} must not have an argument",
-                'OptionNotRecognizedLong':
-                    "option --{opt} not recognized",
-                'ParNoUniquePrefix':
-                    "option --{opt} not a unique prefix",
-                'OptionRequiresArgumentShort':
-                    "option -{opt} requires argument",
-                'OptionNotRecognizedShort':
-                    "option -{opt} not recognized",
-                'UndefinedOptionSingle':
-                    "option {OptStr} not recognized",
-                'UndefinedOptionMultiple':
-                    "options {OptStr} not recognized",
-                }
-
-NOTE:   All long options can be abbreviated to at least 2 characters or to the
-        length making them unique within the defined long options.
-        Example:
-            you define 'automatic', 'autonom' and 'testopt'
-            at the commandline this can be abbreviated to
-                PROG --autom --auton --te
-            but not to
-                PROG --au
-            because this is not unique within the optionlist.
-
-NOTE:   If children are used, the prefix-name is always optional, but if given, the option
-        is ONLY recognized for this child. if there are the same long options for more
-        then one child and NO prefix is given, this option is recognized by ALL children
-        having this long option within their definition.
-        Example:
-            you define 'auto' within the root as 'MyOpt'
-            you define 'auto' within the child 'alpha' as 'DoAuto'
-
-            the commandline shald be
-                PROG --auto=yes
-            then BOTH options are set to 'yes' e.g. MyParam['MyOpt'] == 'yes' AND MyParam['DoAuto'] == 'yes'
-            with the commandline
-                PROG --alpha.auto=yes
-            only MyParam['DoAuto'] == 'yes' and MyParam['MyOpt'] is either the default or not set depending on
-            the definition of this option
-            with the commandline
-                PROG --alpha.auto=yes --global.auto=no
-            MyParam['MyOpt'] == 'no' AND MyParam['DoAuto'] == 'yes'
-            REMEMBER: 'global' is ALWAYS the name of the root Param-object!
-        please inform yout users about this possibility if you use child-definitions!
-
-
+        Args:
+            Def (dict, optional): See SetDef(). Defaults to {}.
+            Args ([type], optional): See SetArgs(). Defaults to None.
+            Chk ([type], optional): See SetChk(). Defaults to None.
+            Desc (str, optional): See SetDesc(). Defaults to "".
+            AddPar (str, optional): See SetAddPar. Defaults to "".
+            AllParams (Boolean, optional): See SetAllParams. Defaults to True.
+            UserPars (dict, optional): See SetUserKeys. Defaults to None.
+            UserModes (dict, optional): See SetUserKeys. Defaults to None.
+            Translate (callable): Function to translate error messages
+            Children: (dict): Dictionary of Child-definition for this class.
+                { 'Name': {'Def': {}, 'Desc': str, 'AddPar': str, 'Children': {} }, .... }
+                Name = The name of this child. Must be unique.
+                        Is translated to lower case.
+                        Can not bee "global" (this is the name of the root-class)
+                Def = A definition dictionary like our own "Def" parameter,
+                Children (optional) = dict of type Children, describes the grand-childer,
+                        this can be done to any level.
+                Desc (optional) = A string that describes this class (like our own "Desc"-parameter.
+                AddPar (optional) = String used as additional info like our own "AddPar"-parameter.
         """
 
 #---------------------------------------------
 # Class-local Data
 #---------------------------------------------
-        self.__WorkDict:dict = {}           # This is the result dictionary used to make the class look like dicktionary
-        self.__Children:Dict[Param] = {}    # Dictionary of our children (all are our one class! )
+        self.__WorkDict = {}        # This is the result dictionary used to make the class look like dicktionary
+        self.__Children:Dict[Param] = {}   # Dictionary of our children (all are our one class! )
         self.__Parent:Union(Param,None) = None        # Our parent if we are a child else None
-        self.__MyProgName:str = ""          # the programm-name from __Argumente[0] (only name)
-        self.__MyProgPath:str = ""          # the path of the executeable from __Argumente[0]
-        self.__MyPwd:str = ""               # Actual directory at invocation of "Process"
-        self.__Definition:dict = {}         # the definition-dict
-        self.__Description:str = ""         # Description of program for help
-        self.__Argumente:list = []          # list of commandline arguments
-        self.__ChkFunc = None               # external check-funktion (not implemented jet)
-        self.__ErrorOnUnknown:bool = ErrorOnUnknown # raise error if unknown options on commandline
-        self.__UsageText:str = ""           # Complete help-text
-        self.__ShortStr:str = ""            # String of short parameters (e.g. "vhl:m:")
-        self.__ShortList:list = []          # List of short parameters (e.g. ["v", "h", "l:", "m:"])
-        self.__LongList:list = []           # List of Long parameters (e.g. "help","len="...)
-        self.__ParDict:dict = {}            # dict of "argtext" -> "Parameter-name"
-        self.__RemainArgs:list = []         # List of remaining arguments from commandline
-        self.__UnusedArgs:list = []         # liste aller nicht vorgesehener Parameter
-        self.__AddPar:str = ""              # Additional parameter Text (for help)
-        self.__UsageTextList:list = []      # List of single help entries (also lists)
-        self.__IsPrepared:bool = False      # Marker if "Prepare" is run after changes
+        self.__MyProgName = ""      # the programm-name from __Argumente[0] (only name)
+        self.__MyProgPath = ""      # the path of the executeable from __Argumente[0]
+        self.__MyPwd = ""           # Actual directory at invocation of "Process"
+        self.__Definition = {}      # the definition-dict
+        self.__Description = ""     # Description of program for help
+        self.__Argumente = []       # list of commandline arguments
+        self.__ChkFunc = None       # external check-funktion (not implemented jet)
+        self.__UsageText = ""       # Complete help-text
+        self.__ShortStr = ""        # String of short parameters (e.g. "vhl:m:")
+        self.__ShortList = []       # List of short parameters (e.g. ["v", "h", "l:", "m:"])
+        self.__LongList = []        # List of Long parameters (e.g. "help","len="...)
+        self.__ParDict = {}         # dict of "argtext" -> "Parameter-name"
+        self.__RemainArgs = []      # List of remaining arguments from commandline
+        self.__AddPar = ""          # Additional parameter Text (for help)
+        self.__UsageTextList = []   # List of single help entries (also lists)
+        self.__IsPrepared = False   # Marker if "Prepare" is run after changes
 
-        self.__HelpList:list = []           # List of all parameters with type 'H'
-        self.__ImportList:list = []         # List of all parameters with type 'x'
-        self.__ExportList:list = []         # List of all parameters with type 'X'
-        self.__Glob_ImportList:list = []    # List of all parameters with type '<'
-        self.__Glob_ExportList:list = []    # List of all parameters with type '>'
-        self.__AllParams:bool = True        # True if all parameters are initialized, if False
-                                            # only parameters with defaults or on the commandline
-                                            # are in the dictionary
-        self.__Prefix:str = GLOBAL_NAME
-        self.__Glob_ExportStr:str = ''
-        self.__HelpType:int = HelpType      # Type of help output
+        self.__HelpList = []        # List of all parameters with type 'H'
+        self.__ImportList = []      # List of all parameters with type 'x'
+        self.__ExportList = []      # List of all parameters with type 'X'
+        self.__Glob_ImportList = [] # List of all parameters with type '<'
+        self.__Glob_ExportList = [] # List of all parameters with type '>'
+        self.__AllParams = True     # True if all parameters are initialized, if False
+                                    # only parameters with defaults or on the commandline
+                                    # are in the dictionary
+        self.__DoTranslate = None   # Translation routine for error-messages'
+        self.__Prefix = GLOBAL_NAME
+        self.__Glob_ExportStr = ''
 
-        self._Translation:dict = {}         # Dictionary for translations
+        self._Translation = {}
 
         self.__WorkPars = {
             'shortpar':     's',
@@ -587,7 +234,7 @@ NOTE:   If children are used, the prefix-name is always optional, but if given, 
         self.SetChk(Chk)
         self.SetAllParams(AllParams)
         self.SetAddPar(AddPar)
-        # self.SetTranslate(Translate)
+        self.SetTranslate(Translate)
         if Children is None:            # fix issue if Children is None
             Children = {}
         for wPrefix, wDict in Children.items():
@@ -877,15 +524,13 @@ NOTE:   If children are used, the prefix-name is always optional, but if given, 
             raise self.DeclarationError(f"{self.FullPrefix}: Prefix '{p}' is {GLOBAL_NAME} -> invalid!")
         self.__Children[p] = self.__class__( Def = Def,
                                     Args = self.__Argumente,
-                                    # Translate = self.__DoTranslate,
+                                    Translate = self.__DoTranslate,
                                     UserPars = self.__UserPars,
                                     Desc = Description,
                                     Children = Children,
                                     AddPar = AddPar,
                                     AllParams = self.__AllParams,
-                                    _Child = True,
-                                    HelpType = self.__HelpType,
-                                    ErrorOnUnknown = False          # always False for children
+                                    _Child = True
                                     )
         self.__Children[p].__Parent = self                          # pylint: disable=protected-access
         self.__Children[p].__Prefix = p                             # pylint: disable=protected-access
@@ -893,45 +538,45 @@ NOTE:   If children are used, the prefix-name is always optional, but if given, 
 
 
 
-    # def SetTranslate(self, Translate = None) -> None:
-    #     """ Set translation routine for error-messages
+    def SetTranslate(self, Translate = None) -> None:
+        """ Set translation routine for error-messages
 
-    #     Args:
-    #         Translate (callable, optional): Defaults to None.
-    #     Example:
-    #             TransFunc(*,Type:str,Param:str, Path:str, FullPath:str, Msg:str, OptList:str) -> str:
-    #         This function is called with the folowing parameters:
-    #             Type, Param, Path, FullPath, Msg, OptList
-    #         all of them are strings. The return value is the error-msg, also
-    #         a string.
-    #         The default messages are:
-    #             if Type is "ImpFail"
-    #                 "Import failed, {Path} for parameter {Param} is not a valid file"
-    #             if Type is "ErrMsg"
-    #                 "Error '{Msg}' in {Path} ({FullPath}) for parameter {Param}"
-    #             if Type is "NoFile"
-    #                 "The path {Path} ({FullPath}) for parameter {Param} is not a file"
-    #             if Type is "NoPath"
-    #                 "The path {Path} ({FullPath}) for parameter {Param} does not exist"
-    #             if Type is "NoAct"
-    #                 "No action defined for {Param}"
-    #             if Type is "Required"
-    #                 "{Param} ({OptList}) required but not given"
-    #             for all other Type values
-    #                 "Undefined error Type='{Type}', Param='{Param}', Path='{Path}', FullPath='{FullPath}', Msg='{Msg}', OptList='{OptList}'"
-    #         If this function is given it has to translate ALL messages.
-    #         If an error occures, the default messages are used
+        Args:
+            Translate (callable, optional): Defaults to None.
+        Example:
+                TransFunc(*,Type:str,Param:str, Path:str, FullPath:str, Msg:str, OptList:str) -> str:
+            This function is called with the folowing parameters:
+                Type, Param, Path, FullPath, Msg, OptList
+            all of them are strings. The return value is the error-msg, also
+            a string.
+            The default messages are:
+                if Type is "ImpFail"
+                    "Import failed, {Path} for parameter {Param} is not a valid file"
+                if Type is "ErrMsg"
+                    "Error '{Msg}' in {Path} ({FullPath}) for parameter {Param}"
+                if Type is "NoFile"
+                    "The path {Path} ({FullPath}) for parameter {Param} is not a file"
+                if Type is "NoPath"
+                    "The path {Path} ({FullPath}) for parameter {Param} does not exist"
+                if Type is "NoAct"
+                    "No action defined for {Param}"
+                if Type is "Required"
+                    "{Param} ({OptList}) required but not given"
+                for all other Type values
+                    "Undefined error Type='{Type}', Param='{Param}', Path='{Path}', FullPath='{FullPath}', Msg='{Msg}', OptList='{OptList}'"
+            If this function is given it has to translate ALL messages.
+            If an error occures, the default messages are used
 
-    #     Raises:
-    #         self.DeclarationError: if Translate not callable or None
-    #     """
-    #     if Translate is None:
-    #         self.__DoTranslate = None
-    #     else:
-    #         if callable(Translate):
-    #             self.__DoTranslate = Translate
-    #         else:
-    #             raise self.DeclarationError("Translate is not a function")
+        Raises:
+            self.DeclarationError: if Translate not callable or None
+        """
+        if Translate is None:
+            self.__DoTranslate = None
+        else:
+            if callable(Translate):
+                self.__DoTranslate = Translate
+            else:
+                raise self.DeclarationError("Translate is not a function")
 
     def SetAllParams(self, AllParams: bool = True) -> None:
         """ Set the flag for All Params
@@ -1282,25 +927,12 @@ Def-dict: a dictionary of dictionaries
             ShortLen (int): Max. length of the "short"-options (0 or 1)
             LongLen (int): Max. length of the "long"-options
         """
-        if self.__HelpType == 0:
-            ShowType = False
-            ShowDef = False
-        elif self.__HelpType == 1:
-            ShowType = False
-            ShowDef = True
-        elif self.__HelpType == 2:
-            ShowType = True
-            ShowDef = False
-        elif self.__HelpType == 3:
-            ShowType = True
-            ShowDef = True
-
-
         if self.__Prefix is None:
             wPrefText = ''
         else:
             if self.__Prefix != GLOBAL_NAME:
                 wPrefText = ''
+                # wPrefText = f'active prefix = "{self.__Prefix}." only for long (--) options\n'
             else:
                 wPrefText = ''
         wDesc = self.__Description
@@ -1309,59 +941,17 @@ Def-dict: a dictionary of dictionaries
         if IsChild:
             Text = f"\n{wDesc}"
         else:
-            Text = f"{self._Translation['HelpUsage']}\n\n    {self.__MyProgName} {self._Translation['HelpOptionInline']} {self.__AddPar}\n\n{wDesc}{wPrefText}{self._Translation['HelpOptions']}\n"
+            Text = f"Usage:\n{self.__MyProgName} OPTIONS {self.__AddPar}\n\n{wDesc}{wPrefText}Options:\n"
         for Single in self.__UsageTextList:
             Ut_Short = Single[0]
             Ut_Long = Single[1]
             Ut_Param = Single[2]
             Ut_Type = Single[3]
             Ut_Default = Single[4]
-            Ut_Low = Single[6]
-            Ut_High = Single[7]
-
-            if Ut_Low is None and Ut_High is None:
-                LimitText = ''
-            if Ut_Low is None and Ut_High is not None:
-                if isinstance(Ut_High,str):
-                    h = "'" + Ut_High + "'"
-                else:
-                    h = str(Ut_High)
-                LimitText = f"(... {h})"
-            if Ut_Low is not None and Ut_High is None:
-                if isinstance(Ut_Low,str):
-                    l = "'" + Ut_Low + "'"
-                else:
-                    l = str(Ut_Low)
-                LimitText = f"({l} ...)"
-            if Ut_Low is not None and Ut_High is not None:
-                if isinstance(Ut_High,str):
-                    h = "'" + Ut_High + "'"
-                else:
-                    h = str(Ut_High)
-                if isinstance(Ut_Low,str):
-                    l = "'" + Ut_Low + "'"
-                else:
-                    l = str(Ut_Low)
-                LimitText = f"({str(l)} ... {h})"
-            if ShowType:
-                if LimitText != '':
-                    LimitText = ' ' + LimitText
-
-            if not ShowDef:
-                if Ut_Default == '' or Ut_Default == 0 or not Ut_Default:
-                    Ut_Default = None
-            if Ut_Default is None:
-                Ut_Default = LimitText
+            if Ut_Default is None or Ut_Default == '':
+                Ut_Default = ""
             else:
-
-                if isinstance(Ut_Default,str):
-                    d = "'" + Ut_Default + "'"
-                else:
-                    d = str(Ut_Default)
-                if LimitText == '':
-                    Ut_Default = f"{self._Translation['HelpDefault']}: {d}"
-                else:
-                    Ut_Default = f"{LimitText}, {self._Translation['HelpDefault']}: {d}"
+                Ut_Default = f", Default: {str(Ut_Default)}"
             Ut_Text = Single[5].splitlines()
             sl = ShortLen + 3 + 1
             ll = LongLen + 3 + 2
@@ -1374,14 +964,7 @@ Def-dict: a dictionary of dictionaries
 
             while len(Ut_Long) < Lines:
                 Ut_Long.append(" ")
-            if ShowType:
-                if Ut_Default != '':
-                    if not Ut_Default.startswith(' '):
-                        Ut_Default = ' ' + Ut_Default
-                Ut_Text.insert(0,f"Type: {Ut_Type}{Ut_Default}")
-            else:
-                if Ut_Default != '':
-                   Ut_Text.insert(0,f"{Ut_Default}")
+            Ut_Text.insert(0,f"Type: {Ut_Type}{Ut_Default}")
             while len(Ut_Text) < Lines:
                 Ut_Text.append(" ")
 
@@ -1406,12 +989,11 @@ Def-dict: a dictionary of dictionaries
                     else:
                         n = "--" + l + "="
                 if i == 0:
-                    n += Ut_Param
-                n = (n + (" " * (ll + len(Ut_Param) + 2)))[:ll + len(Ut_Param) + 2]
+                    n += Ut_Param.strip()
+                n = (n + (" " * (ll + 4)))[:ll+4]
                 wLine += n + t
-                if wLine.strip() != '':
-                    Text += wLine
-            Text += "\n"
+                Text += wLine
+#           Text += "\n"
         self.__UsageText = Text
 
     def Usage(self) -> str:
@@ -1454,7 +1036,6 @@ Def-dict: a dictionary of dictionaries
         self.__ShortList = []
         self.__ParDict = {}
         self.__RemainArgs = []
-        self.__UnusedArgs = []
         self.__UsageTextList = []
         self.__MyPwd = str(Path.cwd())
         self.__MyProgName = Path(sys.argv[0]).stem
@@ -1468,17 +1049,11 @@ Def-dict: a dictionary of dictionaries
             SingleDef = self.__Definition[ParName]
             Ut_Short = []
             Ut_Long = []
-            Ut_Param = ''
-            Ut_Default = ''
-            Ut_Text = ''
-            Ut_Type = ''
-            Ut_Low = None
-            Ut_High = None
+            Ut_Param = ""
+            Ut_Default = ""
+            Ut_Text = ""
+            Ut_Type = ""
             ParKeys = SingleDef.keys()
-            if self.__WorkPars['lowlimit'] in ParKeys:
-                Ut_Low = SingleDef[self.__WorkPars['lowlimit']]
-            if self.__WorkPars['uplimit'] in ParKeys:
-                Ut_High = SingleDef[self.__WorkPars['uplimit']]
 
             if self.__WorkPars['multiple'] in ParKeys:
                 ParMulti = SingleDef[self.__WorkPars['multiple']]
@@ -1490,45 +1065,45 @@ Def-dict: a dictionary of dictionaries
             else:
                 raise self.DeclarationError(f"{self.FullPrefix}: No mode setting in Def for {ParName}")
             if ParMode == self.__WorkModes['path']:
-                Ut_Type = self._Translation['TypePath']
+                Ut_Type = 'path'
                 SingleDef[self.__WorkPars['needoption']] = True
             elif ParMode == self.__WorkModes['int']:
-                Ut_Type = self._Translation['TypeInteger']
+                Ut_Type = 'integer'
                 Ut_Default = 0
             elif ParMode == self.__WorkModes['bool']:
-                Ut_Type = self._Translation['TypeBool']
+                Ut_Type = 'boolean'
                 Ut_Default = False
             elif ParMode == self.__WorkModes['float']:
-                Ut_Type = self._Translation['TypeFloat']
+                Ut_Type = 'float'
                 Ut_Default = 0.0
             elif ParMode == self.__WorkModes['file']:
-                Ut_Type = self._Translation['TypeFile']
+                Ut_Type = 'file'
                 SingleDef[self.__WorkPars['needoption']] = True
-            elif ParMode == self.__WorkModes['dir']:
-                Ut_Type = self._Translation['TypeDir']
+            elif ParMode == self.__WorkPars['description']:
+                Ut_Type = 'directory'
                 SingleDef[self.__WorkPars['needoption']] = True
             elif ParMode == self.__WorkModes['count']:
-                Ut_Type = self._Translation['TypeCount']
+                Ut_Type = 'counter'
                 if self.__WorkPars['longpar'] in ParKeys:
                     SingleDef[self.__WorkPars['needoption']] = True
             elif ParMode == self.__WorkModes['help']:
-                Ut_Type = self._Translation['TypeHelp']
+                Ut_Type = 'help'
             elif ParMode == self.__WorkModes['import']:
-                Ut_Type = self._Translation['TypeImport']
+                Ut_Type = 'import'
                 SingleDef[self.__WorkPars['needoption']] = True
             elif ParMode == self.__WorkModes['export']:
-                Ut_Type = self._Translation['TypeExport']
+                Ut_Type = 'export'
             elif ParMode == self.__WorkModes['glob_import']:
                 if self.__Parent is not None:
                     raise self.DeclarationError(f"{self.FullPrefix}: {ParName} is invalid in child definition")
-                Ut_Type = self._Translation['TypeGlobImport']
+                Ut_Type = 'glob_import'
                 SingleDef[self.__WorkPars['needoption']] = True
             elif ParMode == self.__WorkModes['glob_export']:
                 if self.__Parent is not None:
                     raise self.DeclarationError(f"{self.FullPrefix}: {ParName} is invalid in child definition")
-                Ut_Type = self._Translation['TypeGlobExport']
+                Ut_Type = 'glob_export'
             else:
-                Ut_Type = self._Translation['TypeStr']
+                Ut_Type = 'string'
 
             if self.__WorkPars['default'] in ParKeys:
                 wMode = SingleDef[self.__WorkPars['mode']]
@@ -1597,11 +1172,7 @@ Def-dict: a dictionary of dictionaries
             if self.__WorkPars['needoption'] in ParKeys:
                 if SingleDef[self.__WorkPars['needoption']]:
                     NeedOpt = True
-                    Ut_Param = self._Translation['HelpValue']
-                else:
-                    Ut_Param = ' ' * len(self._Translation['HelpValue'])
-            else:
-                Ut_Param = ' ' * len(self._Translation['HelpValue'])
+                    Ut_Param = 'XXX'
             if self.__WorkPars['longpar'] in ParKeys:
                 wText = SingleDef[self.__WorkPars['longpar']]
                 if isinstance(wText, (list, tuple)):
@@ -1683,7 +1254,7 @@ Def-dict: a dictionary of dictionaries
                     ShortParLen = 1
             if self.__WorkPars['description'] in ParKeys:
                 Ut_Text = SingleDef[self.__WorkPars['description']]
-            self.__UsageTextList.append( [Ut_Short,Ut_Long,Ut_Param,Ut_Type,Ut_Default,Ut_Text,Ut_Low,Ut_High] )
+            self.__UsageTextList.append( [Ut_Short,Ut_Long,Ut_Param,Ut_Type,Ut_Default,Ut_Text] )
         IsChild = True
         if self.__Parent is None:
             IsChild = False
@@ -1691,6 +1262,29 @@ Def-dict: a dictionary of dictionaries
         self.__IsPrepared = True
 
 
+    # def __MakeErrorMsg(self, Type=None, Param="", Path="", FullPath = "", Msg = "", OptList = "") -> str:
+    #     try:
+    #         Erg = self.__DoTranslate(Type=Type, Param=Param, Path=Path, FullPath = FullPath, Msg = Msg, OptList = OptList)
+    #         if isinstance(Erg, str):
+    #             return Erg
+    #     except:
+    #         pass
+
+    #     if Type == "ImpFail":
+    #         return f"Import failed, {Path} for parameter {Param} is not a valid file"
+    #     if Type == "ErrMsg":
+    #         return f"Error '{Msg}' in {Path} ({FullPath}) for parameter {Param}"
+    #     if Type == "NoFile":
+    #         return f"The path {Path} ({FullPath}) for parameter {Param} is not a file"
+    #     if Type == "NoPath":
+    #         return f"The path {Path} ({FullPath}) for parameter {Param} does not exist"
+    #     if Type == "NoAct":
+    #         return f"No action defined for {Param}"
+    #     if Type == "Required":
+    #         return f"{Param} ({OptList}) required but not given"
+    #     if Type == "Prefix":
+    #         return f"Error in prefixed parameter {Param}"
+    #     return f"Undefined error Type='{Type}', Param='{Param}', Path='{Path}', FullPath='{FullPath}', Msg='{Msg}', OptList='{OptList}'"
 
     def __Make_OptName(self,OptionNameIn):
         OptionName = OptionNameIn
@@ -1712,49 +1306,11 @@ Def-dict: a dictionary of dictionaries
             self.ParamError: if an error occures within a parameter
             RuntimeError: if an internal error occures
         """
-        Erg = self.__Process(True)
-        if Erg:
-            return Erg
-        Erg = self.__Process(False)
-        if len(self.UnusedArgs) > 0:
-            if self.__ErrorOnUnknown:
-                # OptStr = ', '.join(self.UnusedArgs)
-                OptStr = ', '.join(["'" + x + "'" for x in self.UnusedArgs])
-                if len(self.UnusedArgs) > 1:
-                    raise self.ParamError(self._Translation['UndefinedOptionMultiple'].format(
-                            **{'OptStr':OptStr})) from None
-                else:
-                    raise self.ParamError(self._Translation['UndefinedOptionSingle'].format(
-                            **{'OptStr':OptStr})) from None
-        return Erg
-
-    def __Process(self,IsFirst:bool) -> bool:
-        """
-        Process the runtime-arguments.
-
-        Args:
-            IsFirst (bool): If True: Only "Help", "Global-Import and "Import"
-                            types are processed. Childs are processed AFTER
-                            our own function
-                            If False: All other types are processed. Childs
-                            are processed BEFORE our own function
-                            This is necessary to correctly handle these special
-                            Parameters.
-                                "Help" ignores ALL other parameters.
-                                Any "Import" has to be done BEFORE any other
-                                parameters because they should overwrite the
-                                imported values.
-
-        Raises:
-            self.ParamError: if an error occures within a parameter
-            RuntimeError: if an internal error occures
-        """
-        if not IsFirst:
-            Erg = False
-            for c in self.__Children.values():
-                if c.__Process(IsFirst):                # pylint: disable=W0212
-                    Erg = True
-
+        # print(self.__Prefix)
+        Erg = False
+        for c in self.__Children.values():
+            if c.Process():
+                Erg = True
 
         if not self.__IsPrepared:
             self.__Prepare()
@@ -1772,155 +1328,143 @@ Def-dict: a dictionary of dictionaries
                 for nLong in self.__LongList:
                     wLongList.append(nPre + '.' + nLong)
         try:
-            opts, args, unused = self._gnu_getopt(self.__Argumente[1:], self.__ShortStr, wLongList, True)
-            # opts, args = self._getopt(self.__Argumente[1:], self.__ShortStr, wLongList, True)
-        except self.GetoptError as exc:
+#            opts, args = getopt.getopt(self.__Argumente[1:],self.__ShortStr,self.__LongList)
+            opts, args = _gnu_getopt(self.__Argumente[1:], self.__ShortStr, wLongList, True)
+        except GetoptError as exc:
             wMsg = exc.msg
             raise self.ParamError(wMsg) from None
         self.__RemainArgs = args
-        self.__UnusedArgs = unused
-        if IsFirst:
-# HELP
-            for OptionName, a in opts:
-                del a
-                OptionName = self.__Make_OptName(OptionName)
-                if OptionName in self.__HelpList:
-                    # Hier geben wir die Hilfe aus. print ist hier richtig! Soll auf StdOut gehen
-                    if self.__Prefix is not None:
-                        if self.__Prefix != '' and self.__Prefix != GLOBAL_NAME:
-                            print(f"#{'-'*60}\n# {self.__Prefix}\n#{'-'*60}\n")
-                    print(self.Usage())
-                    if self.__Parent is None:
-                        sys.exit(0)
-                    return True
+        for OptionName, a in opts:
+            del a
+            OptionName = self.__Make_OptName(OptionName)
+            if OptionName in self.__HelpList:
+                # Hier geben wir die Hilfe aus. print ist hier richtig! Soll auf StdOut gehen
+                if self.__Prefix is not None:
+                    if self.__Prefix != '' and self.__Prefix != GLOBAL_NAME:
+                        print(f"#{'-'*60}\n# {self.__Prefix}\n#{'-'*60}\n")
+                print(self.Usage())
+                if self.__Parent is None:
+                    sys.exit(0)
+                return True
 
-# GLOBAL IMPORT
-            for OptionName,OptionPath in opts:
-                OptionName = self.__Make_OptName(OptionName)
-                if OptionName in self.__Glob_ImportList:
-                    FullPath = Path(OptionPath).resolve()
-                    if FullPath.exists():
-                        if FullPath.is_file():
-                            try:
-                                wGlobDict = JsonLoad(FullPath.open())
-                            except Exception as exc:
-                                wMsg = str(exc)
-                                raise self.ParamError(
+        for OptionName,OptionPath in opts:
+            OptionName = self.__Make_OptName(OptionName)
+            if OptionName in self.__Glob_ImportList:
+                FullPath = Path(OptionPath).resolve()
+                if FullPath.exists():
+                    if FullPath.is_file():
+                        try:
+                            wGlobDict = JsonLoad(FullPath.open())
+                        except Exception as exc:
+                            wMsg = str(exc)
+                            raise self.ParamError(
 
-                                    f"Import failed '{wMsg}' in {OptionPath} ({FullPath}) for parameter {OptionName}") from None # JsonError
-                            self.__AssignImportValues(wGlobDict, FileName=str(FullPath))
-                        else:
-                            raise self.ParamError(self._Translation['PathNoFile'].format(
-                        **{'OptionPath':OptionPath, 'OptionName':OptionName, 'FullPath': FullPath})) from None
-                                # f"The path {OptionPath} ({FullPath}) for parameter {OptionName} is not a file") from None # PathNoFile
+                                f"Import failed '{wMsg}' in {OptionPath} ({FullPath}) for parameter {OptionName}") from None # JsonError
+                        self.__AssignImportValues(wGlobDict, FileName=str(FullPath))
                     else:
                         raise self.ParamError(self._Translation['PathNoFile'].format(
-                        **{'OptionPath':OptionPath, 'OptionName':OptionName, 'FullPath': FullPath})) from None
+                    **{'OptionPath':OptionPath, 'OptionName':OptionName, 'FullPath': FullPath})) from None
                             # f"The path {OptionPath} ({FullPath}) for parameter {OptionName} is not a file") from None # PathNoFile
+                else:
+                    raise self.ParamError(self._Translation['PathNoFile'].format(
+                    **{'OptionPath':OptionPath, 'OptionName':OptionName, 'FullPath': FullPath})) from None
+                        # f"The path {OptionPath} ({FullPath}) for parameter {OptionName} is not a file") from None # PathNoFile
 
-# IMPORT
-            for OptionName, OptionPath in opts:
-                OptionName = self.__Make_OptName(OptionName)
-                if OptionName in self.__ImportList:
-                    FullPath = Path(OptionPath).resolve()
-                    if FullPath.exists():
-                        if FullPath.is_file():
+        for OptionName, OptionPath in opts:
+            OptionName = self.__Make_OptName(OptionName)
+            if OptionName in self.__ImportList:
+                FullPath = Path(OptionPath).resolve()
+                if FullPath.exists():
+                    if FullPath.is_file():
+                        try:
+                            wDict = JsonLoad(FullPath.open())
+                        except Exception as exc:
+                            wMsg = str(exc)
+                            raise self.ParamError(f"Import failed, {OptionPath} for parameter {OptionPath} is not a valid file") from None # JsonError
+                        for k in self.__WorkDict.keys():                # pylint: disable=consider-iterating-dictionary
                             try:
-                                wDict = JsonLoad(FullPath.open())
-                            except Exception as exc:
-                                wMsg = str(exc)
-                                raise self.ParamError(f"Import failed, {OptionPath} for parameter {OptionPath} is not a valid file") from None # JsonError
-                            for k in self.__WorkDict.keys():                # pylint: disable=consider-iterating-dictionary
-                                try:
-                                    self.__WorkDict[k] = wDict[k]
-                                except KeyError:
-                                    pass
-                        else:
-                            raise self.ParamError(self._Translation['PathNoFile'].format(
-                        **{'OptionPath':OptionPath, 'OptionName':OptionName, 'FullPath': FullPath})) from None
-                                # f"The path {OptionPath} ({FullPath}) for parameter {OptionName} is not a file") from None # PathNoFile
+                                self.__WorkDict[k] = wDict[k]
+                            except KeyError:
+                                pass
                     else:
                         raise self.ParamError(self._Translation['PathNoFile'].format(
-                        **{'OptionPath':OptionPath, 'OptionName':OptionName, 'FullPath': FullPath})) from None
-                            # f"The path {OptionPath} ({FullPath}) for parameter {OptionName} does not exist") from None # PathNoFile
-        else:
-# Other Options
-            for OptionName, OptionArg in opts:
-                OptionName = self.__Make_OptName(OptionName)
-                if OptionName in self.__HelpList:
-                    continue
-                if OptionName in self.__ImportList:
-                    continue
-                if OptionName in self.__Glob_ImportList:
-                    continue
-                if OptionName in self.__ExportList:
-                    continue
-                if OptionName in self.__Glob_ExportList:
-                    continue
-                try:
-                    ParName = self.__ParDict[OptionName]
-                except KeyError:
-                    continue
-                    # raise RuntimeError(f"Error, option {o} not found in ParDict")
-                try:
-                    wPar = self.__Definition[ParName]
-                except:
-                    raise RuntimeError(f"Internal error, option {ParName} not found in Definition") from None
-                if self.__WorkPars['needoption'] in wPar.keys():
-                    if wPar[self.__WorkPars['needoption']]:
-                        Res = self.__CheckOption(ParName,OptionName,wPar,OptionArg)
-                        if not Res is None:
-                            raise self.ParamError(Res) from None
-                        if wPar[self.__WorkPars['mode']] != self.__WorkModes['count']:
-                            continue
-                if wPar[self.__WorkPars['mode']] == self.__WorkModes['bool']:
-                    try:
-                        bVal = wPar[self.__WorkPars['default']]
-                    except KeyError:
-                        bVal = False
-                    self.__WorkDict[ParName] = not bVal
-                elif wPar[self.__WorkPars['mode']] == self.__WorkModes['count']:
-                    if '--' not in OptionName:
-                        self.__WorkDict[ParName] += 1
+                    **{'OptionPath':OptionPath, 'OptionName':OptionName, 'FullPath': FullPath})) from None
+                            # f"The path {OptionPath} ({FullPath}) for parameter {OptionName} is not a file") from None # PathNoFile
                 else:
-                    raise self.ParamError(self._Translation['OptionNotDefined'].format(
-                        **{'OptionName':OptionName}))
-                        # f"No action defined for {OptionName}")
+                    raise self.ParamError(self._Translation['PathNoFile'].format(
+                    **{'OptionPath':OptionPath, 'OptionName':OptionName, 'FullPath': FullPath})) from None
+                        # f"The path {OptionPath} ({FullPath}) for parameter {OptionName} does not exist") from None # PathNoFile
+        for OptionName, OptionArg in opts:
+            OptionName = self.__Make_OptName(OptionName)
+            if OptionName in self.__HelpList:
+                continue
+            if OptionName in self.__ImportList:
+                continue
+            if OptionName in self.__Glob_ImportList:
+                continue
+            if OptionName in self.__ExportList:
+                continue
+            if OptionName in self.__Glob_ExportList:
+                continue
+            try:
+                ParName = self.__ParDict[OptionName]
+            except KeyError:
+                continue
+                # raise RuntimeError(f"Error, option {o} not found in ParDict")
+            try:
+                wPar = self.__Definition[ParName]
+            except:
+                raise RuntimeError(f"Internal error, option {ParName} not found in Definition") from None
+            if self.__WorkPars['needoption'] in wPar.keys():
+                if wPar[self.__WorkPars['needoption']]:
+                    Res = self.__CheckOption(ParName,OptionName,wPar,OptionArg)
+                    if not Res is None:
+                        raise self.ParamError(Res) from None
+                    if wPar[self.__WorkPars['mode']] != self.__WorkModes['count']:
+                        continue
+            if wPar[self.__WorkPars['mode']] == self.__WorkModes['bool']:
+                try:
+                    bVal = wPar[self.__WorkPars['default']]
+                except KeyError:
+                    bVal = False
+                self.__WorkDict[ParName] = not bVal
+            elif wPar[self.__WorkPars['mode']] == self.__WorkModes['count']:
+                if '--' not in OptionName:
+                    self.__WorkDict[ParName] += 1
+            else:
+                raise self.ParamError(self._Translation['ParamNotDefined'].format(
+                    **{'OptionName':OptionName}))
+                    # f"No action defined for {OptionName}")
 
-            for OptionName, OptionArg in opts:
-                OptionName = self.__Make_OptName(OptionName)
-                if OptionName in self.__Glob_ExportList:
-                    self.__Glob_ExportStr = json.dumps(self.GetExportDict, sort_keys=True, indent=4, cls=self.__PathEncoder)
-                    self.__Glob_ExportStr += '\n'
-                    if self.__Parent is None:
-                        print(self.__Glob_ExportStr)
-                        sys.exit(0)
-                    return True
-                if OptionName in self.__ExportList:
-                    if self.__Prefix is not None:
-                        if self.__Prefix != '':
-                            print(f"//{'-'*60}\n// {self.__Prefix}\n//{'-'*60}\n")
-                    print(json.dumps(self.__WorkDict, sort_keys=True, indent=4, cls=self.__PathEncoder))
-                    if self.__Parent is None:
-                        sys.exit(0)
-                    return True
+        for OptionName, OptionArg in opts:
+            OptionName = self.__Make_OptName(OptionName)
+            if OptionName in self.__Glob_ExportList:
+                self.__Glob_ExportStr = json.dumps(self.GetExportDict, sort_keys=True, indent=4, cls=self.__PathEncoder)
+                self.__Glob_ExportStr += '\n'
+                if self.__Parent is None:
+                    print(self.__Glob_ExportStr)
+                    sys.exit(0)
+                return True
+            if OptionName in self.__ExportList:
+                if self.__Prefix is not None:
+                    if self.__Prefix != '':
+                        print(f"//{'-'*60}\n// {self.__Prefix}\n//{'-'*60}\n")
+                print(json.dumps(self.__WorkDict, sort_keys=True, indent=4, cls=self.__PathEncoder))
+                if self.__Parent is None:
+                    sys.exit(0)
+                return True
 
-            for DefArgName in self.__Definition.keys():
-                v = self.__Definition[DefArgName]
-                Req = False
-                if self.__WorkPars['required'] in v.keys():
-                    Req = v[self.__WorkPars['required']]
-                if Req:
-                    if not DefArgName in self.keys():
-                        ParList = self.__GetOptList(DefArgName)
-                        raise self.ParamError(self._Translation['OptionRequired'].format(
-                        **{'DefArgName':DefArgName, 'ParList':ParList})) from None
-                            # f"{DefArgName} ({ParList}) required but not given") from None
-        if IsFirst:
-            Erg = False
-            for c in self.__Children.values():
-                if c.__Process(IsFirst):                    # pylint: disable=W0212
-                    Erg = True
+        for DefArgName in self.__Definition.keys():
+            v = self.__Definition[DefArgName]
+            Req = False
+            if self.__WorkPars['required'] in v.keys():
+                Req = v[self.__WorkPars['required']]
+            if Req:
+                if not DefArgName in self.keys():
+                    ParList = self.__GetOptList(DefArgName)
+                    raise self.ParamError(self._Translation['ParamRequired'].format(
+                    **{'DefArgName':DefArgName, 'ParList':ParList})) from None
+                        # f"{DefArgName} ({ParList}) required but not given") from None
         return Erg
 
     def __AssignImportValues(self, wGlobDict:dict, FileName:str) -> None:
@@ -2147,11 +1691,11 @@ Def-dict: a dictionary of dictionaries
                 # return f"The name {a} for parameter {ParKey} is not a valid path"
             if a[0] != "/":
                 a = self.__MyPwd + "/" + a
-            try:
-                n = Path(a).resolve()
-            except [ValueError, OSError]:
-                return self._Translation['PathNoFile'].format(
-                    **{'OptionPath':a, 'OptionName':ParKey, 'FullPath': n})
+                try:
+                    n = Path(a).resolve()
+                except [ValueError, OSError]:
+                    return self._Translation['PathNoFile'].format(
+                        **{'OptionPath':a, 'OptionName':ParKey, 'FullPath': n})
                     # return f"The name {a} for parameter {ParKey} is not a valid path"
             if n.exists():
                 if n.is_file():
@@ -2226,11 +1770,6 @@ Def-dict: a dictionary of dictionaries
                 self.__WorkDict[ParName] = str(n)
         return None
 
-    def __Intersection(self, List1:list, List2:list) -> list:
-        if len(List2) > len(List1):
-            List1, List2 = List2, List1
-        return [value for value in List1 if value in List2]
-
     def GetRemainder(self) -> list:
         """
         Return list of additionel arguments on command-line
@@ -2238,36 +1777,7 @@ Def-dict: a dictionary of dictionaries
         Returns:
             list: List of additional arguments within runtime-arguments
         """
-        Rem = self.__RemainArgs
-        for c in self.__Children.values():
-            cRem = c.GetRemainder()
-            Rem = self.__Intersection(Rem, cRem)
-        return Rem
-
-    @property
-    def UnusedArgs(self) -> list:
-        """ Return list of not defined args from the commandline
-        This list is for the current Param-object and all of the children
-        of this Param-object.
-        So under normal conditions it makes only sense on the root of
-        all Param-objects.
-
-        Example:
-            root defines '-z'
-            child defines '-a'
-            commandline is "-a -z --test"
-
-            UnusedArgs of child is ['-z','--test']
-            UnusedArgs of root = ['--test']     which is the correct list of undefined args.
-
-        Returns:
-            list: list of undefined args (str)
-        """
-        Un = self.__UnusedArgs
-        for c in self.__Children.values():
-            cUn = c.UnusedArgs
-            Un = self.__Intersection(Un, cUn)
-        return Un
+        return self.__RemainArgs
 
     @property
     def LongOptsList(self) -> list:
@@ -2714,187 +2224,214 @@ Used long options:
 
 
 
-    class GetoptError(Exception):
-        """Eigene Fehlerklasse für OptionError"""
-        opt = ''
-        msg = ''
-        def __init__(self, msg, opt=''):
-            self.msg = msg
-            self.opt = opt
-            Exception.__init__(self, msg, opt)
+class GetoptError(Exception):
+    """Eigene Fehlerklasse für OptionError"""
+    opt = ''
+    msg = ''
+    def __init__(self, msg, opt=''):
+        self.msg = msg
+        self.opt = opt
+        Exception.__init__(self, msg, opt)
 
-        def __str__(self):
-            return self.msg
+    def __str__(self):
+        return self.msg
 
-    def _getopt(self, args, shortopts, longopts = [], AcceptAll = False):                 # pylint: disable=dangerous-default-value
-        """getopt(args, options[, long_options]) -> opts, args
+def _getopt(args, shortopts, longopts = [], AcceptAll = False):                 # pylint: disable=dangerous-default-value
+    """getopt(args, options[, long_options]) -> opts, args
 
-        Parses command line options and parameter list.  args is the
-        argument list to be parsed, without the leading reference to the
-        running program.  Typically, this means "sys.argv[1:]".  shortopts
-        is the string of option letters that the script wants to
-        recognize, with options that require an argument followed by a
-        colon (i.e., the same format that Unix getopt() uses).  If
-        specified, longopts is a list of strings with the names of the
-        long options which should be supported.  The leading '--'
-        characters should not be included in the option name.  Options
-        which require an argument should be followed by an equal sign
-        ('=').
+    Parses command line options and parameter list.  args is the
+    argument list to be parsed, without the leading reference to the
+    running program.  Typically, this means "sys.argv[1:]".  shortopts
+    is the string of option letters that the script wants to
+    recognize, with options that require an argument followed by a
+    colon (i.e., the same format that Unix getopt() uses).  If
+    specified, longopts is a list of strings with the names of the
+    long options which should be supported.  The leading '--'
+    characters should not be included in the option name.  Options
+    which require an argument should be followed by an equal sign
+    ('=').
 
-        The return value consists of two elements: the first is a list of
-        (option, value) pairs; the second is the list of program arguments
-        left after the option list was stripped (this is a trailing slice
-        of the first argument).  Each option-and-value pair returned has
-        the option as its first element, prefixed with a hyphen (e.g.,
-        '-x'), and the option argument as its second element, or an empty
-        string if the option has no argument.  The options occur in the
-        list in the same order in which they were found, thus allowing
-        multiple occurrences.  Long and short options may be mixed.
+    The return value consists of two elements: the first is a list of
+    (option, value) pairs; the second is the list of program arguments
+    left after the option list was stripped (this is a trailing slice
+    of the first argument).  Each option-and-value pair returned has
+    the option as its first element, prefixed with a hyphen (e.g.,
+    '-x'), and the option argument as its second element, or an empty
+    string if the option has no argument.  The options occur in the
+    list in the same order in which they were found, thus allowing
+    multiple occurrences.  Long and short options may be mixed.
 
-        """
-        unused = []
-        opts = []
-        if isinstance(longopts, str):
-            longopts = [longopts]
+    """
+
+    opts = []
+    if isinstance(longopts, str):
+        longopts = [longopts]
+    else:
+        longopts = list(longopts)
+    while args and args[0].startswith('-') and args[0] != '-':
+        if args[0] == '--':
+            args = args[1:]
+            break
+        if args[0].startswith('--'):
+            opts, args = _do_longs(opts, args[0][2:], longopts, args[1:],AcceptAll)
         else:
-            longopts = list(longopts)
-        while args and args[0].startswith('-') and args[0] != '-':
-            if args[0] == '--':
+            opts, args = _do_shorts(opts, args[0][1:], shortopts, args[1:],AcceptAll)
+
+    return opts, args
+
+def _gnu_getopt(args, shortopts, longopts = [], AcceptAll = False):                 # pylint: disable=dangerous-default-value
+    """getopt(args, options[, long_options]) -> opts, args
+
+    This function works like getopt(), except that GNU style scanning
+    mode is used by default. This means that option and non-option
+    arguments may be intermixed. The getopt() function stops
+    processing options as soon as a non-option argument is
+    encountered.
+
+    If the first character of the option string is `+', or if the
+    environment variable POSIXLY_CORRECT is set, then option
+    processing stops as soon as a non-option argument is encountered.
+
+    """
+
+    opts = []
+    prog_args = []
+    if isinstance(longopts, str):
+        longopts = [longopts]
+    else:
+        longopts = list(longopts)
+
+    # Allow options after non-option arguments?
+    if shortopts.startswith('+'):
+        shortopts = shortopts[1:]
+        all_options_first = True
+    elif os.environ.get("POSIXLY_CORRECT"):
+        all_options_first = True
+    else:
+        all_options_first = False
+
+    while args:
+        if args[0] == '--':
+            prog_args += args[1:]
+            break
+
+        if args[0][:2] == '--':
+            opts, args = _do_longs(opts, args[0][2:], longopts, args[1:], AcceptAll)
+        elif args[0][:1] == '-' and args[0] != '-':
+            opts, args = _do_shorts(opts, args[0][1:], shortopts, args[1:], AcceptAll)
+        else:
+            if all_options_first:
+                prog_args += args
+                break
+            else:
+                prog_args.append(args[0])
                 args = args[1:]
-                break
-            if args[0].startswith('--'):
-                opts, args, unused = self._do_longs(opts, args[0][2:], longopts, args[1:],unused,AcceptAll)
-            else:
-                opts, args, unused = self._do_shorts(opts, args[0][1:], shortopts, args[1:],unused,AcceptAll)
 
-        return opts, args, unused
+    return opts, prog_args
 
-    def _gnu_getopt(self, args, shortopts, longopts = [], AcceptAll = False):                 # pylint: disable=dangerous-default-value
-        """getopt(args, options[, long_options]) -> opts, args
-
-        This function works like getopt(), except that GNU style scanning
-        mode is used by default. This means that option and non-option
-        arguments may be intermixed. The getopt() function stops
-        processing options as soon as a non-option argument is
-        encountered.
-
-        If the first character of the option string is `+', or if the
-        environment variable POSIXLY_CORRECT is set, then option
-        processing stops as soon as a non-option argument is encountered.
-
-        """
-        unused = []
-        opts = []
-        prog_args = []
-        if isinstance(longopts, str):
-            longopts = [longopts]
-        else:
-            longopts = list(longopts)
-
-        # Allow options after non-option arguments?
-        if shortopts.startswith('+'):
-            shortopts = shortopts[1:]
-            all_options_first = True
-        elif os.environ.get("POSIXLY_CORRECT"):
-            all_options_first = True
-        else:
-            all_options_first = False
-
-        while args:
-            if args[0] == '--':
-                prog_args += args[1:]
-                break
-
-            if args[0][:2] == '--':
-                opts, args, unused = self._do_longs(opts, args[0][2:], longopts, args[1:], unused, AcceptAll)
-            elif args[0][:1] == '-' and args[0] != '-':
-                opts, args, unused = self._do_shorts(opts, args[0][1:], shortopts, args[1:], unused, AcceptAll)
-            else:
-                if all_options_first:
-                    prog_args += args
-                    break
-                else:
-                    prog_args.append(args[0])
-                    args = args[1:]
-
-        return opts, prog_args, unused
-
-    def _do_longs(self, opts, opt, longopts, args, unused, AcceptAll = False):
+def _do_longs(opts, opt, longopts, args, AcceptAll = False):
+    try:
+        i = opt.index('=')
+    except ValueError:
+        optarg = None
+    else:
+        opt, optarg = opt[:i], opt[i+1:]
+    if AcceptAll:
         try:
-            i = opt.index('=')
-        except ValueError:
-            optarg = None
-        else:
-            opt, optarg = opt[:i], opt[i+1:]
+            has_arg, opt = _long_has_args(opt, longopts)
+        except GetoptError:
+            return opts, args
+    else:
+        has_arg, opt = _long_has_args(opt, longopts)
+    if has_arg:
+        if optarg is None:
+            if not args:
+                raise GetoptError('option --%s requires argument' % opt, opt)
+            optarg, args = args[0], args[1:]
+    elif optarg is not None:
+        raise GetoptError('option --%s must not have an argument' % opt, opt)
+    opts.append(('--' + opt, optarg or ''))
+    return opts, args
+
+# Return:
+#   has_arg?
+#   full option name
+def _long_has_args(opt, longopts):
+    possibilities = [o for o in longopts if o.startswith(opt)]
+    if not possibilities:
+        raise GetoptError('option --%s not recognized' % opt, opt)
+    # Is there an exact match?
+    if opt in possibilities:
+        return False, opt
+    elif opt + '=' in possibilities:
+        return True, opt
+    # No exact match, so better be unique.
+    if len(possibilities) > 1:
+        # since possibilities contains all valid continuations, might be
+        # nice to work them into the error msg
+        raise GetoptError('option --%s not a unique prefix' % opt, opt)
+    assert len(possibilities) == 1
+    unique_match = possibilities[0]
+    has_arg = unique_match.endswith('=')
+    if has_arg:
+        unique_match = unique_match[:-1]
+    return has_arg, unique_match
+
+def _do_shorts(opts, optstring, shortopts, args, AcceptAll = False):
+    while optstring != '':
+        opt, optstring = optstring[0], optstring[1:]
         if AcceptAll:
             try:
-                has_arg, opt = self._long_has_args(opt, longopts)
-            except self.GetoptError:
-                unused.append('--' + opt)
-                return opts, args, unused
+                wHasArgs = _short_has_arg(opt, shortopts)
+            except GetoptError:
+                wHasArgs = False
         else:
-            has_arg, opt = self._long_has_args(opt, longopts)
-        if has_arg:
-            if optarg is None:
+            wHasArgs = _short_has_arg(opt, shortopts)
+        if wHasArgs:
+            if optstring == '':
                 if not args:
-                    raise self.GetoptError(self._Translation['OptionRequiresArgumentLong'].format(**{'opt':opt}),opt)
-                optarg, args = args[0], args[1:]
-        elif optarg is not None:
-            raise self.GetoptError(self._Translation['OptionNeedNoArgs'].format(**{'opt':opt}), opt)
-        opts.append(('--' + opt, optarg or ''))
-        return opts, args, unused
+                    raise GetoptError('option -%s requires argument' % opt, opt)
+                optstring, args = args[0], args[1:]
+            optarg, optstring = optstring, ''
+        else:
+            optarg = ''
+        opts.append(('-' + opt, optarg))
+    return opts, args
 
-    # Return:
-    #   has_arg?
-    #   full option name
-    def _long_has_args(self, opt, longopts):
-        possibilities = [o for o in longopts if o.startswith(opt)]
-        if not possibilities:
-            raise self.GetoptError(self._Translation['OptionNotRecognizedLong'].format(**{'opt':opt}), opt)
-        # Is there an exact match?
-        if opt in possibilities:
-            return False, opt
-        elif opt + '=' in possibilities:
-            return True, opt
-        # No exact match, so better be unique.
-        if len(possibilities) > 1:
-            # since possibilities contains all valid continuations, might be
-            # nice to work them into the error msg
-            raise self.GetoptError(self._Translation['ParNoUniquePrefix'].format(**{'opt':opt}), opt)
-        assert len(possibilities) == 1
-        unique_match = possibilities[0]
-        has_arg = unique_match.endswith('=')
-        if has_arg:
-            unique_match = unique_match[:-1]
-        return has_arg, unique_match
+def _short_has_arg(opt, shortopts):
+    for i in range(len(shortopts)):                         # pylint: disable=consider-using-enumerate
+        if opt == shortopts[i] != ':':
+            return shortopts.startswith(':', i+1)
+    raise GetoptError('option -%s not recognized' % opt, opt)
 
-    def _do_shorts(self, opts, optstring, shortopts, args, unused, AcceptAll = False):
-        while optstring != '':
-            opt, optstring = optstring[0], optstring[1:]
-            if AcceptAll:
-                try:
-                    wHasArgs = self._short_has_arg(opt, shortopts)
-                except self.GetoptError:
-                    unused.append('-' + opt)
-                    wHasArgs = False
-            else:
-                wHasArgs = self._short_has_arg(opt, shortopts)
-            if wHasArgs:
-                if optstring == '':
-                    if not args:
-                        raise self.GetoptError(self._Translation['OptionRequiresArgumentShort'].format(**{'opt':opt}), opt)
-                    optstring, args = args[0], args[1:]
-                optarg, optstring = optstring, ''
-            else:
-                optarg = ''
-            opts.append(('-' + opt, optarg))
-        return opts, args, unused
 
-    def _short_has_arg(self, opt, shortopts):
-        for i in range(len(shortopts)):                         # pylint: disable=consider-using-enumerate
-            if opt == shortopts[i] != ':':
-                return shortopts.startswith(':', i+1)
-        raise self.GetoptError(self._Translation['OptionNotRecognizedShort'].format(**{'opt':opt}), opt)
+Translation_de_DE:dict = {
+    """Translation for de_DE"""
+   'HigherUp':
+        "Der Wert '{OptValue}' für den Parameter {ParKey} ist größer als das obere Limit ({UppLimit})",
+    'JsonError':
+        "Fehler beim Import '{wMsg}' aus der Datei {OptionPath} ({FullPath}) für den Parameter {OptionName}",
+    'LessLow':
+        "Der Wert '{OptValue}' für den Parameter {ParKey} ist kleiner als das untere Limit ({LowLimit})",
+    'NoBool':
+        "Der Wert '{OptValue}' für den Parameter {ParKey} ist kein Wahrheitswert (YyTtJj1NnFf0)",
+    'NoFloat':
+        "Der Wert '{OptValue}' für den Parameter {ParKey} ist keine gültige Fließkommazahl",
+    'NoInt':
+        "Value '{OptValue}' für den Parameter {ParKey} ist keine gültige Ganzzahl",
+    'ParamNotDefined':
+        "Der Parameter '{OptionName}' ist ungültig",
+    'ParamRequired':
+        "Der Parameter '{DefArgName}' ({ParList}) muß angegeben werden",
+    'PathNoDir':
+        "Die Pfadangabe '{OptionPath}' ({FullPath}) für den Parameter {OptionName} ist kein Verzeichnis",
+    'PathNoFile':
+        "Die Pfadangabe '{OptionPath}' ({FullPath}) für den Parameter {OptionName} ist keine Datei",
+    'PathNoPath':
+        "Die Pfadangabe '{OptionPath}' ({FullPath}) für den Parameter {OptionName} ist bei diesem Dateisystem ungültig",
+    'PrefixError':
+        "Der angegebene Prefix für den Parameter '{OptionName}' ist ungültig"
+    }
 
 
 
@@ -3190,8 +2727,7 @@ Konsole und nicht auf syslog""",
                         'Def': TestDef_Beta,
                         'Desc': "Description Beta",
                         }
-                    },
-                # HelpType=3
+                    }
                 )
         m.Child['alpha'].AddChild(Prefix='Gamma', Def=TestDef_Gamma, Description="Eine eingefügte Ebene")
         m.SetTranslation(Translation_de_DE)
@@ -3199,18 +2735,16 @@ Konsole und nicht auf syslog""",
         # m._PrintAktualTranslation()                  # pylint: disable=protected-access
         # m.Child['alpha']._PrintAktualTranslation()                  # pylint: disable=protected-access
         try:
-            # m.SetArgs(Args = shlex.split(__name__ + ' ' + '-vv -h --globexport --config=xyz.json'))
-            # m.SetArgs(Args = shlex.split(__name__ + ' ' + '--path=./xyz.json --globexport'))
-            # m.SetArgs(Args = shlex.split(__name__ + ' ' + '-g xyz.json'))
-            # m.SetArgs(Args = shlex.split(__name__ + ' ' + '-vv --globexport --config=xyz.json'))
-
-            m.SetArgs(Args = shlex.split(__name__ + ' ' + '--zzz -zz'))
+            # m.SetArgs(Args = shlex.split('Test -vv -h --globexport --config=xyz.json'))
+            # m.SetArgs(Args = shlex.split('Test --path=./xyz.json --globexport'))
+            # m.SetArgs(Args = shlex.split('Test -g xyz.json'))
+            # m.SetArgs(Args = shlex.split('Test -vv --globexport --config=xyz.json'))
+            m.SetArgs(Args = shlex.split('Test -b n'))
 
             Erg = m.Process()
         except Exception as exc:                                    # pylint: disable=broad-except
             print(exc)
-            Erg = True
-            # return
+            return
         if Erg:         # Es war eine terminale Funktion in der Commandline (Help, Export, GlobalExport) -> Programmende
             return
 
@@ -3267,7 +2801,7 @@ Konsole und nicht auf syslog""",
             # Translate = Trans,
             AllParams = True
             )
-        a.SetArgs(Args = shlex.split('Test -v -CCC -f /Mist --dir=/tmp'))
+        # a.SetArgs(Args = shlex.split('Test -v -CCC -f /Mist --dir=/tmp'))
         try:
             a.Process()
         except Exception as exc:                                    # pylint: disable=broad-except

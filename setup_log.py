@@ -8,7 +8,8 @@ with open("README_Log.md", "r") as fh:
 
 setuptools.setup(
     name="pcs_log",
-    version="0.3.7",
+    version="0.6.0",
+    python_requires='>=3.6',
     author="Rainer Pietsch",
     author_email="r.pietsch@pcs-at.com",
     description="Generic logger",

@@ -11,7 +11,7 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "justMyCode": true,
-            "args": ["-vvvv",  "-d", "--logdebugport=65432","--verbose=4", "--logstackdepth=3", "--logstackondebug=Warning"]
+            "args": ["-b","0","-s","-d","-vvvv"]
         }
     ]
 }

@@ -3,7 +3,7 @@
 
 from Log_Args import LogDef
 GlobalDef = {
-    'Help': {   
+    'Help': {
         's': 'h',
         'l': 'help',
         'm': 'H',
@@ -15,32 +15,40 @@ GlobalDef = {
         'r': False,
         'm': 'C',
         'd': """Ausgabe von Statusmeldungen
-für mehr Details die kurze Option mehrmals angeben oder 
+für mehr Details die kurze Option mehrmals angeben oder
 die lange Option mit einer höheren Zahl verwenden.""",
         },
     'Quiet': {
-        's': 'q', 
-        'l': 'quiet', 
-        'm': 'b', 
+        's': 'q',
+        'l': 'quiet',
+        'm': 'b',
         'd': 'Nur Fehler ausgeben'
         },
-    'Export': { 
+    'Export': {
         's': 'x',
         'l': 'export',
         'm': 'X',
         'd': 'Ausgabe der aktuellen Konfiguration und Beenden'
         },
-    'GlobalExport': { 
+    'ConfFile': {
+        's': 'c',
+        'l': 'config',
+        'm': 'x',
+        'd': '''Zuerst die Werte aus der Datei lesen,
+        danach erst die Komandozeilenparameter'''
+        },
+    'GlobalExport': {
         'l': 'globexport',
         'm': '>',
         'd': 'Ausgabe aller Konfigurationen und Beenden'
         },
-    'ConfFile': {   
-        's': 'c',
-        'l': 'config',
-        'm': 'x',
-        'd': '''Zuerst die Werte aus der Datei lesen, 
-        danach erst die Komandozeilenparameter'''
+    'GlobImport': {
+        's': 'g',
+        'l': 'globconfig',
+        'm': '<',
+        'o': True,
+        'd': '''Globale Config. Zuerst die Werte aus der Datei lesen,
+danach erst die Komandozeilenparameter'''
         },
     'NoDaemon': {
         's': 'd',
@@ -57,7 +65,7 @@ TestDef_Alpha =     {
         'l': ('count','Count'),
         'r': True,
         'o': True,
-        'v': 7,
+        # 'v': 7,
         'm': 'i',
         'L': 1,
         'U': 10,
@@ -67,6 +75,8 @@ TestDef_Alpha =     {
         's': 't',
         'l': ('text','Text'),
         'o': True,
+        'L': 'a',
+        'U': 'zAA',
         'v': '',
         'm': 't',
         'd': 'Ein Text',
@@ -74,7 +84,7 @@ TestDef_Alpha =     {
     }
 
 TestDef_Beta =     {
-#    'Help': {   
+#    'Help': {
 #        's': 'h',
 #        'l': 'help',
 #        'm': 'H',
@@ -83,24 +93,25 @@ TestDef_Beta =     {
     }
 
 TestDef_Gamma =     {
-    'Xy': {   
+    'Xy': {
         's': 'b',
         'l': 'bbbb',
+        'o': True,
         'm': 'b',
         'd': 'Ein Switch'
         },
     }
 
-Children = { 
-    'Log': 
+Children = {
+    'Log':
         {
-        'Desc': "Logging Optionen", 
-        'Def': LogDef, 
+        'Desc': "Logging Optionen",
+        'Def': LogDef,
         },
-    'Alpha': 
+    'Alpha':
         {
-        'Desc': "Description Alpha", 
-        'Def': TestDef_Alpha, 
+        'Desc': "Description Alpha",
+        'Def': TestDef_Alpha,
         'Children': {
             'Gamma': {
                 'Desc': "Description Gammy",
@@ -110,8 +121,8 @@ Children = {
         },
     'Beta':
         {
-        'Def': TestDef_Beta, 
+        'Def': TestDef_Beta,
         'Desc': "Description Beta",
-        'Children': {} 
+        'Children': {}
         }
     }

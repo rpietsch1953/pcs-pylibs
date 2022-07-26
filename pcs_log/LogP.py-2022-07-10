@@ -7,35 +7,35 @@ Usage:
     import logging
     from pcs_log.LogP import LogP
 
-    .... you have to import this both in all your modules you like to
-    use this logging. But you only need to SetupLogging once.
-
-    .... Later within your program call this function:
+    .... you have to import this both in all your modules you like to 
+    use this logging. But you only need to SetupLogging once.  
+    
+    .... Later within your program call this function: 
     (You can call it more than once to change to another format)
 
-LogP.SetupLogging(  AppName, Verbose, NoDaemon, StdErr, LogPath,
-                    LogFileInterval, LogFileCount, Quiet,
-                    LogProcInfo, LogProcInfoModLen,
-                    LogProcInfoFuncLen, LogLevelType,
-                    LogMultiProc, LogMultiProcLen,
-                    LogMultiThread, LogMultiThreadLen,
-                    LogStackOnDebug, LogStackDepth, LogDebugIp,
-                    LogDebugPort, LogDebugCacheSize, NoReset,
-                    LogLongLevel, translation)
+LogP.SetupLogging(  AppName, Verbose, NoDaemon, StdErr, LogPath,  
+                    LogFileInterval, LogFileCount, Quiet,  
+                    LogProcInfo, LogProcInfoModLen,  
+                    LogProcInfoFuncLen, LogLevelType,  
+                    LogMultiProc, LogMultiProcLen,  
+                    LogMultiThread, LogMultiThreadLen,  
+                    LogStackOnDebug, LogStackDepth, LogDebugIp,  
+                    LogDebugPort, LogDebugCacheSize, NoReset,  
+                    translation)
 
 --------------------------------------------------
 
     Args:
         All args are only named arguments!
-
+        
         AppName (str): Name of application
 
         Verbose (int, optional): Detail of logging. Defaults to 0.
                                 0 = ERROR and STATUS
-                                1 = MSG, WARNING, STATUS, ERROR
-                                2 = INFO, MSG, WARNING, STATUS, ERROR
-                                3 = DEBUG, INFO, MSG, WARNING, STATUS, ERROR
-                                4 = TRACE, DEBUG, INFO, MSG, WARNING, STATUS, ERROR
+                                1 = MSG, WARNING, STATUS, ERROR 
+                                2 = INFO, MSG, WARNING, STATUS, ERROR 
+                                3 = DEBUG, INFO, MSG, WARNING, STATUS, ERROR 
+                                4 = TRACE, DEBUG, INFO, MSG, WARNING, STATUS, ERROR 
 
         NoDaemon (bool, optional): Is this an terminal-task. Defaults to True.
                                 If this is false => i am a daemon.
@@ -59,7 +59,7 @@ LogP.SetupLogging(  AppName, Verbose, NoDaemon, StdErr, LogPath,
 
         LogProcInfo (bool, optional): Show process and thread. Defaults to False.
 
-        LogLevelType (int, optional): Format of LevelInfo. 0=None, 1=Number, 2=Name, 3=Both.
+        LogLevelType (int, optional): Format of LevelInfo. 0=None, 1=Number, 2=Name, 3=Both. 
                                     Defaults to 2.
 
         LogMultiProc (bool, optional): Show process-names. Defaults to False.
@@ -80,57 +80,36 @@ LogP.SetupLogging(  AppName, Verbose, NoDaemon, StdErr, LogPath,
                                     All other values are interpretet as "NONE".
                                     Value is not case-sensitive.
 
-        LogLongLevel (str, optional): Log-level below or equal a long info is included.
-                                    Above this level except the ERROR-level the fields
-                                        processname, threadname,module, line-no and levelinfo
-                                    are not within the output.
-                                    Alternative this can be a comma-separated list of levelnames
-                                    in this case for this log-levels long infos are provided.
-                                    Within this list "NONE" is ignored.
-                                    Defaults to "DEBUG".
-                                    The levels are:
-                                        "ERROR"
-                                        "STATUS"
-                                        "WARNING"
-                                        "MSG"
-                                        "INFO"
-                                        "DEBUG"
-                                        "TRACE"
-                                        "NONE"
-                                    All other values are interpretet as "NONE".
-                                    Value is not case-sensitive.
+        LogStackDepth (int, optional): Maximum number of call-stack entries to display. Defaults to 5.
 
-        LogStackDepth (int, optional): Maximum number of call-stack entries to display.
-                                       Defaults to 5.
-
-        LogDebugPort (int, optional): If 0 no debug-server is started. Else the value has to be
-                                    between 1024 and 65535. A log-server is started on 'LogDebugIp'
-                                    at port 'LogDebugPort'.
-                                    It is possible to connect to this port (e.g with telnet) to
+        LogDebugPort (int, optional): If 0 no debug-server is started. Else the value has to be 
+                                    between 1024 and 65535. A log-server is started on 'LogDebugIp' 
+                                    at port 'LogDebugPort'. 
+                                    It is possible to connect to this port (e.g with telnet) to 
                                     receive ALL log-messages from this program. ALL means really
-                                    all, no mather which loglevel is set. This output also
-                                    includes all possible information about process, thread,
+                                    all, no mather which loglevel is set. This output also 
+                                    includes all possible information about process, thread, 
                                     module and function. The stacktrace ('LogStackOnDebug') is also
                                     honored. This output can be really heavy, but can help to debug
-                                    already running programs without the need to restart with
+                                    already running programs without the need to restart with 
                                     another loglevel.
-                                    This server runs as a separated process and you have to
-                                    terminate it by calling the'Stop' and afterward 'Join' or
-                                    'Kill'-function of the returned 'PortLogServer'-object,
-                                    otherwise this process may block the termination of your
-                                    program. This server will restart himselve if it is terminated
+                                    This server runs as a separated process and you have to 
+                                    terminate it by calling the'Stop' and afterward 'Join' or 
+                                    'Kill'-function of the returned 'PortLogServer'-object, 
+                                    otherwise this process may block the termination of your 
+                                    program. This server will restart himselve if it is terminated 
                                     by any means except you call the above mentioned functions.
                                     This port has to be free. Defaults to 0.
-
-        LogDebugIp (str, optional): The IP-address to bind to. This address must exist on the host
-                                    this program is running. '0.0.0.0' for 'all IPs' is also
-                                    valid. Only examined if 'LogDebugPort' > 0.
+                                    
+        LogDebugIp (str, optional): The IP-address to bind to. This address must exist on the host 
+                                    this program is running. '0.0.0.0' for 'all IPs' is also 
+                                    valid. Only examined if 'LogDebugPort' > 0. 
                                     Defaults to '127.0.0.1',
-
-        LogDebugCacheSize (int, optional): Only used if 'LogDebugPort' > 0. This is the number of
-                                    log-messages cached for use at a new connection to the
+                                    
+        LogDebugCacheSize (int, optional): Only used if 'LogDebugPort' > 0. This is the number of 
+                                    log-messages cached for use at a new connection to the 
                                     server. So if someone connects to the server he receives the
-                                    last 'LogDebugCacheSize' log messages and after them all new
+                                    last 'LogDebugCacheSize' log messages and after them all new 
                                     messages.
                                     This is like a history. if set to 0 this function is disabled.
                                     Defaults to 100.
@@ -150,79 +129,82 @@ LogP.SetupLogging(  AppName, Verbose, NoDaemon, StdErr, LogPath,
 --------------------------------------------------
 
 After calling this function the new logging is set up. Use the standard functions
-    logger.error, logger.warning, etc and additional you can use logger.msg,
-    logger.status and logger.trace.
-The severity is in descending order:
+    logger.error, logger.warning, etc and additional you can use logger.msg, logger.status and logger.trace.
+The severity is in descending order:   
   ERROR, STATUS, WARNING, MSG, INFO, DEBUG, TRACE
 
 --------------------------------------------------
-
- At the end of your program call:
-    LogP.Stop()
-this will stop the optional logger-process which send the output to a telnet-connection
-if LogDebugPort is not 0.
+  
+ At the end of your program call:  
+    LogP.Stop()  
+this will stop the optional logger-process which send the output to a telnet-connection if LogDebugPort is not 0.
 --------------------------------------------------
 
 
 
-Output format:
-    General overview:
-        2022-06-22 07:37:42,494 Appname:MainProcess:MainThread LogP:main:461 - 40=   ERROR - Message
-                                ^       ^           ^          ^               ^     ^       ^
-                                |       |           |          |               |     |       |
-        Name of application ----+       |           |          |               |     |       |
-            only if not StdErr          |           |          |               |     |       |
-        Name of procvess ---------------+           |          |               |     |       |
-            if LogMultiProc = true                  |          |               |     |       |
-        Name of thread if --------------------------+          |               |     |       |
-            LogMultiThread = true                              |               |     |       |
-        Module, function and linenumber -----------------------+               |     |       |
-            only if LogProcInfo = true                                         |     |       |
-        Level-number of message if LogLevelType = 1 or 3 ----------------------+     |       |
-        Level-name of message if LogLevelType = 2 or 3 ------------------------------+       |
-        The message given to the log-call ---------------------------------------------------+
+    Output format:
+        General overview:
+            2022-06-22 07:37:42,494 Appname:MainProcess:MainThread LogP:main:461 - 40=   ERROR - Message
+                                    ^       ^           ^          ^               ^     ^       ^
+                                    |       |           |          |               |     |       |
+            Name of application ----+       |           |          |               |     |       |
+                only if not StdErr          |           |          |               |     |       |
+            Name of procvess ---------------+           |          |               |     |       |
+                if LogMultiProc = true                  |          |               |     |       |
+            Name of thread if --------------------------+          |               |     |       |
+                LogMultiThread = true                              |               |     |       |
+            Module, function and linenumber -----------------------+               |     |       |
+                only if LogProcInfo = true                                         |     |       |
+            Level-number of message if LogLevelType = 1 or 3 ----------------------+     |       |
+            Level-name of message if LogLevelType = 2 or 3 ------------------------------+       |
+            The message given to the log-call ---------------------------------------------------+
 
-        The minimal log entry for StdErr is:
-            2022-06-22 07:37:42,494 Errormessage
-        The maximal log entry is shown above.
+            The minimal log entry for StdErr is:
+                2022-06-22 07:37:42,494 Errormessage
+            The maximal log entry is shown above.
 
-    The output format to StdErr is like this:
-        2022-06-22 07:37:42,494 MainProcess:MainThread LogP:main:461     - 40=   ERROR - Message
-            No "Appname" because you know whitch program is running
+        The output format to StdErr is like this:
+            2022-06-22 07:37:42,494 MainProcess:MainThread LogP:main:461     - 40=   ERROR - Message
+                No "Appname" because you know whitch program is running 
 
-    The output format to sylog like this:
-        Appname:MainProcess:MainThread LogP:main:461 - 40=   ERROR - Errormessage
-            No timestamp because syslogg adds his own timestamp.
+        The output format to sylog like this:
+            Appname:MainProcess:MainThread LogP:main:461 - 40=   ERROR - Errormessage
+                No timestamp because syslogg adds his own timestamp.
 
-    The output format to a logfile is like this:
-        2022-06-22 07:37:42,494 Appname:MainProcess:MainThread LogP:main:461 - 40=   ERROR - Message
-
-
-    if a call-stack trace is requested lines like these are appended:
-            File "./LogP.py", line 471, in <module>
-            main()
-            File "./LogP.py", line 448, in main
-            abc()
-            File "./LogP.py", line 411, in abc
-            LogP.debug('Debug')
+        The output format to a logfile is like this:
+            2022-06-22 07:37:42,494 Appname:MainProcess:MainThread LogP:main:461 - 40=   ERROR - Message
 
 
+        if a call-stack trace is requested lines like these are appended:
+                File "./LogP.py", line 471, in <module>
+                main()
+                File "./LogP.py", line 448, in main
+                abc()
+                File "./LogP.py", line 411, in abc
+                LogP.debug('Debug')
+
+                            
 """
-from typing import Union
 import logging
 import logging.config
 import time
+import os
 import sys
 import warnings
 import multiprocessing
-from functools import partial
+from functools import partialmethod, partial
 import socket
+import time
+import sys
+import signal
+import logging
+import logging.config
+import multiprocessing
 from ctypes import c_bool
-import copy
-import pprint
-import traceback
 import netifaces
 import setproctitle
+import copy
+import pprint
 
 _KEEP = 'keep'
 _KEEP_WARN = 'keep-warn'
@@ -234,58 +216,35 @@ _WARNING = logging.WARNING
 _MSG = logging.WARNING - 1
 _INFO = logging.INFO
 _DEBUG = logging.DEBUG
-_TRACE = logging.DEBUG - 5
+_TRACE = logging.DEBUG -5 
 
-_Translation:dict = {}
-
-
+    
 class _LogP():
-
+    
     def __init__(self):
-        global _Translation
         self._Translation = {}
-        self._InitTranslation = {                        # pylint: disable=C0301
-            'HostIsNoString':
-                "{ClassName} host (type = {HostType}) is not a string - object",
-            'HostIsNoValidIp':
-                "{ClassName} host '{host}' is not an valid IP of this computer",
-            'InvalidPortNumber':
-                "{ClassName} port (={port}) must be between 1024 and 65535",
-            'QueueIsInvalid':
-                "{ClassName} queue (type={QueueType}) is not a multiprocessing.Queue - object",
-            'LogDebugPortNoInt':
-                "{ClassName} 'LogDebugPort' (= {LogDebugPort}) can't be converted to an integer",
-            'LogProcInfoModLenNoInt':
-                "{ClassName} 'LogProcInfoModLen' (= {LogProcInfoModLen}) can't be converted to an integer",
-            'LogProcInfoModLenNeg':
-                "{ClassName} 'LogProcInfoModLen' (= {LogProcInfoModLen}) can't be negative",
-            'LogProcInfoFuncLenNoInt':
-                "{ClassName} 'LogProcInfoFuncLen' (= {LogProcInfoFuncLen}) can't be converted to an integer",
-            'LogProcInfoFuncLenNeg':
-                "{ClassName} 'LogProcInfoFuncLen' (= {LogProcInfoFuncLen}) can't be negative",
-            'LogMultiProcLenNoInt':
-                "{ClassName} 'LogMultiProcLen' (= {LogMultiProcLen}) can't be converted to an integer",
-            'LogMultiProcLenNeg':
-                "{ClassName} 'LogMultiProcLen' (= {LogMultiProcLen}) can't be negative",
-            'LogMultiThreadLenNoInt':
-                "{ClassName} 'LogMultiThreadLen' (= {LogMultiThreadLen}) can't be converted to an integer",
-            'LogMultiThreadLenNeg':
-                "{ClassName} 'LogMultiThreadLen' (= {LogMultiThreadLen}) can't be negative",
-            'LogDebugCacheSizeNoInt':
-                "{ClassName} 'LogDebugCacheSize' (= {LogDebugCacheSize}) can't be converted to an integer",
-            'LogDebugCacheSizeNeg':
-                "{ClassName} 'LogDebugCacheSize' (= {LogDebugCacheSize}) can't be negative",
-            'LogStackOnDebugNoStr':
-                "{ClassName} 'LogStackOnDebug' (= {LogStackOnDebug}) is not a string",
-            'LogLongLevelNoStr':
-                "{ClassName} 'LogLongLevel' (= {LogLongLevel}) is not a string",
-            'LogLevelTypeNoInt':
-                "{ClassName} 'LogLevelType' (= {LogLevelType}) can't be converted to an integer",
-        }
+        self._InitTranslation = {
+            'HostIsNoString':           "{ClassName} host (type = {HostType}) is not a string - object",
+            'HostIsNoValidIp':          "{ClassName} host '{host}' is not an valid IP of this computer",
+            'InvalidPortNumber':        "{ClassName} port (={port}) must be between 1024 and 65535",
+            'QueueIsInvalid':           "{ClassName} queue (type={QueueType}) is not a multiprocessing.Queue - object",
+            'LogDebugPortNoInt':        "{ClassName} 'LogDebugPort' (= {LogDebugPort}) can't be converted to an integer",
+            'LogProcInfoModLenNoInt':   "{ClassName} 'LogProcInfoModLen' (= {LogProcInfoModLen}) can't be converted to an integer",
+            'LogProcInfoModLenNeg':     "{ClassName} 'LogProcInfoModLen' (= {LogProcInfoModLen}) can't be negative",
+            'LogProcInfoFuncLenNoInt':  "{ClassName} 'LogProcInfoFuncLen' (= {LogProcInfoFuncLen}) can't be converted to an integer",
+            'LogProcInfoFuncLenNeg':    "{ClassName} 'LogProcInfoFuncLen' (= {LogProcInfoFuncLen}) can't be negative",
+            'LogMultiProcLenNoInt':     "{ClassName} 'LogMultiProcLen' (= {LogMultiProcLen}) can't be converted to an integer",
+            'LogMultiProcLenNeg':       "{ClassName} 'LogMultiProcLen' (= {LogMultiProcLen}) can't be negative",
+            'LogMultiThreadLenNoInt':   "{ClassName} 'LogMultiThreadLen' (= {LogMultiThreadLen}) can't be converted to an integer",
+            'LogMultiThreadLenNeg':     "{ClassName} 'LogMultiThreadLen' (= {LogMultiThreadLen}) can't be negative",
+            'LogDebugCacheSizeNoInt':   "{ClassName} 'LogDebugCacheSize' (= {LogDebugCacheSize}) can't be converted to an integer",
+            'LogDebugCacheSizeNeg':     "{ClassName} 'LogDebugCacheSize' (= {LogDebugCacheSize}) can't be negative",
+            'LogStackOnDebugNoStr':     "{ClassName} 'LogStackOnDebug' (= {LogStackOnDebug}) is not a string",
+            'LogLevelTypeNoInt':        "{ClassName} 'LogLevelType' (= {LogLevelType}) can't be converted to an integer",
+            }
         self.__LogServer = self.__DummyPortLogServer()
-        self.__LogQueue: multiprocessing.Queue = multiprocessing.Queue()
+        self.__LogQueue = multiprocessing.Queue()
         self._Translation = copy.deepcopy(self._InitTranslation)
-        _Translation = self._Translation
 
     # Add the 3 additional log-level
         self._AddLoggingLevel('TRACE', _TRACE, 'trace')
@@ -293,18 +252,14 @@ class _LogP():
         self._AddLoggingLevel('STATUS', _STATUS, 'status')
 
     def Stop(self):
-        """Stop the Log-Server"""
         self.__LogServer.Stop()
         self.__LogServer.Join(2)
         self.__LogServer.Kill()
 
-    def PollRestart(self) -> None:
-        """Prüfe ob der Logserver neu gestartet werden muss"""
-        self.__LogServer.PollRestart()
 
     def _PrintInitTranslation(self):
         print(pprint.pformat(self._InitTranslation, indent=4))
-
+    
     def _PrintAktualTranslation(self):
         print(pprint.pformat(_Translation, indent=4))
 
@@ -314,59 +269,50 @@ class _LogP():
             This class is used to return it to a user if no real Log-server is requested.
             So the programmer can call the functions without the need to question if
             a real server is running. All functions are No-Ops.
-            """
-            pass                        # pylint: disable=W0107
-
+            """        
+            pass
+        
         def Run(self, *args, **kwargs) -> None:
-            """Dummy"""
-            pass                        # pylint: disable=W0107
-
+            pass
+        
         def Stop(self, *args, **kwargs) -> None:
-            """Dummy"""
-            pass                        # pylint: disable=W0107
-
+            pass
+        
         @property
         def RunFlag(self) -> bool:
-            """Dummy"""
             return False
-
+        
         @property
-        def Name(self) -> str:
-            """Dummy"""
+        def Name(self) -> str:    
             return ''
-
+        
         @property
         def Port(self) -> int:
-            """Dummy"""
             return 0
 
         @property
         def IsAlive(self) -> bool:
-            """Dummy"""
             return False
-
+        
         def PollRestart(self) -> None:
-            """Dummy"""
-            pass                        # pylint: disable=W0107
-
+            pass
+        
         def Kill(self) -> None:
-            """Dummy"""
-            pass                        # pylint: disable=W0107
-
+            pass
+        
         def Join(self, *args, **kwargs) -> None:
-            """Dummy"""
-            pass                        # pylint: disable=W0107
+            pass
+        
 
     class __PortLogServer():
-        def __init__(self, *,          # pylint: disable=W0102
-                     # only key-word arguments from here on
-                     host: str = '127.0.0.1',
-                     port: int = 0,
-                     name: str = '',
-                     queue: multiprocessing.Queue = None,
-                     logsize: int = 0,
-                     NewFormat: str = '',
-                     translation: dict = {}) -> None:
+        def __init__(self, *,   # only key-word arguments from here on
+                    host:str = '127.0.0.1', 
+                    port:int = 0, 
+                    name:str = '', 
+                    queue:multiprocessing.Queue = None, 
+                    logsize:int = 0,
+                    format:str = '',
+                    translation:dict = None) -> None:
             """Send the messages from the input-Queue to a tcp-client
             on the defined address and port.
 
@@ -378,17 +324,17 @@ class _LogP():
 
             Raises:
                 ValueError: if invalid arguments are given.
-            """
-            self._Translation: dict = translation
+            """       
+            self._Translation = translation
             self.__RunFlag = multiprocessing.Value(c_bool, True)
             self.__CanReload = True         # prevent restarting after Stop, Join or Kill
-
-            self.__FormatStr = NewFormat.strip()
+            
+            self.__FormatStr = format.strip()
             self.__Formatter = None
             if self.__FormatStr != '':
                 self.__Formatter = logging.Formatter(self.__FormatStr)
-            ClassName = __class__.__name__
-            self.__Name: str = name.strip()
+            ClassName = __class__.__name__    
+            self.__Name = name.strip()
             #
             # Logging cache
             #
@@ -396,24 +342,22 @@ class _LogP():
                 logsize = int(logsize)
                 if logsize < 0:
                     logsize = 0
-            except ValueError:
+            except:
                 logsize = 0
-            self.__LogSize: int = logsize
-            self.__LogCache: list = []
-
+            self.__LogSize = logsize
+            self.__LogCache = []
+            
             #
             # Ip addr for server
             #
             if not isinstance(host, str):
                 HostType = type(host)
-                raise ValueError(self._Translation['HostIsNoString'].format(
-                    **{'ClassName': ClassName, 'HostType': HostType}))
+                raise ValueError(self._Translation['HostIsNoString'].format(**{'ClassName': ClassName,'HostType': HostType}))
                 # raise ValueError(f"{__class__.__name__} host (type={type(host)}) is not a string - object")
             if host.lower() == 'localhost':
                 host = '127.0.0.1'
             if not host in self.__MyValidIps:
-                raise ValueError(self._Translation['HostIsNoValidIp'].format(
-                    **{'ClassName': ClassName, 'host': host}))
+                raise ValueError(self._Translation['HostIsNoValidIp'].format(**{'ClassName': ClassName,'host': host}))
                 # raise ValueError(f"{__class__.__name__} host '{host}' is not an valid IP of this computer")
             self.__Host = host
             #
@@ -421,8 +365,7 @@ class _LogP():
             #
             if queue is not None:
                 if not isinstance(queue, multiprocessing.queues.Queue):
-                    raise ValueError(self._Translation['HostIsNoValidIp'].format(
-                        **{'ClassName': ClassName, 'QueueType': type(queue)}))
+                    raise ValueError(self._Translation['HostIsNoValidIp'].format(**{'ClassName': ClassName,'QueueType': type(queue)}))
                     # raise ValueError(f"{__class__.__name__} queue (type={type(queue)}) is not a multiprocessing.Queue - object")
             self.__Queue = queue
             #
@@ -430,43 +373,41 @@ class _LogP():
             #
             try:
                 port = int(port)
-            except ValueError:
+            except:
                 port = 0
             if port < 1024 or port > 65535:
-                raise ValueError(self._Translation['InvalidPortNumber'].format(
-                    **{'ClassName': ClassName, 'port': port}))
+                raise ValueError(self._Translation['InvalidPortNumber'].format(**{'ClassName': ClassName,'port': port}))
                 # raise ValueError(f"{__class__.__name__} port must be between 1024 and 65535")
             self.__Port = port
-
-            self.__Connections: dict = {}         # clear connection-dict
-            # the reader process
-            self.__ReaderProcess: Union[None, multiprocessing.Process] = None
-
-        def Run(self, *,
-                name: str = '',
-                queue: multiprocessing.Queue = None) -> None:
+            
+            self.__Connections = {}         # clear connection-dict
+            self.__ReaderProcess = None     # the reader process
+        
+            
+                
+        
+        def Run(self, *,  
+                name:str = '', 
+                queue:multiprocessing.Queue = None) -> None:
             """Starts the reader-process
 
             Args:
                 name (str, optional): Can overwrite the process-name of this instance. Defaults to ''.
-                queue (multiprocessing.Queue, optional): can overwrite the input queue of this instance.
+                queue (multiprocessing.Queue, optional): can overwrite the input queue of this instance. 
                             If not given the name from the creation is used Defaults to None.
 
             Raises:
                 ValueError: if invalid arguments are given.
             """
-            # global _Translation
-
+            global _Translation
             ClassName = __class__.__name__ + '.Run'
             if queue is not None:
                 if not isinstance(queue, multiprocessing.queues.Queue):
-                    raise ValueError(self._Translation['QueueIsInvalid'].format(
-                        **{'ClassName': ClassName, 'QueueType': type(queue)}))
+                    raise ValueError(self._Translation['QueueIsInvalid'].format(**{'ClassName': ClassName,'QueueType': type(queue)}))
                     # raise ValueError(f"{__class__.__name__}.Run queue (type={type(queue)}) is not a multiprocessing.Queue - object")
                 self.__Queue = queue
             if self.__Queue is None:
-                raise ValueError(self._Translation['QueueIsInvalid'].format(
-                    **{'ClassName': ClassName, 'QueueType': type(self.__Queue)}))
+                raise ValueError(self._Translation['QueueIsInvalid'].format(**{'ClassName': ClassName,'QueueType': type(self.__Queue)}))
                 # raise ValueError(f"{__class__.__name__} .Run queue (type={type(self.__Queue)}) is not a multiprocessing.Queue - object")
             name = name.strip()
             if name == '':
@@ -474,33 +415,34 @@ class _LogP():
             self.__Name = name
             self.__RunFlag = True
             self.__StartReader()
-
+            
+        
         def Stop(self) -> None:
             """Stop the reader-process
             """
             self.__RunFlag = False
-            logging.log(_STATUS, "Stop Log-server")
+            logging.log(_STATUS,"Stop Log-server")
             self.__Queue.put_nowait('DONE')
             self.__CanReload = False
-
+        
         @property
         def RunFlag(self) -> bool:
             """Return True if the process is running
-            """
+            """        
             return self.__RunFlag
-
+        
         @property
         def Name(self) -> str:
             """Return the process-name of this instance
             """
             return self.__Name
-
+        
         @property
         def Port(self) -> int:
             """Return the port-number of this instance
             """
             return self.__Port
-
+            
         @property
         def __MyValidIps(self) -> list:
             """Return a list of all valid IPs of this computer
@@ -514,12 +456,19 @@ class _LogP():
             if len(Erg) != 0:
                 Erg.append('0.0.0.0')
             return Erg
-
+            
         def __TermConnection(self, Client: str) -> None:
             """Terminate a connection
             """
+            # try:
+            #     SendBuff = 'Quit\n'.encode('utf-8')
+            #     QuitBuff = bytearray(b'\x00')
+            #     self.__Connections[Client].sendall(SendBuff)
+            #     self.__Connections[Client].sendall(QuitBuff)
+            # except:
+            #     pass
             self.__Connections[Client].close()
-            logging.log(_STATUS, f'Log-server disconnect client {Client}')
+            logging.log(_STATUS,f'reader_proc disconnect client {Client}')
             self.__Connections[Client] = None
 
         def __CollectClients(self) -> None:
@@ -531,13 +480,13 @@ class _LogP():
                     KillConnection.append(Client)
             for Client in KillConnection:
                 del self.__Connections[Client]
-
-        # def __TermHandler(self, signum, frame):
-        #     """The term-handler for this process
-        #     """
-        #     logging.warning(f'Log-server - Termination handler invoked with signal {signum}')
-        #     # self.__RunFlag = False
-
+                
+        def __TermHandler(self, signum, frame):
+            """The term-handler for this process
+            """
+            logging.warning(f'reader_proc - Termination handler invoked with signal {signum}')
+            self.__RunFlag = False
+            
         def __StartReader(self) -> None:
             """Start the reader-process
             """
@@ -545,17 +494,14 @@ class _LogP():
                 if self.__ReaderProcess.is_alive():
                     return
                 e = self.__ReaderProcess.exitcode
-                del e
-
-            self.__ReaderProcess = multiprocessing.Process(
-                target=self.__ReaderProc, name=self.__Name)
+            
+            self.__ReaderProcess = multiprocessing.Process(target=self.__ReaderProc, name=self.__Name)
             self.__ReaderProcess.daemon = True
             self.__RunFlag = True
             self.__ReaderProcess.start()  # Launch self.__ReaderProcess() as another proc
-            logging.log(
-                _STATUS, f"Start Log-server at {self.__Host}:{self.__Port}")
+            logging.log(_STATUS,"Start Log-server at {self.__Host}:{self.__Port}")
             return
-
+        
         @property
         def IsAlive(self) -> bool:
             """Returnm True if the process is alive
@@ -563,50 +509,48 @@ class _LogP():
             Ret = False
             try:
                 Ret = self.__ReaderProcess.is_alive()
-            except Exception as exc:        # pylint: disable=W0703
-                del exc
+            except:
+                pass
             return Ret
-
+        
         def PollRestart(self) -> None:
             """Restart the process if it is not alive
             """
             if self.__CanReload:
                 if not self.IsAlive:
                     self.Run()
-            # pass
-
+            
         def Kill(self) -> None:
             """Kill this process
             """
             self.__CanReload = False
             try:
                 self.__ReaderProcess.kill()
-            except:            # pylint: disable=W0702
+            except:
                 pass
-
+        
         def Join(self, Timeout: float = None) -> None:
             """Join this process
-            If the optional argument timeout is None (the default), the method blocks until
-            the process whose join() method is called terminates. If timeout is a positive
-            number, it blocks at most timeout seconds. Note that the method returns None
-            if its process terminates or if the method times out.
+            If the optional argument timeout is None (the default), the method blocks until 
+            the process whose join() method is called terminates. If timeout is a positive 
+            number, it blocks at most timeout seconds. Note that the method returns None 
+            if its process terminates or if the method times out. 
             """
             self.__CanReload = False
             try:
                 self.__ReaderProcess.join(Timeout)
-            except:                 # pylint: disable=W0702
+            except:
                 pass
-
+        
         def __ReaderProc(self) -> None:
             """Read from the queue; this spawns as a separate Process"""
-
+                
             setproctitle.setproctitle(multiprocessing.current_process().name)
-            logging.log(_STATUS, 'Log-server - Starting')
-            # signal.signal(signal.SIGINT, self.__TermHandler)   # Setze Signalhandler
-            # signal.signal(signal.SIGTERM, self.__TermHandler)
-            server = socket.socket(
-                socket.AF_INET, socket.SOCK_STREAM | socket.SOCK_NONBLOCK)
-            server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+            logging.log(_STATUS,f'reader_proc - Starting')
+            signal.signal(signal.SIGINT, self.__TermHandler)   # Setze Signalhandler
+            signal.signal(signal.SIGTERM, self.__TermHandler)
+            server = socket.socket(socket.AF_INET, socket.SOCK_STREAM | socket.SOCK_NONBLOCK)
+            server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT,1)
             server.setblocking(False)
             IsOk = False
             for i in range(10):
@@ -618,10 +562,9 @@ class _LogP():
                     server.listen()
                     IsOk = True
                     break
-                except:                 # pylint: disable=W0702
-                    logging.warning('Log-server - Can not connect')
+                except:
+                    logging.warning(f'reader_proc - Can not connect')
                     time.sleep(1)
-            del i
             if not IsOk:
                 self.__RunFlag = False
                 return
@@ -632,15 +575,14 @@ class _LogP():
                     Connection, Address = server.accept()
                     Connection.setblocking(False)
                     ClientStr = f"{Address[0]}:{Address[1]}"
-                    logging.log(
-                        _STATUS, f'Log-server connection from {ClientStr}')
+                    logging.log(_STATUS,f'reader_proc connection from {ClientStr}')
                     self.__Connections[ClientStr] = Connection
                     for l in self.__LogCache:
                         try:
                             Connection.sendall(l.encode('utf-8'))
-                        except:             # pylint: disable=W0702
-                            self.__TermConnection(Connection)
-                except:                # pylint: disable=W0702
+                        except:
+                            self.__TermConnection(Client)
+                except :
                     pass
                 if not self.__RunFlag:
                     break
@@ -650,7 +592,7 @@ class _LogP():
                     if Connection is not None:
                         try:
                             message = None
-                            message = Connection.recv(4096)  # .decode('utf-8')
+                            message = Connection.recv(4096) # .decode('utf-8')
                             if message[0] == 0xFF and message[1] == 0xF4:
                                 self.__TermConnection(Client)
                                 break
@@ -660,27 +602,27 @@ class _LogP():
                                     if m == 'q' or m == 'Q':
                                         self.__TermConnection(Client)
                                         break
-                                except:             # pylint: disable=W0702
+                                except:
                                     continue
                         except BlockingIOError:
                             continue
-                        except Exception as exc:    # pylint: disable=W0703
-                            logging.warning(f'Log-server exception - {exc}')
-                self.__CollectClients()
+                        except Exception as exc:
+                            logging.warning(f'reader_proc exception - {exc}')
+                self.__CollectClients()        
                 try:
-                    Msg = self.__Queue.get(False, 1)
+                    Msg = self.__Queue.get(False,1)
                     if isinstance(Msg, logging.LogRecord):
                         if self.__Formatter is not None:
-                            Msg = self.__Formatter.format(Msg) + '\n'
+                            Msg =  self.__Formatter.format(Msg) + '\n'
                         else:
                             Msg = None
                     # print(type(Msg))
-                except:                 # pylint: disable=W0702
+                except:
                     Msg = None
                 if Msg is not None:
                     if Msg == "DONE":
                         break
-                    if self.__LogSize != 0:
+                    if self.__LogSize != 0: 
                         self.__LogCache.append(Msg)
                         if len(self.__LogCache) > self.__LogSize:
                             self.__LogCache.pop(0)
@@ -690,7 +632,7 @@ class _LogP():
                         try:
                             if Connection is not None:
                                 Connection.sendall(Msg.encode('utf-8'))
-                        except:                 # pylint: disable=W0702
+                        except:
                             self.__TermConnection(Client)
                     self.__CollectClients()
 
@@ -699,13 +641,14 @@ class _LogP():
             self.__CollectClients()
             server.close()
             self.__RunFlag = False
-            logging.log(_STATUS, 'Log-server - Terminating')
-
+            logging.log(_STATUS,f'reader_proc - Terminating')
+    
+        
     class __PortLogQueueHandler(logging.handlers.QueueHandler):
         """
-
+        
         """
-
+        
         def __init__(self, ProcClass, *args, **kwargs):
             """A queue-handler that allowes the automatic restart of the Log-server
 
@@ -713,63 +656,42 @@ class _LogP():
                 ProcClass (PortLogServer): An instance of the listening PortLogServer.
                                             Needet to automatically restart if the
                                             server is terminated. All other parametrs
-                                            look at the documentation of
+                                            look at the documentation of 
                                             'logging.handlers.QueueHandler'
-            """
+            """        
             super().__init__(*args, **kwargs)
             self.__ProcClass = ProcClass
-
+            
         def enqueue(self, record):
             """Overwritten enqueue function of the 'logging.handlers.QueueHandler' class.
-            """
-            try:
-                self.__ProcClass.PollRestart()
-            except:          # pylint: disable=W0702
-                pass
+            """        
+            self.__ProcClass.PollRestart()
             super().enqueue(record)
+            
 
-    class _MyFormater(logging.Formatter):
-        def __init__(self, Format: str, DebugFormat: str, DebugLevel: int = -1):
-            self.__DebugLevel = DebugLevel
-            self.__PrivateFormatter = logging.Formatter(DebugFormat)
-            super().__init__(Format)
-
-        def format(self, record):
-            if isinstance(self.__DebugLevel, (list, tuple)):
-                if record.levelno in self.__DebugLevel:
-                    result = self.__PrivateFormatter.format(record)
-                else:
-                    result = super().format(record)
-            else:
-                if record.levelno <= self.__DebugLevel or record.levelno == _ERROR:
-                    result = self.__PrivateFormatter.format(record)
-                else:
-                    result = super().format(record)
-            return result
-
-    class _MyContextFilter(logging.Filter):
+    class _AddStackContextFilter(logging.Filter):
         def __init__(self, trim_amount: int = 5, below_level: int = -1, is_syslog: bool = False):
             """Class to prepaire the "stack"-variable within logrecord
 
             Args:
                 trim_amount (int, optional): Maximum number of stack-lines to show. Defaults to 5.
                 below_level (int, optional): Log-leven below or equal a stacktrace is shown. Defaults to -1 => disabled.
-            """
+            """        
             self.trim_amount = trim_amount
             self.below_level = below_level
             self.is_syslog = is_syslog
-            super().__init__()
-
-        def IsLast(self, s):
-            """Prüfe ob das der letzte notwendigen Trace-Eintrag ist"""
+            
+        def IsLast(self,s):
             Such = '\n    root.log(level, msg, *args, **kwargs)\n'
-            return Such in s
+            return Such in s        
 
         def filter(self, record):
+            import traceback
             if self.is_syslog:
                 Delim = '\u21B2'
             else:
                 Delim = '\n'
+            Stack = traceback.extract_stack()
             if record.levelno <= self.below_level:
                 wStack = traceback.format_stack()
                 ResList = []
@@ -778,18 +700,18 @@ class _LogP():
                     if self.IsLast(s):
                         break
                     ResList.append(s.replace('\n', Delim))
-
+                
                 record.stack = Delim + ''.join(ResList[0-self.trim_amount:])
             else:
                 record.stack = ''
             return True
 
     def _AddLoggingLevel(self, level_name, level_num, method_name=None,
-                         if_exists=_KEEP, *, exc_info=False, stack_info=False):
+                        if_exists=_KEEP, *, exc_info=False, stack_info=False):
         """
-
+        
         This Part was copied from: Joseph R. Fox-Rabinovitz
-
+        
         Comprehensively add a new logging level to the :py:mod:`logging`
         module and the currently configured logging class.
 
@@ -865,7 +787,6 @@ class _LogP():
         # This method was inspired by the answers to Stack Overflow post
         # http://stackoverflow.com/q/2183233/2988730, especially
         # http://stackoverflow.com/a/13638084/2988730
-
         def for_logger_class(self, message, *args, **kwargs):
             if self.isEnabledFor(level_num):
                 kwargs.setdefault('exc_info', exc_info)
@@ -886,7 +807,7 @@ class _LogP():
         items_conflict = 0
 
         # Lock because logger class and level name are queried and set
-        logging._acquireLock()          # pylint: disable=W0212
+        logging._acquireLock()
         try:
             registered_num = logging.getLevelName(level_name)
             logger_class = logging.getLoggerClass()
@@ -960,9 +881,9 @@ class _LogP():
 
             # Make sure the method names are set to sensible values, but
             # preserve the names of the old methods for future verification.
-            for_logger_class._original_name = for_logger_class.__name__          # pylint: disable=W0212
+            for_logger_class._original_name = for_logger_class.__name__
             for_logger_class.__name__ = method_name
-            for_logging_module._original_name = for_logging_module.__name__          # pylint: disable=W0212
+            for_logging_module._original_name = for_logging_module.__name__
             for_logging_module.__name__ = method_name
 
             # Actually add the new level
@@ -971,35 +892,35 @@ class _LogP():
             setattr(logger_class, method_name, for_logger_class)
             setattr(logging, method_name, for_logging_module)
         finally:
-            logging._releaseLock()          # pylint: disable=W0212
+            logging._releaseLock()
+
+
 
     def SetupLogging(self,
-                     *,
-                     AppName: str,
-                     Verbose: int = 0,
-                     NoDaemon: bool = True,
-                     StdErr: bool = False,
-                     LogPath: str = '',
-                     LogFileInterval: int = 60*60*24,
-                     LogFileCount: int = 14,
-                     Quiet: bool = False,
-                     LogProcInfo: bool = False,
-                     LogProcInfoModLen: int = 15,
-                     LogProcInfoFuncLen: int = 15,
-                     LogLevelType: int = 2,
-                     LogMultiProc: bool = False,
-                     LogMultiProcLen: int = 15,
-                     LogMultiThread: bool = False,
-                     LogMultiThreadLen: int = 15,
-                     LogStackOnDebug: str = 'NONE',
-                     LogLongLevel: str = 'DEBUG',
-                     LogStackDepth: int = 5,
-                     LogDebugIp: str = '127.0.0.1',
-                     LogDebugPort: int = 0,
-                     LogDebugCacheSize: int = 100,
-                     NoReset: bool = False,
-                     translation: dict = None,
-                     **kwargs) -> None:
+                    *,
+                    AppName:str, 
+                    Verbose:int = 0, 
+                    NoDaemon:bool = True, 
+                    StdErr:bool = False, 
+                    LogPath:str = '', 
+                    LogFileInterval:int = 60*60*24,
+                    LogFileCount:int = 14,
+                    Quiet:bool = False, 
+                    LogProcInfo:bool = False, 
+                    LogProcInfoModLen:int = 15,
+                    LogProcInfoFuncLen:int = 15,
+                    LogLevelType:int = 2,
+                    LogMultiProc:bool = False,
+                    LogMultiProcLen:int = 15,
+                    LogMultiThread:bool = False,
+                    LogMultiThreadLen:int = 15,
+                    LogStackOnDebug:str = 'NONE',
+                    LogStackDepth:int = 5,
+                    LogDebugIp:str = '127.0.0.1',
+                    LogDebugPort:int = 0,
+                    LogDebugCacheSize:int = 100,
+                    NoReset:bool = False,
+                    translation:dict = None) -> None:
         """Creates a defined Log-setting with rich options
 
     Args:
@@ -1007,10 +928,10 @@ class _LogP():
 
         Verbose (int, optional): Detail of logging. Defaults to 0.
                                 0 = ERROR and STATUS
-                                1 = MSG, WARNING, STATUS, ERROR
-                                2 = INFO, MSG, WARNING, STATUS, ERROR
-                                3 = DEBUG, INFO, MSG, WARNING, STATUS, ERROR
-                                4 = TRACE, DEBUG, INFO, MSG, WARNING, STATUS, ERROR
+                                1 = MSG, WARNING, STATUS, ERROR 
+                                2 = INFO, MSG, WARNING, STATUS, ERROR 
+                                3 = DEBUG, INFO, MSG, WARNING, STATUS, ERROR 
+                                4 = TRACE, DEBUG, INFO, MSG, WARNING, STATUS, ERROR 
 
         NoDaemon (bool, optional): Is this an terminal-task. Defaults to True.
                                 If this is false => i am a daemon.
@@ -1034,7 +955,7 @@ class _LogP():
 
         LogProcInfo (bool, optional): Show process and thread. Defaults to False.
 
-        LogLevelType (int, optional): Format of LevelInfo. 0=None, 1=Number, 2=Name, 3=Both.
+        LogLevelType (int, optional): Format of LevelInfo. 0=None, 1=Number, 2=Name, 3=Both. 
                                     Defaults to 2.
 
         LogMultiProc (bool, optional): Show process-names. Defaults to False.
@@ -1055,53 +976,36 @@ class _LogP():
                                     All other values are interpretet as "NONE".
                                     Value is not case-sensitive.
 
-        LogLongLevel (str, optional): Log-level below or equal a long info is included.
-                                    Above this level except the ERROR-level the fields
-                                        processname, threadname,module, line-no and levelinfo
-                                    are not within the output.
-                                    Defaults to "DEBUG".
-                                    The levels are:
-                                        "ERROR"
-                                        "STATUS"
-                                        "WARNING"
-                                        "MSG"
-                                        "INFO"
-                                        "DEBUG"
-                                        "TRACE"
-                                        "NONE"
-                                    All other values are interpretet as "NONE".
-                                    Value is not case-sensitive.
-
         LogStackDepth (int, optional): Maximum number of call-stack entries to display. Defaults to 5.
 
-        LogDebugPort (int, optional): If 0 no debug-server is started. Else the value has to be
-                                    between 1024 and 65535. A log-server is started on 'LogDebugIp'
-                                    at port 'LogDebugPort'.
-                                    It is possible to connect to this port (e.g with telnet) to
+        LogDebugPort (int, optional): If 0 no debug-server is started. Else the value has to be 
+                                    between 1024 and 65535. A log-server is started on 'LogDebugIp' 
+                                    at port 'LogDebugPort'. 
+                                    It is possible to connect to this port (e.g with telnet) to 
                                     receive ALL log-messages from this program. ALL means really
-                                    all, no mather which loglevel is set. This output also
-                                    includes all possible information about process, thread,
+                                    all, no mather which loglevel is set. This output also 
+                                    includes all possible information about process, thread, 
                                     module and function. The stacktrace ('LogStackOnDebug') is also
                                     honored. This output can be really heavy, but can help to debug
-                                    already running programs without the need to restart with
+                                    already running programs without the need to restart with 
                                     another loglevel.
-                                    This server runs as a separated process and you have to
-                                    terminate it by calling the'Stop' and afterward 'Join' or
-                                    'Kill'-function of the returned 'PortLogServer'-object,
-                                    otherwise this process may block the termination of your
-                                    program. This server will restart himselve if it is terminated
+                                    This server runs as a separated process and you have to 
+                                    terminate it by calling the'Stop' and afterward 'Join' or 
+                                    'Kill'-function of the returned 'PortLogServer'-object, 
+                                    otherwise this process may block the termination of your 
+                                    program. This server will restart himselve if it is terminated 
                                     by any means except you call the above mentioned functions.
                                     This port has to be free. Defaults to 0.
-
-        LogDebugIp (str, optional): The IP-address to bind to. This address must exist on the host
-                                    this program is running. '0.0.0.0' for 'all IPs' is also
-                                    valid. Only examined if 'LogDebugPort' > 0.
+                                    
+        LogDebugIp (str, optional): The IP-address to bind to. This address must exist on the host 
+                                    this program is running. '0.0.0.0' for 'all IPs' is also 
+                                    valid. Only examined if 'LogDebugPort' > 0. 
                                     Defaults to '127.0.0.1',
-
-        LogDebugCacheSize (int, optional): Only used if 'LogDebugPort' > 0. This is the number of
-                                    log-messages cached for use at a new connection to the
+                                    
+        LogDebugCacheSize (int, optional): Only used if 'LogDebugPort' > 0. This is the number of 
+                                    log-messages cached for use at a new connection to the 
                                     server. So if someone connects to the server he receives the
-                                    last 'LogDebugCacheSize' log messages and after them all new
+                                    last 'LogDebugCacheSize' log messages and after them all new 
                                     messages.
                                     This is like a history. if set to 0 this function is disabled.
                                     Defaults to 100.
@@ -1115,7 +1019,7 @@ class _LogP():
                                     |       |           |          |               |     |       |
             Name of application ----+       |           |          |               |     |       |
                 only if not StdErr          |           |          |               |     |       |
-            Name of process ----------------+           |          |               |     |       |
+            Name of procvess ---------------+           |          |               |     |       |
                 if LogMultiProc = true                  |          |               |     |       |
             Name of thread if --------------------------+          |               |     |       |
                 LogMultiThread = true                              |               |     |       |
@@ -1131,7 +1035,7 @@ class _LogP():
 
         The output format to StdErr is like this:
             2022-06-22 07:37:42,494 MainProcess:MainThread LogP:main:461     - 40=   ERROR - Message
-                No "Appname" because you know whitch program is running
+                No "Appname" because you know whitch program is running 
 
         The output format to sylog like this:
             Appname:MainProcess:MainThread LogP:main:461 - 40=   ERROR - Errormessage
@@ -1149,32 +1053,26 @@ class _LogP():
                 File "./LogP.py", line 411, in abc
                 LogP.debug('Debug')
 
-
-
+                            
+                            
         """
-        del kwargs
         self.Stop()
         self._Translation = copy.deepcopy(self._InitTranslation)
-        _Translation = self._Translation
-
         ClassName = __name__ + '.SetupLogging'
 
-        # Überschreibe die Übersetungen
-        if translation is not None and isinstance(translation, dict):
-            for k in self._InitTranslation.keys():                   # pylint: disable=C0201
+        if translation is not None and isinstance(translation,dict):     # Überschreibe die Übersetungen
+            for k in self._InitTranslation.keys():
                 try:
                     w = translation[k]
-                    if not isinstance(w, str):
-                        self._Translation[k] = self._InitTranslation[k]
-                    else:
-                        self._Translation[k] = w
                 except KeyError:
+                    self._Translation[k] = self._InitTranslation[k] 
+                if not isinstance(w,str):
                     self._Translation[k] = self._InitTranslation[k]
-
 
         if not NoReset:
             for handler in logging.root.handlers[:]:
                 logging.root.removeHandler(handler)
+
 
     # Add the 3 additional log-level
         # self._AddLoggingLevel('TRACE', logging.DEBUG -5, 'trace')
@@ -1184,66 +1082,55 @@ class _LogP():
         try:
             LogDebugPort = int(LogDebugPort)
         except:
-            raise ValueError(self._Translation['LogDebugPortNoInt'].format(
-                **{'ClassName': ClassName, 'LogDebugPort': LogDebugPort})) from None
+            raise ValueError(_Translation['LogDebugPortNoInt'].format(**{'ClassName': ClassName, 'LogDebugPort': LogDebugPort}))
         if LogDebugPort < 0:
             LogDebugPort = 0
     # Check Len options
         try:
             LogProcInfoModLen = int(LogProcInfoModLen)
         except:
-            raise ValueError(self._Translation['LogProcInfoModLenNoInt'].format(
-                **{'ClassName': ClassName, 'LogProcInfoModLen': LogProcInfoModLen})) from None
+            raise ValueError(_Translation['LogProcInfoModLenNoInt'].format(**{'ClassName': ClassName, 'LogProcInfoModLen': LogProcInfoModLen}))
         if LogProcInfoModLen < 0:
-            raise ValueError(self._Translation['LogProcInfoModLenNeg'].format(
-                **{'ClassName': ClassName, 'LogProcInfoModLen': LogProcInfoModLen}))
+            raise ValueError(_Translation['LogProcInfoModLenNeg'].format(**{'ClassName': ClassName, 'LogProcInfoModLen': LogProcInfoModLen}))
 
         try:
             LogProcInfoFuncLen = int(LogProcInfoFuncLen)
         except:
-            raise ValueError(self._Translation['LogProcInfoFuncLenNoInt'].format(
-                **{'ClassName': ClassName, 'LogProcInfoFuncLen': LogProcInfoFuncLen})) from None
+            raise ValueError(_Translation['LogProcInfoFuncLenNoInt'].format(**{'ClassName': ClassName, 'LogProcInfoFuncLen': LogProcInfoFuncLen}))
         if LogProcInfoFuncLen < 0:
-            raise ValueError(self._Translation['LogProcInfoFuncLenNeg'].format(
-                **{'ClassName': ClassName, 'LogProcInfoFuncLen': LogProcInfoFuncLen}))
+            raise ValueError(_Translation['LogProcInfoFuncLenNeg'].format(**{'ClassName': ClassName, 'LogProcInfoFuncLen': LogProcInfoFuncLen}))
 
         try:
             LogMultiProcLen = int(LogMultiProcLen)
         except:
-            raise ValueError(self._Translation['LogMultiProcLenNoInt'].format(
-                **{'ClassName': ClassName, 'LogMultiProcLen': LogMultiProcLen})) from None
+            raise ValueError(_Translation['LogMultiProcLenNoInt'].format(**{'ClassName': ClassName, 'LogMultiProcLen': LogMultiProcLen}))
         if LogMultiProcLen < 0:
-            raise ValueError(self._Translation['LogMultiProcLenNeg'].format(
-                **{'ClassName': ClassName, 'LogMultiProcLen': LogMultiProcLen}))
+            raise ValueError(_Translation['LogMultiProcLenNeg'].format(**{'ClassName': ClassName, 'LogMultiProcLen': LogMultiProcLen}))
 
         try:
             LogMultiThreadLen = int(LogMultiThreadLen)
         except:
-            raise ValueError(self._Translation['LogMultiThreadLenNoInt'].format(
-                **{'ClassName': ClassName, 'LogMultiThreadLen': LogMultiThreadLen})) from None
+            raise ValueError(_Translation['LogMultiThreadLenNoInt'].format(**{'ClassName': ClassName, 'LogMultiThreadLen': LogMultiThreadLen}))
         if LogMultiThreadLen < 0:
-            raise ValueError(self._Translation['LogMultiThreadLenNeg'].format(
-                **{'ClassName': ClassName, 'LogMultiThreadLen': LogMultiThreadLen}))
+            raise ValueError(_Translation['LogMultiThreadLenNeg'].format(**{'ClassName': ClassName, 'LogMultiThreadLen': LogMultiThreadLen}))
 
         try:
             LogDebugCacheSize = int(LogDebugCacheSize)
         except:
-            raise ValueError(self._Translation['LogDebugCacheSizeNoInt'].format(
-                **{'ClassName': ClassName, 'LogDebugCacheSize': LogDebugCacheSize})) from None
+            raise ValueError(_Translation['LogDebugCacheSizeNoInt'].format(**{'ClassName': ClassName, 'LogDebugCacheSize': LogDebugCacheSize}))
         if LogDebugCacheSize < 0:
-            raise ValueError(self._Translation['LogDebugCacheSizeNeg'].format(
-                **{'ClassName': ClassName, 'LogDebugCacheSize': LogDebugCacheSize}))
-
+            raise ValueError(_Translation['LogDebugCacheSizeNeg'].format(**{'ClassName': ClassName, 'LogDebugCacheSize': LogDebugCacheSize}))
+        
+        
     # Add the Filter to implement stack-traces
         if not isinstance(LogStackOnDebug, str):
-            raise ValueError(self._Translation['LogStackOnDebugNoStr'].format(
-                **{'ClassName': ClassName, 'LogStackOnDebug': LogStackOnDebug}))
+            raise ValueError(_Translation['LogStackOnDebugNoStr'].format(**{'ClassName': ClassName, 'LogStackOnDebug': LogStackOnDebug}))
         wTxt = LogStackOnDebug.upper()
-        if wTxt == 'ERROR':
+        if wTxt =='ERROR':
             Sd = _ERROR
-        elif wTxt == 'STATUS':
+        elif wTxt =='STATUS':
             Sd = _STATUS
-        elif wTxt == 'WARNING':
+        elif wTxt =='WARNING':
             Sd = _WARNING
         elif wTxt == 'MSG':
             Sd = _MSG
@@ -1255,55 +1142,11 @@ class _LogP():
             Sd = _TRACE
         else:
             Sd = -1
-
-        if not isinstance(LogLongLevel, str):
-            raise ValueError(self._Translation['LogLongLevelNoStr'].format(
-                **{'ClassName': ClassName, 'LogLongLevel': LogLongLevel}))
-        LongD: Union[int, list]
-        wTxt = LogLongLevel.upper()
-        if ',' in wTxt:
-            LongLogLevelList = wTxt.split(',')
-            LongD = []
-            for Llv in LongLogLevelList:
-                Llv = Llv.strip()
-                if Llv == 'ERROR':
-                    LongD.append(_ERROR)
-                elif Llv == 'STATUS':
-                    LongD.append(_STATUS)
-                elif Llv == 'WARNING':
-                    LongD.append(_WARNING)
-                elif Llv == 'MSG':
-                    LongD.append(_MSG)
-                elif Llv == 'INFO':
-                    LongD.append(_INFO)
-                elif Llv == 'DEBUG':
-                    LongD.append(_DEBUG)
-                elif Llv == 'TRACE':
-                    LongD.append(_TRACE)
-        else:
-            if wTxt == 'ERROR':
-                LongD = _ERROR
-            elif wTxt == 'STATUS':
-                LongD = _STATUS
-            elif wTxt == 'WARNING':
-                LongD = _WARNING
-            elif wTxt == 'MSG':
-                LongD = _MSG
-            elif wTxt == 'INFO':
-                LongD = _INFO
-            elif wTxt == 'DEBUG':
-                LongD = _DEBUG
-            elif wTxt == 'TRACE':
-                LongD = _TRACE
-            else:
-                LongD = -1
-
         IsSyslog = False
         if LogPath == '' and not StdErr:
             IsSyslog = True
-        logging.getLogger().addFilter(self._MyContextFilter(
-            trim_amount=LogStackDepth, below_level=Sd, is_syslog=IsSyslog))
-
+        logging.getLogger().addFilter(self._AddStackContextFilter(trim_amount = LogStackDepth,below_level = Sd, is_syslog = IsSyslog))
+        
         if not NoDaemon:  # Ausgabe auf StdErr macht als Daemon keinen Sinn
             StdErr = False
 
@@ -1322,12 +1165,11 @@ class _LogP():
             LogLevel = _TRACE
         else:  # Quiet
             LogLevel = _ERROR
-
+            
         try:
             LogLevelType = int(LogLevelType)
         except:
-            raise ValueError(self._Translation['LogLevelTypeNoInt'].format(
-                **{'ClassName': ClassName, 'LogLevelType': LogLevelType})) from None
+            raise ValueError(_Translation['LogLevelTypeNoInt'].format(**{'ClassName': ClassName, 'LogLevelType': LogLevelType}))
         if LogLevelType == 1:
             ShowLevel = '%(levelno)02d '
         elif LogLevelType == 2:
@@ -1336,11 +1178,11 @@ class _LogP():
             ShowLevel = '%(levelno)02d=%(levelname)7s '
         else:
             ShowLevel = ''
-
+        
         if LogProcInfo:
             AddPar = ''
             if LogMultiProc:
-                if LogMultiProcLen == 0:
+                if LogMultiProcLen == 0: 
                     AddPar += '%(processName)s'
                 else:
                     AddPar += f"%(processName){LogMultiProcLen}s"
@@ -1362,58 +1204,47 @@ class _LogP():
             AddPar += '%(lineno)4d'
         else:
             AddPar = ''
-
+        
         if LogPath != '':
-            Format = "%(asctime)s - %(message)s%(stack)s"
-            DebugFormat = f"%(asctime)s - {AppName} {ShowLevel}{AddPar} - %(message)s%(stack)s"
-            FileLogHand = logging.handlers.TimedRotatingFileHandler(
-                LogPath, when='S', interval=LogFileInterval, backupCount=LogFileCount)
+            Format = f"%(asctime)s - {AppName} {ShowLevel}{AddPar} - %(message)s%(stack)s"
+            FileLogHand = logging.handlers.TimedRotatingFileHandler(LogPath, when = 'S',interval = LogFileInterval, backupCount = LogFileCount)
 
             FileLogHand.setLevel(LogLevel)
-            # Formatter = logging.Formatter(Format)
-            # FileLogHand.setFormatter(Formatter)
-            FileLogHand.setFormatter(
-                self._MyFormater(Format, DebugFormat, LongD))
+            Formatter = logging.Formatter(Format)
+            FileLogHand.setFormatter(Formatter)
             logging.getLogger().addHandler(FileLogHand)
 
             # logging.basicConfig(handlers = [FileLogHand], level = LogLevel, format = Format)
             FileLogHand.doRollover()
         elif StdErr:
             if AddPar == '' and ShowLevel == '':
-                Format = "%(asctime)s %(message)s%(stack)s"
-                DebugFormat = "%(asctime)s %(message)s%(stack)s"
+                Format = f"%(asctime)s %(message)s%(stack)s"
             else:
-                Format = "%(asctime)s %(message)s%(stack)s"
-                DebugFormat = f"%(asctime)s {ShowLevel}{AddPar} - %(message)s%(stack)s"
+                Format = f"%(asctime)s {ShowLevel}{AddPar} - %(message)s%(stack)s"
 
             StdErrHandler = logging.StreamHandler()
             StdErrHandler.setLevel(LogLevel)
-            # Formatter = logging.Formatter(Format)
-            # StdErrHandler.setFormatter(Formatter)
-            StdErrHandler.setFormatter(
-                self._MyFormater(Format, DebugFormat, LongD))
+            Formatter = logging.Formatter(Format)
+            StdErrHandler.setFormatter(Formatter)
             logging.getLogger().addHandler(StdErrHandler)
-
+            
     #        logging.basicConfig(stream = sys.stderr, level = LogLevel, format = Format)
         else:
-            Format = f"{AppName} - %(message)s%(stack)s"
-            DebugFormat = f"{AppName} {ShowLevel}{AddPar} - %(message)s%(stack)s"
-            SysLogHand = logging.handlers.SysLogHandler(address='/dev/log')
+            Format = f"{AppName} {ShowLevel}{AddPar} - %(message)s%(stack)s" 
+            SysLogHand = logging.handlers.SysLogHandler(address = '/dev/log')
 
             SysLogHand.setLevel(LogLevel)
-            # Formatter = logging.Formatter(Format)
-            # SysLogHand.setFormatter(Formatter)
-            SysLogHand.setFormatter(
-                self._MyFormater(Format, DebugFormat, LongD))
+            Formatter = logging.Formatter(Format)
+            SysLogHand.setFormatter(Formatter)
             logging.getLogger().addHandler(SysLogHand)
-
+            
     #        logging.basicConfig(handlers = [SysLogHand], level = LogLevel, format = Format)
         logging.getLogger().setLevel(1)
 
         self.__LogServer = self.__DummyPortLogServer()
         if LogDebugPort != 0:
             AddPar = ''
-            if LogMultiProcLen == 0:
+            if LogMultiProcLen == 0: 
                 AddPar += '%(processName)s'
             else:
                 AddPar += f"%(processName){LogMultiProcLen}s"
@@ -1434,18 +1265,72 @@ class _LogP():
             AddPar += '%(lineno)4d'
             ShowLevel = '%(levelname)7s '
             Format = f"%(asctime)s {ShowLevel}{AddPar} - %(message)s%(stack)s"
-            self.__LogServer = self.__PortLogServer(
-                host=LogDebugIp, port=LogDebugPort, queue=self.__LogQueue, logsize=LogDebugCacheSize, NewFormat=Format, translation=self._Translation)
+            self.__LogServer = self.__PortLogServer(host=LogDebugIp,port=LogDebugPort,queue=self.__LogQueue,logsize=LogDebugCacheSize,format=Format,translation=self._Translation)
             qh = self.__PortLogQueueHandler(self.__LogServer, self.__LogQueue)
             qh.setLevel(1)
             logging.getLogger().addHandler(qh)
             self.__LogServer.Run()
 
+        # return LogServer
+        
+        
+
+    # _AddLoggingLevel('TRACE', logging.DEBUG -5, 'trace')
+    # _AddLoggingLevel('MSG', logging.WARNING - 1, 'msg')
+    # _AddLoggingLevel('STATUS', logging.ERROR - 1, 'status')
+
+    # def error(self, Msg,*args,**kwargs):
+    # # error = partial(logging.log, _ERROR)
+    #     """Error logging function
+    #     usage: LogP.error("Msg")"""
+    #     logging.log(_ERROR,Msg,*args,**kwargs)
+
+    # def warning(self, Msg,*args,**kwargs):
+    # # warning = partialmethod(logging.log, _WARNING)
+    #     """Warning logging function
+    #     usage: LogP.warning("Msg")"""
+    #     logging.log(_WARNING,Msg,*args,**kwargs)
+
+    # def info(self, Msg,*args,**kwargs):
+    # # info = partialmethod(logging.log, _INFO)
+    #     """Info logging function
+    #     usage: LogP.info("Msg")"""
+    #     logging.log(_INFO,Msg,*args,**kwargs)
+
+    # def msg(self, Msg,*args,**kwargs):
+    # # msg = partialmethod(logging.log, _MSG)
+    #     """Msg logging function
+    #     usage: LogP.msg("Msg")"""
+    #     logging.log(_MSG,Msg,*args,**kwargs)
+        
+    # def status(self, Msg,*args,**kwargs):
+    # # status = partialmethod(logging.log, _STATUS)
+    #     """Status logging function
+    #     usage: LogP.status("Msg")"""
+    #     logging.log(_STATUS,Msg,*args,**kwargs)
+
+    # def trace(self, Msg,*args,**kwargs):
+    # # trace = partialmethod(logging.log, _TRACE)
+    #     """Trace logging function
+    #     usage: LogP.trace("Msg")"""
+    #     logging.log(_TRACE,Msg,*args,**kwargs)
+
+    # def debug(self, Msg,*args,**kwargs):
+    # # debug = partialmethod(logging.log, _DEBUG)
+    #     """Debug logging function
+    #     usage: LogP.debug("Msg")"""
+    #     logging.log(_DEBUG,Msg,*args,**kwargs)
+
+    # def log(self,Level, Msg,*args,**kwargs):
+    # # log = partialmethod(logging.log)
+    #     """Log logging function
+    #     usage: LogP.log(level,"Msg")"""
+    #     logging.log(Level,Msg,*args,**kwargs)
 
 LogP = _LogP()
-logging.status = partial(logging.log, _STATUS)
-logging.msg = partial(logging.log, _MSG)
-logging.trace = partial(logging.log, _TRACE)
+logging.status = partial(logging.log,_STATUS)
+logging.msg = partial(logging.log,_MSG)
+logging.trace = partial(logging.log,_TRACE)
 
 ###############################################################
 # Test if __main__
@@ -1453,9 +1338,9 @@ logging.trace = partial(logging.log, _TRACE)
 
 
 if __name__ == '__main__':
-
+    
+    
     def abc():
-        """Na ja"""
         logging.error('Error')
         logging.status('Status')
         logging.warning('Warning')
@@ -1463,61 +1348,61 @@ if __name__ == '__main__':
         logging.info('Info')
         logging.debug('Debug')
         # XXLogP.trace('Trace')
-
+    
+    
     def main():
-        """Main"""
-        MyParam = {}
+        MyParam= {}
         MyParam['Verbose'] = 4
         MyParam['StdErr'] = True
         MyParam['NoDaemon'] = True
         MyParam['Quiet'] = False
         MyParam['LogPath'] = ''
         MyParam['LogProcInfo'] = True
-
+    
     #    MyParam['LogPath'] = './TheLog.log'
         AppName = "LogP"
         try:
-            LogP.SetupLogging(AppName=AppName,
-                              Verbose=MyParam['Verbose'],
-                              StdErr=MyParam['StdErr'],
-                              NoDaemon=MyParam['NoDaemon'],
-                              Quiet=MyParam['Quiet'],
-                              LogPath=MyParam['LogPath'],
-                              LogLevelType=3,
-                              LogProcInfo=True,
-                              LogMultiProc=True,
-                              LogMultiThread=True,
-                              LogProcInfoModLen=15,
-                              LogProcInfoFuncLen=15,
-                              LogMultiProcLen=13,
-                              LogMultiThreadLen=12,
-                              LogDebugCacheSize=11,
-                              LogDebugIp='127.0.0.1',
-                              LogDebugPort=65432
-                              )
-
-        except Exception as exc:                        # pylint: disable=W0703
+            LogP.SetupLogging(AppName = AppName, 
+                        Verbose = MyParam['Verbose'], 
+                        StdErr = MyParam['StdErr'], 
+                        NoDaemon = MyParam['NoDaemon'], 
+                        Quiet = MyParam['Quiet'],
+                        LogPath = MyParam['LogPath'],
+                        LogLevelType=3,
+                        LogProcInfo = True,
+                        LogMultiProc = True, 
+                        LogMultiThread = True,
+                        LogProcInfoModLen=15,
+                        LogProcInfoFuncLen=15,
+                        LogMultiProcLen=13,
+                        LogMultiThreadLen=12,
+                        LogDebugCacheSize=11,
+                        LogDebugIp='127.0.0.1',
+                        LogDebugPort=65432
+                        ) 
+            
+        except Exception as exc:
             print(exc)
             sys.exit(1)
-
+            
         LogP.Stop()
-
-        LogP.SetupLogging(AppName=AppName,
-                          Verbose=MyParam['Verbose'],
-                          StdErr=MyParam['StdErr'],
-                          NoDaemon=MyParam['NoDaemon'],
-                          Quiet=MyParam['Quiet'],
-                          LogPath=MyParam['LogPath'],
-                          LogProcInfo=False,
-                          #                        LogStackOnDebug = "debug",
-                          #                        LogStackDepth=2,
-                          LogLevelType=0,
-                          LogMultiProc=False,
-                          LogMultiThread=False,
-                          LogProcInfoModLen=5,
-                          LogDebugPort=65432
-                          )
-
+    
+        LogP.SetupLogging(AppName = AppName, 
+                        Verbose = MyParam['Verbose'], 
+                        StdErr = MyParam['StdErr'], 
+                        NoDaemon = MyParam['NoDaemon'], 
+                        Quiet = MyParam['Quiet'],
+                        LogPath = MyParam['LogPath'],
+                        LogProcInfo = False,
+#                        LogStackOnDebug = "debug",
+#                        LogStackDepth=2,
+                        LogLevelType = 0,
+                        LogMultiProc = False, 
+                        LogMultiThread = False,
+                        LogProcInfoModLen=5,
+                        LogDebugPort=65432
+                        ) 
+    
         logging.error('Error')
         logging.warning('Warning')
         logging.info('Info')
@@ -1527,23 +1412,22 @@ if __name__ == '__main__':
         logging.debug('Debug')
         abc()
         LogP.Stop()
-
-        LogP.SetupLogging(AppName=AppName,
-                          Verbose=MyParam['Verbose'],
-                          StdErr=MyParam['StdErr'],
-                          NoDaemon=MyParam['NoDaemon'],
-                          Quiet=MyParam['Quiet'],
-                          LogPath=MyParam['LogPath'],
-                          LogLevelType=3,
-                          LogProcInfo=True,
-                          LogMultiProc=False,
-                          LogMultiThread=False,
-                          LogProcInfoModLen=15,
-                          LogProcInfoFuncLen=15,
-                          LogLongLevel='DEBUG, Status',
-                          LogDebugPort=65432
-                          )
-
+        
+        LogP.SetupLogging(AppName = AppName, 
+                        Verbose = MyParam['Verbose'], 
+                        StdErr = MyParam['StdErr'], 
+                        NoDaemon = MyParam['NoDaemon'], 
+                        Quiet = MyParam['Quiet'],
+                        LogPath = MyParam['LogPath'],
+                        LogLevelType=3,
+                        LogProcInfo = True,
+                        LogMultiProc = False, 
+                        LogMultiThread = False,
+                        LogProcInfoModLen=15,
+                        LogProcInfoFuncLen=15,
+                        LogDebugPort=65432
+                        ) 
+    
         logging.error('Error')
         logging.warning('Warning')
         logging.info('Info')
@@ -1553,5 +1437,6 @@ if __name__ == '__main__':
         logging.debug('Debug')
         abc()
         LogP.Stop()
-
+    
     main()
+

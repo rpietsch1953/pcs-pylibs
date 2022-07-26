@@ -1,0 +1,33 @@
+{
+    "alpha": {
+        "Count": 7,
+        "Text": ""
+    },
+    "beta": {},
+    "gamma": {
+        "Xy": false
+    },
+    "global": {
+        "NoDaemon": true,
+        "Quiet": false,
+        "Verbose": 4
+    },
+    "log": {
+        "LogDebugCacheSize": 0,
+        "LogDebugIp": "127.0.0.1",
+        "LogDebugPort": 0,
+        "LogLevelType": 2,
+        "LogMultiProc": true,
+        "LogMultiProcLen": 15,
+        "LogMultiThread": true,
+        "LogMultiThreadLen": 15,
+        "LogPath": "",
+        "LogProcInfo": true,
+        "LogProcInfoFuncLen": 15,
+        "LogProcInfoModLen": 15,
+        "LogStackDepth": 5,
+        "LogStackOnDebug": "warning",
+        "StdErr": true
+    }
+}
+

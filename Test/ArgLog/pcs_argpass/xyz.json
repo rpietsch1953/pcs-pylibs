@@ -1,0 +1,19 @@
+{
+    "alpha": {
+        "Count": 9,
+        "Text": "Der Text"
+    },
+    "beta": {
+        "Float": 11.22
+    },
+    "gamma": {
+        "Xy": true
+    },
+    "global": {
+        "NoDaemon": true,
+        "Quiet": false,
+        "StdErr": true,
+        "Verbose": 2
+    }
+}
+

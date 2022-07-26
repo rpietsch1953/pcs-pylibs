@@ -13,7 +13,6 @@ Konsole und nicht auf syslog""",
     'LogPath': {   
         'l': 'logpath',
         'r': False,
-        'M': True,
         'o': True,
         'm': 'p',
         'v': '',
@@ -139,6 +138,26 @@ fortlaufend alle folgenden Meldungen. 0 = Disabled.'''
         'o': True,
         'v': 'NONE',
         'd': '''Ab diesem Log-Level wird ein Stack-Dump an die Meldung angefügt.
+Die möglichen Werte sind:
+    "ERROR"
+    "STATUS"
+    "WARNING"
+    "MSG"
+    "INFO"
+    "DEBUG"
+    "TRACE"
+    "NONE"
+Alle anderen Angaben werden als 'NONE' interpretiert. 
+Die ANgabe ignoriert Groß- und Kleinschreivbung''',
+        },
+    'LogLongLevel': {
+        'l': 'loglonglevel',
+        'm': 't',
+        'o': True,
+        'v': 'DEBUG',
+        'd': '''Ab diesem Log-Level wird die Langform 
+(mit allen Processdaten und Log-Level) ausgegeben.
+Bei ERROR-Meldungen wird IMMER die Langform verwendet.
 Die möglichen Werte sind:
     "ERROR"
     "STATUS"
